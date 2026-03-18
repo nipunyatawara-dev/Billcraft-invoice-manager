@@ -95,20 +95,20 @@ export default function Home() {
               <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
-                  <select className="w-full comic-border-sm border-black px-4 py-2.5 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100 appearance-none cursor-pointer">
-                    <option className="bg-white dark:bg-slate-900">All Status</option>
-                    <option className="bg-white dark:bg-slate-900">Paid</option>
-                    <option className="bg-white dark:bg-slate-900">Unpaid</option>
-                    <option className="bg-white dark:bg-slate-900">Overdue</option>
+                  <select className="w-full comic-border-sm border-black px-4 py-2 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Status</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Paid</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Unpaid</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Overdue</option>
                   </select>
                 </div>
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
-                  <select className="w-full comic-border-sm border-black px-4 py-2.5 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100 appearance-none cursor-pointer">
-                    <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
-                    <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
-                    <option className="bg-white dark:bg-slate-900">This Year</option>
-                    <option className="bg-white dark:bg-slate-900">Custom Range</option>
+                  <select className="w-full comic-border-sm border-black px-4 py-2 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Last 30 Days</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Last 90 Days</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">This Year</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Custom Range</option>
                   </select>
                 </div>
               </div>
