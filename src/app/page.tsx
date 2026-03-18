@@ -96,8 +96,8 @@ export default function Home() {
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
                   <div className="relative">
-                    <select className="w-full h-[44px] comic-button comic-border-sm border-black pl-4 pr-10 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors appearance-none">
-                      <option className="bg-white dark:bg-slate-900">All Status</option>
+                    <select className="w-full h-[44px] comic-button comic-border-sm border-black pl-4 pr-10 font-bold uppercase focus:ring-primary bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors appearance-none">
+                      <option className="bg-white dark:bg-slate-900 border-none">All Status</option>
                       <option className="bg-white dark:bg-slate-900">Paid</option>
                       <option className="bg-white dark:bg-slate-900">Unpaid</option>
                       <option className="bg-white dark:bg-slate-900">Overdue</option>
@@ -110,7 +110,7 @@ export default function Home() {
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
                   <div className="relative">
-                    <select className="w-full h-[44px] comic-button comic-border-sm border-black pl-4 pr-10 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors appearance-none">
+                    <select className="w-full h-[44px] comic-button comic-border-sm border-black pl-4 pr-10 font-bold uppercase focus:ring-primary bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors appearance-none">
                       <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
                       <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
                       <option className="bg-white dark:bg-slate-900">This Year</option>
