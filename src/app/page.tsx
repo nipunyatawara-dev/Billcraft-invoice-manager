@@ -73,7 +73,7 @@ export default function Home() {
               <h1 className="text-4xl font-black uppercase tracking-tighter">Invoices</h1>
               <p className="text-slate-600 dark:text-slate-400 font-medium">Manage your billing and client payments</p>
             </div>
-            <button className="comic-button comic-border bg-primary text-white px-6 py-3 font-bold uppercase flex items-center gap-2 hover:translate-x-[-2px] hover:translate-y-[-2px] transition-transform">
+            <button className="comic-button comic-border bg-primary text-white px-6 py-3 font-bold uppercase flex items-center gap-2 transition-colors hover:bg-blue-600">
               <span className="material-symbols-outlined">add</span>
               Create Invoice
             </button>
@@ -113,7 +113,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="lg:col-span-3 flex items-end">
-                <button className="w-full comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 py-2 font-bold uppercase hover:bg-slate-200 transition-colors">
+                <button className="w-full comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 py-2 font-bold uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                   Apply Filters
                 </button>
               </div>
@@ -155,13 +155,13 @@ export default function Home() {
                     </td>
                     <td className="py-4 text-right pr-4">
                       <div className="flex justify-end gap-2">
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800" title="View">
+                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="View">
                           <span className="material-symbols-outlined text-sm">visibility</span>
                         </button>
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800" title="Download">
+                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Download">
                           <span className="material-symbols-outlined text-sm">download</span>
                         </button>
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800" title="Edit">
+                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Edit">
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                       </div>
@@ -175,10 +175,10 @@ export default function Home() {
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm font-bold text-slate-600 dark:text-slate-400">Showing 1 to 4 of 42 invoices</p>
             <div className="flex gap-2">
-              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 transition-colors">Previous</button>
-              <button className="comic-button comic-border-sm bg-primary text-white px-3 py-1 font-bold text-sm">1</button>
-              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 transition-colors">2</button>
-              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 transition-colors">Next</button>
+              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Previous</button>
+              <button className="comic-button comic-border-sm bg-primary text-white px-3 py-1 font-bold text-sm hover:bg-blue-600 transition-colors">1</button>
+              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">2</button>
+              <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 px-3 py-1 font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Next</button>
             </div>
           </div>
         </section>
