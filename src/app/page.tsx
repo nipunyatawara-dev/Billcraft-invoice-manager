@@ -93,18 +93,18 @@ export default function Home() {
                 </div>
               </div>
               <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
-                <div className="flex-1 min-w-[120px]">
+                <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
-                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100">
+                  <select className="w-full comic-border-sm border-black px-4 py-2.5 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100 appearance-none cursor-pointer">
                     <option className="bg-white dark:bg-slate-900">All Status</option>
                     <option className="bg-white dark:bg-slate-900">Paid</option>
                     <option className="bg-white dark:bg-slate-900">Unpaid</option>
                     <option className="bg-white dark:bg-slate-900">Overdue</option>
                   </select>
                 </div>
-                <div className="flex-1 min-w-[120px]">
+                <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
-                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100">
+                  <select className="w-full comic-border-sm border-black px-4 py-2.5 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100 appearance-none cursor-pointer">
                     <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
                     <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
                     <option className="bg-white dark:bg-slate-900">This Year</option>
@@ -155,13 +155,13 @@ export default function Home() {
                     </td>
                     <td className="py-4 text-right pr-4">
                       <div className="flex justify-end gap-2">
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="View">
+                        <button className="comic-button comic-border-sm bg-white size-9 flex items-center justify-center hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="View">
                           <span className="material-symbols-outlined text-sm">visibility</span>
                         </button>
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Download">
+                        <button className="comic-button comic-border-sm bg-white size-9 flex items-center justify-center hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Download">
                           <span className="material-symbols-outlined text-sm">download</span>
                         </button>
-                        <button className="comic-button comic-border-sm bg-white p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Edit">
+                        <button className="comic-button comic-border-sm bg-white size-9 flex items-center justify-center hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors" title="Edit">
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                       </div>
