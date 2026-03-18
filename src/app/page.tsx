@@ -1,7 +1,6 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useState } from "react";
 
 const INVOICES = [
   {
@@ -47,9 +46,6 @@ const INVOICES = [
 ];
 
 export default function Home() {
-  const [status, setStatus] = useState("All Status");
-  const [dateRange, setDateRange] = useState("Last 30 Days");
-
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b-3 border-black bg-white dark:bg-slate-900 px-6 py-4 sticky top-0 z-50">
@@ -99,52 +95,30 @@ export default function Home() {
               <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
-                  <div className="relative h-[44px] group">
-                    {/* Visual Layer - Perfectly matches Button */}
-                    <div className="absolute inset-0 w-full h-full comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 flex items-center justify-center px-4 transition-colors group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
-                      <span className="font-bold uppercase text-slate-900 dark:text-slate-100 truncate pr-6">
-                        {status}
-                      </span>
-                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
-                        expand_more
-                      </span>
-                    </div>
-                    {/* Overlay Layer - Real Select */}
-                    <select 
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10"
-                    >
-                      <option value="All Status">All Status</option>
-                      <option value="Paid">Paid</option>
-                      <option value="Unpaid">Unpaid</option>
-                      <option value="Overdue">Overdue</option>
+                  <div className="relative h-[44px] comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 border-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <select className="w-full h-full bg-transparent border-none outline-none pl-4 pr-10 font-bold uppercase cursor-pointer appearance-none text-slate-900 dark:text-slate-100 focus:ring-0">
+                      <option className="bg-white dark:bg-slate-900">All Status</option>
+                      <option className="bg-white dark:bg-slate-900">Paid</option>
+                      <option className="bg-white dark:bg-slate-900">Unpaid</option>
+                      <option className="bg-white dark:bg-slate-900">Overdue</option>
                     </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+                      expand_more
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
-                  <div className="relative h-[44px] group">
-                    {/* Visual Layer - Perfectly matches Button */}
-                    <div className="absolute inset-0 w-full h-full comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 flex items-center justify-center px-4 transition-colors group-hover:bg-slate-200 dark:group-hover:bg-slate-700">
-                      <span className="font-bold uppercase text-slate-900 dark:text-slate-100 truncate pr-6">
-                        {dateRange}
-                      </span>
-                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
-                        expand_more
-                      </span>
-                    </div>
-                    {/* Overlay Layer - Real Select */}
-                    <select 
-                      value={dateRange}
-                      onChange={(e) => setDateRange(e.target.value)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10"
-                    >
-                      <option value="Last 30 Days">Last 30 Days</option>
-                      <option value="Last 90 Days">Last 90 Days</option>
-                      <option value="This Year">This Year</option>
-                      <option value="Custom Range">Custom Range</option>
+                  <div className="relative h-[44px] comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 border-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <select className="w-full h-full bg-transparent border-none outline-none pl-4 pr-10 font-bold uppercase cursor-pointer appearance-none text-slate-900 dark:text-slate-100 focus:ring-0">
+                      <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
+                      <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
+                      <option className="bg-white dark:bg-slate-900">This Year</option>
+                      <option className="bg-white dark:bg-slate-900">Custom Range</option>
                     </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+                      expand_more
+                    </span>
                   </div>
                 </div>
               </div>

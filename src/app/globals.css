@@ -15,6 +15,8 @@
   --radius-full: 9999px;
 }
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f5f6f8;
   --foreground: #0f172a;
