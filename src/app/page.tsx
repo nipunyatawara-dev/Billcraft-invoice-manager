@@ -57,10 +57,10 @@ export default function Home() {
         </div>
         <div className="flex gap-4">
           <ThemeToggle />
-          <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 p-2 flex items-center justify-center hover:bg-slate-50 transition-colors">
+          <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 p-2 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
             <span className="material-symbols-outlined text-black dark:text-white">notifications</span>
           </button>
-          <button className="comic-button comic-border-sm bg-primary p-2 flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+          <button className="comic-button comic-border-sm bg-primary p-2 flex items-center justify-center text-white hover:bg-blue-600 transition-colors">
             <span className="material-symbols-outlined">person</span>
           </button>
         </div>
