@@ -95,25 +95,35 @@ export default function Home() {
               <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
-                  <select className="w-full comic-border-sm border-black px-4 py-2 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Status</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Paid</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Unpaid</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Overdue</option>
-                  </select>
+                  <div className="relative group">
+                    <select className="w-full h-[44px] comic-border-sm border-black pl-4 pr-10 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors appearance-none">
+                      <option className="bg-white dark:bg-slate-900">All Status</option>
+                      <option className="bg-white dark:bg-slate-900">Paid</option>
+                      <option className="bg-white dark:bg-slate-900">Unpaid</option>
+                      <option className="bg-white dark:bg-slate-900">Overdue</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+                      expand_more
+                    </span>
+                  </div>
                 </div>
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
-                  <select className="w-full comic-border-sm border-black px-4 py-2 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Last 30 Days</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Last 90 Days</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">This Year</option>
-                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Custom Range</option>
-                  </select>
+                  <div className="relative group">
+                    <select className="w-full h-[44px] comic-border-sm border-black pl-4 pr-10 font-bold focus:ring-primary bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors appearance-none">
+                      <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
+                      <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
+                      <option className="bg-white dark:bg-slate-900">This Year</option>
+                      <option className="bg-white dark:bg-slate-900">Custom Range</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+                      expand_more
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="lg:col-span-3 flex items-end">
-                <button className="w-full comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 py-2 font-bold uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <button className="w-full h-[44px] comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 font-bold uppercase hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                   Apply Filters
                 </button>
               </div>
