@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const INVOICES = [
   {
@@ -56,6 +56,7 @@ export default function Home() {
           <h2 className="text-2xl font-black leading-tight tracking-tight uppercase">BillCraft</h2>
         </div>
         <div className="flex gap-4">
+          <ThemeToggle />
           <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 p-2 flex items-center justify-center hover:bg-slate-50 transition-colors">
             <span className="material-symbols-outlined text-black dark:text-white">notifications</span>
           </button>
@@ -94,20 +95,20 @@ export default function Home() {
               <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
                 <div className="flex-1 min-w-[120px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
-                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent">
-                    <option>All Status</option>
-                    <option>Paid</option>
-                    <option>Unpaid</option>
-                    <option>Overdue</option>
+                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100">
+                    <option className="bg-white dark:bg-slate-900">All Status</option>
+                    <option className="bg-white dark:bg-slate-900">Paid</option>
+                    <option className="bg-white dark:bg-slate-900">Unpaid</option>
+                    <option className="bg-white dark:bg-slate-900">Overdue</option>
                   </select>
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Date Range</label>
-                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent">
-                    <option>Last 30 Days</option>
-                    <option>Last 90 Days</option>
-                    <option>This Year</option>
-                    <option>Custom Range</option>
+                  <select className="w-full comic-border-sm border-black py-2 font-bold focus:ring-primary bg-transparent text-slate-900 dark:text-slate-100">
+                    <option className="bg-white dark:bg-slate-900">Last 30 Days</option>
+                    <option className="bg-white dark:bg-slate-900">Last 90 Days</option>
+                    <option className="bg-white dark:bg-slate-900">This Year</option>
+                    <option className="bg-white dark:bg-slate-900">Custom Range</option>
                   </select>
                 </div>
               </div>
