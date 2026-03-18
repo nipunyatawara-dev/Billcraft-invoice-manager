@@ -32,8 +32,12 @@
     font-style: normal !important;
   }
   
-  /* Remove italics globally */
+  /* Remove italics globally and strictly */
   * {
+    font-style: normal !important;
+  }
+  
+  em, i, cite, address, dfn {
     font-style: normal !important;
   }
 }
