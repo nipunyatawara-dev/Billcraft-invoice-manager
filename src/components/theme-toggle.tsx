@@ -86,7 +86,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="comic-button comic-border-sm bg-white dark:bg-slate-800 p-2 flex items-center justify-center">
+      <button className="bg-white dark:bg-slate-800 p-2 flex items-center justify-center rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all active:scale-95">
         <span className="material-symbols-outlined text-black dark:text-white">light_mode</span>
       </button>
     );
@@ -97,7 +97,7 @@ export function ThemeToggle() {
       type="button"
       ref={buttonRef}
       onClick={handleToggle}
-      className="comic-button comic-border-sm bg-white dark:bg-slate-800 p-2 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:cursor-not-allowed"
+      className="bg-white dark:bg-slate-800 p-2 flex items-center justify-center rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 disabled:cursor-not-allowed"
       disabled={isAnimating}
       aria-label="Toggle Theme"
       aria-disabled={isAnimating}
