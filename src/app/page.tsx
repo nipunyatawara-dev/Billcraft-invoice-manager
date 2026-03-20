@@ -67,6 +67,30 @@ export default function Home() {
       </header>
 
       <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="comic-border bg-green-100 dark:bg-green-900/20 p-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black uppercase text-green-800 dark:text-green-400">Total Paid</p>
+              <h3 className="text-2xl font-black">$45,210.00</h3>
+            </div>
+            <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+          </div>
+          <div className="comic-border bg-yellow-100 dark:bg-yellow-900/20 p-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black uppercase text-yellow-800 dark:text-yellow-400">Total Pending</p>
+              <h3 className="text-2xl font-black">$12,840.00</h3>
+            </div>
+            <span className="material-symbols-outlined text-4xl text-yellow-600">hourglass_empty</span>
+          </div>
+          <div className="comic-border bg-red-100 dark:bg-red-900/20 p-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black uppercase text-red-800 dark:text-red-400">Total Overdue</p>
+              <h3 className="text-2xl font-black">$3,150.00</h3>
+            </div>
+            <span className="material-symbols-outlined text-4xl text-red-600">warning</span>
+          </div>
+        </div>
+
         <section className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-1">
@@ -92,7 +116,7 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="lg:col-span-4 flex gap-2 overflow-x-auto pb-2 lg:pb-0">
+              <div className="lg:col-span-4 flex gap-2 overflow-x-auto overflow-y-hidden lg:overflow-visible pb-2 lg:pb-0">
                 <div className="flex-1 min-w-[150px]">
                   <label className="block text-xs font-black uppercase mb-1 text-slate-500">Status</label>
                   <div className="relative h-[44px] comic-button comic-border-sm bg-slate-100 dark:bg-slate-800 border-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
@@ -192,30 +216,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-          <div className="comic-border bg-green-100 dark:bg-green-900/20 p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black uppercase text-green-800 dark:text-green-400">Total Paid</p>
-              <h3 className="text-2xl font-black">$45,210.00</h3>
-            </div>
-            <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
-          </div>
-          <div className="comic-border bg-yellow-100 dark:bg-yellow-900/20 p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black uppercase text-yellow-800 dark:text-yellow-400">Total Pending</p>
-              <h3 className="text-2xl font-black">$12,840.00</h3>
-            </div>
-            <span className="material-symbols-outlined text-4xl text-yellow-600">hourglass_empty</span>
-          </div>
-          <div className="comic-border bg-red-100 dark:bg-red-900/20 p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black uppercase text-red-800 dark:text-red-400">Total Overdue</p>
-              <h3 className="text-2xl font-black">$3,150.00</h3>
-            </div>
-            <span className="material-symbols-outlined text-4xl text-red-600">warning</span>
-          </div>
-        </div>
       </main>
 
       <footer className="mt-auto border-t-3 border-black bg-white dark:bg-slate-900 p-6 text-center">
