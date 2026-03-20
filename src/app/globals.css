@@ -31,6 +31,19 @@
 }
 
 @layer base {
+  /* Aggressive universal scrollbar hiding */
+  * {
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
+  }
+
+  ::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+    background: transparent !important;
+  }
+
   body {
     @apply bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans;
     font-style: normal !important;
