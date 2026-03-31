@@ -1,9 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0d59f2;
-  --color-background-light: #f5f6f8;
-  --color-background-dark: #101622;
+  --color-primary: #2b396d;
+  --color-background-light: #e4e4e4;
+  --color-background-dark: #0b0b0b;
+  
+  /* Map slate colors to requested palette for global consistency */
+  --color-slate-900: #0b0b0b; /* VOID ECLIPSE */
+  --color-slate-100: #e4e4e4; /* SILVER MIST */
+  --color-slate-50: #e4e4e4; /* Use Silver Mist for subtle light backgrounds to ensure contrast over white */
   
   --font-sans: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -17,17 +22,17 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f5f6f8;
-  --foreground: #0f172a;
-  --primary: #0d59f2;
+  --background: #e4e4e4;
+  --foreground: #0b0b0b;
+  --primary: #2b396d;
   --theme-wipe-x: 50vw;
   --theme-wipe-y: 50vh;
   --theme-wipe-radius: 0px;
 }
 
 .dark {
-  --background: #101622;
-  --foreground: #f8fafc;
+  --background: #0b0b0b;
+  --foreground: #e4e4e4;
 }
 
 @layer base {
@@ -47,6 +52,12 @@
   body {
     @apply bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans;
     font-style: normal !important;
+  }
+  
+  /* Guarantee proper contrast for any highlighted text globally */
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-slate-100); /* maps to Silver Mist / White-ish for great contrast */
   }
   
   /* Remove italics globally and strictly */

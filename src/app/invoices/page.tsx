@@ -61,20 +61,20 @@ export default function Invoices() {
               <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Invoices</h1>
               <p className="text-slate-500 dark:text-slate-400 text-sm">Manage your billing and client payments</p>
             </div>
-            <button className="bg-primary text-white px-5 py-2.5 font-medium rounded-lg flex items-center gap-2 transition-all hover:bg-blue-600 shadow-sm shadow-black/5 active:scale-95 text-sm">
+            <button className="bg-primary text-white px-5 py-2.5 font-medium rounded-xl flex items-center gap-2 transition-all hover:bg-primary/90 shadow-sm active:scale-95">
               <span className="material-symbols-outlined text-[20px]">add</span>
               Create Invoice
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#111827] p-5 lg:p-6 rounded-xl shadow-sm shadow-black/5 border border-slate-200/60 dark:border-slate-800/60">
+          <div className="bg-white dark:bg-slate-900 p-5 lg:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               <div className="lg:col-span-5">
                 <label className="block text-xs font-medium text-slate-500 mb-2">Search Invoices</label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
                   <input
-                    className="w-full pl-10 pr-4 border border-slate-200/60 dark:border-slate-700/60 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary py-2.5 text-sm bg-slate-50 dark:bg-[#1f2937] outline-none transition-all dark:text-white"
+                    className="w-full pl-10 pr-4 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 outline-none transition-all dark:text-white"
                     placeholder="Search by ID, client name..."
                     type="text"
                   />
@@ -86,7 +86,7 @@ export default function Invoices() {
                   <div className="relative h-[42px]">
                     <button 
                       onClick={() => { setIsStatusOpen(!isStatusOpen); setIsDateRangeOpen(false); }}
-                      className={`w-full h-full bg-slate-50 dark:bg-[#1f2937] border border-slate-200/60 dark:border-slate-700/60 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none flex items-center justify-between px-3 text-sm font-medium text-slate-700 dark:text-slate-300`}
+                      className={`w-full h-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none flex items-center justify-between px-3 text-sm font-medium text-slate-700 dark:text-slate-300`}
                     >
                       <span className="truncate">{statusVal}</span>
                       <span className={`material-symbols-outlined text-[20px] pointer-events-none text-slate-400 transition-transform duration-200 ${isStatusOpen ? 'rotate-180' : ''}`}>
@@ -94,14 +94,14 @@ export default function Invoices() {
                       </span>
                     </button>
                     <div 
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-slate-700/60 rounded-lg shadow-lg z-50 origin-top transition-all duration-200 ease-out overflow-hidden ${isStatusOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 origin-top transition-all duration-200 ease-out overflow-hidden ${isStatusOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
                     >
                       <ul className="py-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                         {['All Status', 'Paid', 'Unpaid', 'Overdue'].map((opt) => (
                           <li key={opt}>
                             <button 
                               onClick={() => { setStatusVal(opt); setIsStatusOpen(false); }}
-                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-[#1f2937] transition-colors"
+                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                             >
                               {opt}
                             </button>
@@ -116,7 +116,7 @@ export default function Invoices() {
                   <div className="relative h-[42px]">
                     <button 
                       onClick={() => { setIsDateRangeOpen(!isDateRangeOpen); setIsStatusOpen(false); }}
-                      className={`w-full h-full bg-slate-50 dark:bg-[#1f2937] border border-slate-200/60 dark:border-slate-700/60 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none flex items-center justify-between px-3 text-sm font-medium text-slate-700 dark:text-slate-300`}
+                      className={`w-full h-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none flex items-center justify-between px-3 text-sm font-medium text-slate-700 dark:text-slate-300`}
                     >
                       <span className="truncate">{dateRangeVal}</span>
                       <span className={`material-symbols-outlined text-[20px] pointer-events-none text-slate-400 transition-transform duration-200 ${isDateRangeOpen ? 'rotate-180' : ''}`}>
@@ -124,14 +124,14 @@ export default function Invoices() {
                       </span>
                     </button>
                     <div 
-                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111827] border border-slate-200/60 dark:border-slate-700/60 rounded-lg shadow-lg z-50 origin-top transition-all duration-200 ease-out overflow-hidden ${isDateRangeOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
+                      className={`absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 origin-top transition-all duration-200 ease-out overflow-hidden ${isDateRangeOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
                     >
                       <ul className="py-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                         {['Last 30 Days', 'Last 90 Days', 'This Year', 'Custom Range'].map((opt) => (
                           <li key={opt}>
                             <button 
                               onClick={() => { setDateRangeVal(opt); setIsDateRangeOpen(false); }}
-                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-[#1f2937] transition-colors"
+                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                             >
                               {opt}
                             </button>
@@ -143,7 +143,7 @@ export default function Invoices() {
                 </div>
               </div>
               <div className="lg:col-span-3 flex items-end">
-                <button className="w-full h-[42px] bg-slate-100 dark:bg-[#1f2937] text-sm font-medium text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700/70 transition-colors border border-transparent dark:border-slate-700/60">
+                <button className="w-full h-[42px] bg-slate-100 dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700/70 transition-colors border border-transparent dark:border-slate-700">
                   Apply Filters
                 </button>
               </div>
@@ -152,10 +152,10 @@ export default function Invoices() {
         </section>
 
         <section className="space-y-4">
-          <div className="overflow-x-auto bg-white dark:bg-[#111827] rounded-xl shadow-sm shadow-black/5 border border-slate-200/60 dark:border-slate-800/60">
+          <div className="overflow-x-auto bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
             <table className="w-full text-left whitespace-nowrap">
               <thead>
-                <tr className="text-xs font-semibold text-slate-500 border-b border-slate-200/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-[#0a0f18]/30">
+                <tr className="text-xs font-semibold text-slate-500 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                   <th className="py-4 pl-6 font-medium">Invoice #</th>
                   <th className="py-4 font-medium">Client</th>
                   <th className="py-4 font-medium">Issue Date</th>
@@ -166,11 +166,11 @@ export default function Invoices() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {INVOICES.map((inv) => (
-                  <tr key={inv.id} className="group hover:bg-slate-50 dark:hover:bg-[#1f2937] transition-colors cursor-pointer">
+                  <tr key={inv.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer">
                     <td className="py-4 pl-6 font-semibold text-slate-900 dark:text-white text-sm">{inv.id}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`size-8 rounded-full shadow-sm border border-slate-200/60 dark:border-slate-700/60 ${inv.clientColor} overflow-hidden shrink-0`}>
+                        <div className={`size-8 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 ${inv.clientColor} overflow-hidden shrink-0`}>
                           <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
                         </div>
                         <span className="font-medium text-sm text-slate-700 dark:text-slate-300">{inv.client}</span>
@@ -179,7 +179,7 @@ export default function Invoices() {
                     <td className="py-4 text-sm text-slate-500 dark:text-slate-400">{inv.date}</td>
                     <td className="py-4 text-right font-semibold text-sm text-slate-900 dark:text-white">{inv.amount}</td>
                     <td className="py-4 text-center">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-md ${inv.statusColor}`}>
+                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${inv.statusColor}`}>
                         {inv.status}
                       </span>
                     </td>
@@ -205,17 +205,17 @@ export default function Invoices() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-2">
             <p className="text-sm text-slate-500 font-medium">Showing 1 to 4 of 42 invoices</p>
             <div className="flex gap-1.5">
-              <button className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-colors disabled:opacity-50">Previous</button>
+              <button className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors disabled:opacity-50">Previous</button>
               <button className="px-3.5 py-1.5 text-sm font-medium rounded-lg bg-primary text-white shadow-sm transition-colors">1</button>
-              <button className="px-3.5 py-1.5 text-sm font-medium rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-colors">2</button>
-              <button className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-colors">Next</button>
+              <button className="px-3.5 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors">2</button>
+              <button className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-colors">Next</button>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="mt-auto border-t border-slate-200/60 dark:border-slate-800/60 bg-transparent p-6 text-center">
-        <p className="text-[13px] font-medium text-slate-500">© 2023 BillCraft. All rights reserved.</p>
+      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-6 text-center">
+        <p className="text-xs font-medium text-slate-500">© 2023 BillCraft. All rights reserved.</p>
       </footer>
     </DashboardLayout>
   );
