@@ -2,179 +2,157 @@
 
 import { DashboardLayout } from "@/components/dashboard-layout";
 import Link from "next/link";
-import { INVOICES } from "@/app/invoices/page";
+import { INVOICES } from "@/data/invoices";
 
 export default function Home() {
-  const recentInvoices = INVOICES.slice(0, 3);
+  const recentInvoices = INVOICES.slice(0, 4);
 
   return (
     <DashboardLayout>
-      <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10 space-y-10">
+      <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10">
         
-        {/* Welcome Banner */}
-        <section className="relative overflow-hidden rounded-3xl bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary/20 p-8 lg:p-12 shadow-sm">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-primary/20 blur-3xl pointer-events-none"></div>
-          
-          <div className="relative z-10 max-w-2xl">
-            <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight text-slate-900 dark:text-white mb-4">
+        {/* Minimal Greeting */}
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-sm font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-1">Dashboard</p>
+            <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] leading-[1.1]">
               Good Morning, John
             </h1>
-            <p className="text-slate-600 dark:text-slate-300 text-base lg:text-lg mb-8">
-              Here's what's happening with your finances today. You have <span className="font-semibold text-slate-900 dark:text-white">3 invoices</span> pending approval and <span className="font-semibold text-red-600 dark:text-red-400">1 overdue</span> payment.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/invoices" className="bg-primary text-white px-6 py-2.5 font-medium rounded-xl flex items-center gap-2 hover:bg-primary/90 transition-all shadow-sm active:scale-95">
-                <span className="material-symbols-outlined text-[20px]">add</span>
-                Create Invoice
-              </Link>
-              <button className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-6 py-2.5 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm active:scale-95">
-                View Reports
-              </button>
-            </div>
           </div>
-        </section>
-
-        {/* Analytics Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-slate-900/50 p-6 flex flex-col gap-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-green-200 dark:hover:border-green-900/50 transition-colors">
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors pointer-events-none" />
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Total Revenue</p>
-              <div className="size-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center relative z-10">
-                <span className="material-symbols-outlined text-[20px] text-green-600 dark:text-green-500">payments</span>
-              </div>
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white mb-1">$45,210.00</h3>
-              <p className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                +12.5% from last month
-              </p>
-            </div>
+          <div className="hidden md:flex gap-3">
+            <Link href="/invoices" className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-5 py-2.5 font-medium rounded-full flex items-center gap-2 hover:opacity-90 transition-all active:scale-[0.97] text-sm">
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              New Invoice
+            </Link>
+            <button className="border border-[#212842]/15 dark:border-[#F0E7D5]/15 text-[#212842]/70 dark:text-[#F0E7D5]/70 px-5 py-2.5 font-medium rounded-full hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all active:scale-[0.97] text-sm">
+              View Reports
+            </button>
           </div>
+        </div>
 
-          <div className="bg-white dark:bg-slate-900/50 p-6 flex flex-col gap-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-yellow-200 dark:hover:border-yellow-900/50 transition-colors">
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-yellow-500/5 rounded-full blur-2xl group-hover:bg-yellow-500/10 transition-colors pointer-events-none" />
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Pending Payments</p>
-              <div className="size-10 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center relative z-10">
-                <span className="material-symbols-outlined text-[20px] text-yellow-600 dark:text-yellow-500">schedule</span>
-              </div>
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white mb-1">$12,840.00</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">inventory_2</span>
-                14 invoices pending
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900/50 p-6 flex flex-col gap-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 relative overflow-hidden group hover:border-red-200 dark:hover:border-red-900/50 transition-colors">
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-red-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-slate-500">Overdue Balance</p>
-              <div className="size-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center relative z-10">
-                <span className="material-symbols-outlined text-[20px] text-red-600 dark:text-red-500">warning</span>
-              </div>
-            </div>
-            <div className="relative z-10">
-              <h3 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white mb-1">$3,150.00</h3>
-              <p className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">error</span>
-                Requires immediate action
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Lower Grid: Quick Actions & Recent */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-auto">
           
-          {/* Quick Actions */}
-          <section className="lg:col-span-1 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white px-1">Quick Actions</h2>
-            <div className="flex flex-col gap-3">
-              <Link href="/invoices" className="bg-white dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary dark:hover:border-primary/50 transition-colors group cursor-pointer">
-                <div className="size-10 rounded-xl bg-primary/20 dark:bg-primary/20 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-primary dark:text-white/80 text-[20px]">add_circle</span>
+          {/* Revenue — Large Featured Card (spans 2 cols, 2 rows) */}
+          <div className="md:col-span-2 md:row-span-2 bg-[#212842] dark:bg-[#F0E7D5] rounded-3xl p-8 lg:p-10 flex flex-col justify-between relative overflow-hidden group min-h-[320px]">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F0E7D5]/5 to-transparent dark:from-[#212842]/5 pointer-events-none" />
+            <div className="absolute -right-20 -bottom-20 w-60 h-60 rounded-full bg-[#F0E7D5]/5 dark:bg-[#212842]/5 blur-3xl pointer-events-none group-hover:bg-[#F0E7D5]/10 dark:group-hover:bg-[#212842]/10 transition-all duration-700" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-full bg-[#F0E7D5]/10 dark:bg-[#212842]/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[16px] text-[#F0E7D5]/70 dark:text-[#212842]/70">payments</span>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-white transition-colors">New Invoice</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Create and send a new bill</p>
-                </div>
-              </Link>
-              
-              <button className="bg-white dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary dark:hover:border-primary/50 transition-colors group cursor-pointer text-left">
-                <div className="size-10 rounded-xl bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-purple-600 dark:text-purple-400 text-[20px]">person_add</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-white transition-colors">Add Client</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Register a new customer</p>
-                </div>
-              </button>
+                <p className="text-sm font-medium text-[#F0E7D5]/50 dark:text-[#212842]/50 tracking-wide">Total Revenue</p>
+              </div>
+            </div>
 
-              <button className="bg-white dark:bg-slate-900/50 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary dark:hover:border-primary/50 transition-colors group cursor-pointer text-left">
-                <div className="size-10 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-orange-600 dark:text-orange-400 text-[20px]">description</span>
+            <div className="relative z-10">
+              <h2 className="text-5xl lg:text-6xl font-semibold tracking-tighter text-[#F0E7D5] dark:text-[#212842] mb-3 font-display">
+                $45,210
+              </h2>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-[#F0E7D5]/50 dark:text-[#212842]/50 font-medium flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">trending_up</span>
+                  +12.5% from last month
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Payments Card */}
+          <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 relative overflow-hidden group hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[152px]">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Pending</p>
+              <div className="size-8 rounded-full bg-[#212842]/6 dark:bg-[#F0E7D5]/6 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px] text-[#212842]/50 dark:text-[#F0E7D5]/50">schedule</span>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$12,840</h3>
+              <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">14 invoices awaiting</p>
+            </div>
+          </div>
+
+          {/* Overdue Card */}
+          <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 relative overflow-hidden group hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[152px]">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Overdue</p>
+              <div className="size-8 rounded-full bg-[#212842]/6 dark:bg-[#F0E7D5]/6 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[16px] text-[#212842]/50 dark:text-[#F0E7D5]/50">warning</span>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$3,150</h3>
+              <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">Requires attention</p>
+            </div>
+          </div>
+
+          {/* Quick Actions — Horizontal strip */}
+          <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 border border-[#212842]/6 dark:border-[#F0E7D5]/6 min-h-[152px] flex flex-col justify-between">
+            <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-4">Quick Actions</p>
+            <div className="grid grid-cols-3 gap-3">
+              <Link href="/invoices" className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
+                <div className="size-11 rounded-2xl bg-[#212842]/8 dark:bg-[#F0E7D5]/8 flex items-center justify-center group-hover:bg-[#212842]/12 dark:group-hover:bg-[#F0E7D5]/12 transition-colors">
+                  <span className="material-symbols-outlined text-[20px] text-[#212842]/60 dark:text-[#F0E7D5]/60">add_circle</span>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-white transition-colors">Estimates</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Draft an itemized estimate</p>
+                <span className="text-xs font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 text-center">New Invoice</span>
+              </Link>
+              <button className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
+                <div className="size-11 rounded-2xl bg-[#212842]/8 dark:bg-[#F0E7D5]/8 flex items-center justify-center group-hover:bg-[#212842]/12 dark:group-hover:bg-[#F0E7D5]/12 transition-colors">
+                  <span className="material-symbols-outlined text-[20px] text-[#212842]/60 dark:text-[#F0E7D5]/60">person_add</span>
                 </div>
+                <span className="text-xs font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 text-center">Add Client</span>
+              </button>
+              <button className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
+                <div className="size-11 rounded-2xl bg-[#212842]/8 dark:bg-[#F0E7D5]/8 flex items-center justify-center group-hover:bg-[#212842]/12 dark:group-hover:bg-[#F0E7D5]/12 transition-colors">
+                  <span className="material-symbols-outlined text-[20px] text-[#212842]/60 dark:text-[#F0E7D5]/60">description</span>
+                </div>
+                <span className="text-xs font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 text-center">Estimates</span>
               </button>
             </div>
-          </section>
+          </div>
 
-          {/* Recent Invoices */}
-          <section className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Invoices</h2>
-              <Link href="/invoices" className="text-sm font-medium text-primary dark:text-slate-300 hover:text-primary/80 dark:hover:text-white transition-colors">
-                View All
+          {/* Recent Invoices — Full Width */}
+          <div className="md:col-span-2 lg:col-span-4 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 overflow-hidden">
+            <div className="flex items-center justify-between px-7 pt-6 pb-4">
+              <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Recent Invoices</p>
+              <Link href="/invoices" className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 hover:text-[#212842] dark:hover:text-[#F0E7D5] transition-colors">
+                View All →
               </Link>
             </div>
             
-            <div className="bg-white dark:bg-slate-900/50 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                {recentInvoices.map((inv) => (
-                  <div key={inv.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group">
-                    <div className="flex items-center gap-4">
-                      <div className={`size-10 sm:size-12 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 ${inv.clientColor} overflow-hidden shrink-0`}>
-                        <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-white transition-colors">{inv.client}</h4>
-                        <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-2 mt-0.5">
-                          {inv.id}
-                          <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                          {inv.date}
-                        </p>
-                      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-x-0 sm:divide-x divide-[#212842]/6 dark:divide-[#F0E7D5]/6">
+              {recentInvoices.map((inv, i) => (
+                <div key={inv.id} className={`px-7 py-5 flex flex-col gap-4 hover:bg-[#212842]/3 dark:hover:bg-[#F0E7D5]/3 transition-colors cursor-pointer group ${i > 0 ? 'border-t sm:border-t-0 border-[#212842]/6 dark:border-[#F0E7D5]/6' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-full border border-[#212842]/8 dark:border-[#F0E7D5]/8 overflow-hidden shrink-0">
+                      <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
                     </div>
-                    
-                    <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 ml-14 sm:ml-0">
-                      <div className="text-left sm:text-right">
-                        <p className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">{inv.amount}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">USD</p>
-                      </div>
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full shrink-0 ${inv.statusColor}`}>
-                        {inv.status}
-                      </span>
+                    <div className="min-w-0">
+                      <h4 className="font-semibold text-sm text-[#212842] dark:text-[#F0E7D5] truncate group-hover:opacity-70 transition-opacity">{inv.client}</h4>
+                      <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40">{inv.id}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-lg font-semibold text-[#212842] dark:text-[#F0E7D5] tracking-tight font-display">{inv.amount}</p>
+                      <p className="text-xs text-[#212842]/30 dark:text-[#F0E7D5]/30 mt-0.5">{inv.date}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>
+                      {inv.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          </section>
+          </div>
 
         </div>
       </main>
 
-      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-6 text-center">
-        <p className="text-xs font-medium text-slate-500">© 2023 BillCraft. All rights reserved.</p>
+      <footer className="mt-auto border-t border-[#212842]/6 dark:border-[#F0E7D5]/6 p-6 text-center">
+        <p className="text-xs font-medium text-[#212842]/30 dark:text-[#F0E7D5]/30">© 2023 BillCraft. All rights reserved.</p>
       </footer>
     </DashboardLayout>
   );

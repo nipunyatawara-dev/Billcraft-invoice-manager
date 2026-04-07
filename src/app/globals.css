@@ -1,17 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2b396d;
-  --color-background-light: #e4e4e4;
-  --color-background-dark: #0b0b0b;
+  --color-indigo: #212842;
+  --color-cream: #F0E7D5;
+  --color-background-light: #F0E7D5;
+  --color-background-dark: #212842;
   
-  /* Map slate colors to requested palette for global consistency */
-  --color-slate-900: #0b0b0b; /* VOID ECLIPSE */
-  --color-slate-100: #e4e4e4; /* SILVER MIST */
-  --color-slate-50: #e4e4e4; /* Use Silver Mist for subtle light backgrounds to ensure contrast over white */
-  
-  --font-sans: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
   
   --radius-default: 0.5rem;
   --radius-lg: 1rem;
@@ -22,17 +18,16 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #e4e4e4;
-  --foreground: #0b0b0b;
-  --primary: #2b396d;
+  --background: #F0E7D5;
+  --foreground: #212842;
   --theme-wipe-x: 50vw;
   --theme-wipe-y: 50vh;
   --theme-wipe-radius: 0px;
 }
 
 .dark {
-  --background: #0b0b0b;
-  --foreground: #e4e4e4;
+  --background: #212842;
+  --foreground: #F0E7D5;
 }
 
 @layer base {
@@ -50,23 +45,38 @@
   }
 
   body {
-    @apply bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
     font-style: normal !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Guarantee proper contrast for any highlighted text globally */
+  /* Selection */
   ::selection {
-    background-color: var(--color-primary);
-    color: var(--color-slate-100); /* maps to Silver Mist / White-ish for great contrast */
+    background-color: #212842;
+    color: #F0E7D5;
+  }
+
+  .dark ::selection {
+    background-color: #F0E7D5;
+    color: #212842;
   }
   
-  /* Remove italics globally and strictly */
+  /* Remove italics globally */
   * {
     font-style: normal !important;
   }
   
   em, i, cite, address, dfn {
     font-style: normal !important;
+  }
+
+  /* Display font for headings */
+  h1, h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }
 

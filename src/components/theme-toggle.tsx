@@ -86,8 +86,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="bg-white dark:bg-slate-800 p-2 flex items-center justify-center rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-all active:scale-95">
-        <span className="material-symbols-outlined text-black dark:text-white">light_mode</span>
+      <button className="p-2 flex items-center justify-center rounded-xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 transition-all active:scale-95">
+        <span className="material-symbols-outlined text-[#212842] dark:text-[#F0E7D5]">light_mode</span>
       </button>
     );
   }
@@ -97,12 +97,12 @@ export function ThemeToggle() {
       type="button"
       ref={buttonRef}
       onClick={handleToggle}
-      className="bg-white dark:bg-slate-800 p-2 flex items-center justify-center rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 disabled:cursor-not-allowed"
+      className="p-2 flex items-center justify-center rounded-xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all active:scale-95 disabled:cursor-not-allowed"
       disabled={isAnimating}
       aria-label="Toggle Theme"
       aria-disabled={isAnimating}
     >
-      <span className="material-symbols-outlined text-black dark:text-white">
+      <span className="material-symbols-outlined text-[#212842] dark:text-[#F0E7D5]">
         {activeTheme === "dark" ? "light_mode" : "dark_mode"}
       </span>
     </button>
