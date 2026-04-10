@@ -70,10 +70,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <span className="material-symbols-outlined text-lg">group</span>
                 Clients
               </Link>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]">
+              <Link href="/analytics" className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/analytics' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">bar_chart</span>
                 Analytics
-              </button>
+              </Link>
             </nav>
 
             <div className="p-4 border-t border-[#212842]/10 dark:border-[#F0E7D5]/10 space-y-1 bg-transparent shrink-0">
