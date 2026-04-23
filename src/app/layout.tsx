@@ -7,6 +7,17 @@ export const metadata: Metadata = {
   title: "BillCraft | Premium Invoice Management",
   description: "Craft professional invoices with ease using BillCraft's powerful management engine.",
   keywords: ["invoice", "billing", "saas", "payment", "management"],
+  icons: {
+    icon: [
+      {
+        url: "/billcraft-light-circle.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
+    ],
+    shortcut: "/billcraft-light-circle.png",
+    apple: "/billcraft-light-circle.png",
+  },
 };
 
 export default function RootLayout({

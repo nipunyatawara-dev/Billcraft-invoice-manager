@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,12 +26,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           >
             <span className="material-symbols-outlined text-[#212842]/70 dark:text-[#F0E7D5]/70">menu</span>
           </button>
-          <div className="flex items-center gap-3">
-            <div className="size-9 bg-[#212842] dark:bg-[#F0E7D5] rounded-xl shadow-sm flex items-center justify-center hidden sm:flex">
-              <span className="material-symbols-outlined font-medium text-lg text-[#F0E7D5] dark:text-[#212842]">receipt_long</span>
-            </div>
-            <h2 className="text-xl font-bold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">BillCraft</h2>
-          </div>
+          <Link href="/" className="flex items-center gap-2.5" aria-label="BillCraft dashboard">
+            <Image
+              src="/billcraft-dark-circle.png"
+              alt=""
+              width={40}
+              height={40}
+              sizes="40px"
+              className="size-10 rounded-full object-cover dark:hidden"
+            />
+            <Image
+              src="/billcraft-light-circle.png"
+              alt=""
+              width={40}
+              height={40}
+              sizes="40px"
+              className="hidden size-10 rounded-full object-cover dark:block"
+            />
+            <h2 className="translate-y-px text-[22px] font-bold leading-none tracking-normal text-[#212842] dark:text-[#F0E7D5] font-display">BillCraft</h2>
+          </Link>
         </div>
         <div className="flex gap-3">
           <ThemeToggle />
