@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardLayout } from "@/components/dashboard-layout";
 import { formatCurrency } from "@/data/invoices";
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { useState } from "react";
@@ -21,7 +20,7 @@ export default function Settings() {
   ];
 
   return (
-    <DashboardLayout>
+    <>
       <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10">
         
         {/* Header */}
@@ -42,7 +41,7 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842]'
                       : 'text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5'
@@ -62,12 +61,12 @@ export default function Settings() {
             {activeTab === "profile" && (
               <>
                 {/* Avatar & Name — Hero Card */}
-                <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-3xl p-8 relative overflow-hidden">
+                <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-2xl p-8 relative overflow-hidden">
                   <div className="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-[#F0E7D5]/5 dark:bg-[#212842]/5 blur-3xl pointer-events-none" />
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
-                    <div className="size-20 rounded-2xl bg-[#F0E7D5]/10 dark:bg-[#212842]/10 border border-[#F0E7D5]/10 dark:border-[#212842]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
+                    <div className="size-20 rounded-xl bg-[#F0E7D5]/10 dark:bg-[#212842]/10 border border-[#F0E7D5]/10 dark:border-[#212842]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
                       <span className="material-symbols-outlined text-3xl text-[#F0E7D5]/40 dark:text-[#212842]/40">person</span>
-                      <div className="absolute inset-0 bg-[#212842]/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-2xl">
+                      <div className="absolute inset-0 bg-[#212842]/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
                         <span className="material-symbols-outlined text-xl text-[#F0E7D5]">photo_camera</span>
                       </div>
                     </div>
@@ -75,7 +74,7 @@ export default function Settings() {
                       <h2 className="text-2xl font-semibold text-[#F0E7D5] dark:text-[#212842] font-display mb-1">John Doe</h2>
                       <p className="text-sm text-[#F0E7D5]/50 dark:text-[#212842]/50">hello@johndoe.com</p>
                     </div>
-                    <button className="px-4 py-2 bg-[#F0E7D5]/10 dark:bg-[#212842]/10 border border-[#F0E7D5]/15 dark:border-[#212842]/15 text-[#F0E7D5] dark:text-[#212842] rounded-full text-sm font-medium hover:bg-[#F0E7D5]/20 dark:hover:bg-[#212842]/20 transition-colors">
+                    <button className="px-4 py-2 bg-[#F0E7D5]/10 dark:bg-[#212842]/10 border border-[#F0E7D5]/15 dark:border-[#212842]/15 text-[#F0E7D5] dark:text-[#212842] rounded-xl text-sm font-medium hover:bg-[#F0E7D5]/20 dark:hover:bg-[#212842]/20 transition-colors">
                       Change Photo
                     </button>
                   </div>
@@ -120,7 +119,7 @@ export default function Settings() {
                 </div>
 
                 <div className="flex justify-end pt-2">
-                  <button className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-full hover:opacity-90 transition-all active:scale-[0.97] text-sm">
+                  <button className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-xl hover:opacity-90 transition-all active:scale-[0.97] text-sm">
                     Save Changes
                   </button>
                 </div>
@@ -129,7 +128,7 @@ export default function Settings() {
 
             {/* Notifications Tab */}
             {activeTab === "notifications" && (
-              <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 overflow-hidden">
+              <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 overflow-hidden">
                 {[
                   { label: "Email Notifications", desc: "Receive alerts when invoices are paid or overdue", state: emailNotifications, toggle: setEmailNotifications },
                   { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices", state: invoiceReminders, toggle: setInvoiceReminders },
@@ -158,14 +157,14 @@ export default function Settings() {
             {/* Billing Tab */}
             {activeTab === "billing" && (
               <>
-                <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-3xl p-8 relative overflow-hidden">
+                <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-2xl p-8 relative overflow-hidden">
                   <div className="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-[#F0E7D5]/5 dark:bg-[#212842]/5 blur-3xl pointer-events-none" />
                   <div className="relative z-10">
                     <p className="text-xs font-medium text-[#F0E7D5]/50 dark:text-[#212842]/50 tracking-wide uppercase mb-3">Current Plan</p>
                     <h2 className="text-3xl font-semibold text-[#F0E7D5] dark:text-[#212842] font-display mb-1">Professional</h2>
                     <p className="text-sm text-[#F0E7D5]/50 dark:text-[#212842]/50 mb-6">Unlimited invoices, clients, and export options</p>
                     <div className="flex gap-3">
-                      <button className="px-5 py-2.5 bg-[#F0E7D5] dark:bg-[#212842] text-[#212842] dark:text-[#F0E7D5] rounded-full text-sm font-medium hover:opacity-90 transition-all">
+                      <button className="px-5 py-2.5 bg-[#F0E7D5] dark:bg-[#212842] text-[#212842] dark:text-[#F0E7D5] rounded-xl text-sm font-medium hover:opacity-90 transition-all">
                         Upgrade Plan
                       </button>
                       <button className="px-5 py-2.5 text-[#F0E7D5]/60 dark:text-[#212842]/60 text-sm font-medium hover:text-[#F0E7D5] dark:hover:text-[#212842] transition-colors">
@@ -200,14 +199,14 @@ export default function Settings() {
             {/* Security Tab */}
             {activeTab === "security" && (
               <>
-                <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 overflow-hidden">
+                <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 overflow-hidden">
                   <div className="p-6 border-b border-[#212842]/6 dark:border-[#F0E7D5]/6">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5]">Password</h3>
                         <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mt-1">Last changed 3 months ago</p>
                       </div>
-                      <button className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-full text-xs font-semibold text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
+                      <button className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-lg text-xs font-semibold text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
                         Change
                       </button>
                     </div>
@@ -218,7 +217,7 @@ export default function Settings() {
                         <h3 className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5]">Two-Factor Authentication</h3>
                         <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mt-1">Add an extra layer of security to your account</p>
                       </div>
-                      <button className="px-4 py-2 bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] rounded-full text-xs font-semibold hover:opacity-90 transition-all">
+                      <button className="px-4 py-2 bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] rounded-lg text-xs font-semibold hover:opacity-90 transition-all">
                         Enable
                       </button>
                     </div>
@@ -229,7 +228,7 @@ export default function Settings() {
                         <h3 className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5]">Active Sessions</h3>
                         <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mt-1">2 devices currently signed in</p>
                       </div>
-                      <button className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-full text-xs font-semibold text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
+                      <button className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-lg text-xs font-semibold text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
                         Manage
                       </button>
                     </div>
@@ -239,7 +238,7 @@ export default function Settings() {
                 <div className="p-6 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl border border-[#212842]/6 dark:border-[#F0E7D5]/6">
                   <h3 className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5] mb-1">Danger Zone</h3>
                   <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mb-4">Permanently delete your account and all associated data</p>
-                  <button className="px-4 py-2 border border-[#212842]/15 dark:border-[#F0E7D5]/15 rounded-full text-xs font-semibold text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
+                  <button className="px-4 py-2 border border-[#212842]/15 dark:border-[#F0E7D5]/15 rounded-lg text-xs font-semibold text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
                     Delete Account
                   </button>
                 </div>
@@ -252,6 +251,6 @@ export default function Settings() {
       <footer className="mt-auto border-t border-[#212842]/6 dark:border-[#F0E7D5]/6 p-6 text-center">
         <p className="text-xs font-medium text-[#212842]/30 dark:text-[#F0E7D5]/30">© 2023 BillCraft. All rights reserved.</p>
       </footer>
-    </DashboardLayout>
+    </>
   );
 }

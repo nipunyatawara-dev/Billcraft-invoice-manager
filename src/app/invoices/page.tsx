@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardLayout } from "@/components/dashboard-layout";
 import { formatCurrency, getInvoiceTotals, parseInvoiceAmount, type Invoice, type InvoiceStatus } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -112,7 +111,7 @@ export default function Invoices() {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10">
         
         {/* Header */}
@@ -123,7 +122,7 @@ export default function Invoices() {
               Invoices
             </h1>
           </div>
-          <button onClick={openCreateModal} className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-5 py-2.5 font-medium rounded-full flex items-center gap-2 hover:opacity-90 transition-all active:scale-[0.97] text-sm">
+          <button onClick={openCreateModal} className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-5 py-2.5 font-medium rounded-xl flex items-center gap-2 hover:opacity-90 transition-all active:scale-[0.97] text-sm">
             <span className="material-symbols-outlined text-[18px]">add</span>
             New Invoice
           </button>
@@ -157,7 +156,7 @@ export default function Invoices() {
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full pl-11 pr-4 border border-[#212842]/8 dark:border-[#F0E7D5]/8 rounded-full py-2.5 text-sm bg-transparent outline-none transition-all text-[#212842] dark:text-[#F0E7D5] placeholder:text-[#212842]/30 dark:placeholder:text-[#F0E7D5]/30 focus:border-[#212842]/25 dark:focus:border-[#F0E7D5]/25"
+              className="w-full pl-11 pr-4 border border-[#212842]/8 dark:border-[#F0E7D5]/8 rounded-xl py-2.5 text-sm bg-transparent outline-none transition-all text-[#212842] dark:text-[#F0E7D5] placeholder:text-[#212842]/30 dark:placeholder:text-[#F0E7D5]/30 focus:border-[#212842]/25 dark:focus:border-[#F0E7D5]/25"
               placeholder="Search invoices..."
               type="text"
             />
@@ -167,7 +166,7 @@ export default function Invoices() {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 text-xs font-semibold rounded-full transition-all active:scale-[0.95] tracking-wide uppercase ${
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all active:scale-[0.95] tracking-wide uppercase ${
                   activeFilter === filter
                     ? "bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842]"
                     : "text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 border border-[#212842]/8 dark:border-[#F0E7D5]/8"
@@ -189,7 +188,7 @@ export default function Invoices() {
               className="w-full text-left bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl border border-[#212842]/6 dark:border-[#F0E7D5]/6 p-5 lg:p-6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all group"
             >
               <div className="flex items-center gap-5">
-                <div className="size-12 rounded-2xl border border-[#212842]/8 dark:border-[#F0E7D5]/8 overflow-hidden shrink-0">
+                <div className="size-12 rounded-xl border border-[#212842]/8 dark:border-[#F0E7D5]/8 overflow-hidden shrink-0">
                   <img className="w-full h-full object-cover" alt={invoice.client} src={invoice.avatar} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -202,9 +201,9 @@ export default function Invoices() {
                 </div>
                 <div className="text-right hidden sm:block">
                   <p className="text-xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
-                  <p className="text-[10px] text-[#212842]/30 dark:text-[#F0E7D5]/30 tracking-wide uppercase mt-0.5">USD</p>
+                  <p className="text-[10px] text-[#212842]/30 dark:text-[#F0E7D5]/30 tracking-wide uppercase mt-0.5">{currency}</p>
                 </div>
-                <span className={`px-3 py-1.5 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
+                <span className={`px-3 py-1.5 text-[10px] font-semibold rounded-md tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
                   {invoice.status}
                 </span>
                 <div className="flex gap-1 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
@@ -284,10 +283,10 @@ export default function Invoices() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 pt-3">
-                  <button type="button" onClick={closeModal} className="px-5 py-2.5 text-sm font-medium text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:text-[#212842] dark:hover:text-[#F0E7D5] transition-colors rounded-full">
+                  <button type="button" onClick={closeModal} className="px-5 py-2.5 text-sm font-medium text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:text-[#212842] dark:hover:text-[#F0E7D5] transition-colors rounded-xl">
                     Cancel
                   </button>
-                  <button type="submit" className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-full hover:opacity-90 transition-all active:scale-[0.97] text-sm">
+                  <button type="submit" className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-xl hover:opacity-90 transition-all active:scale-[0.97] text-sm">
                     {modalMode === "edit" ? "Save Changes" : "Create Invoice"}
                   </button>
                 </div>
@@ -295,7 +294,7 @@ export default function Invoices() {
             ) : selectedInvoice && (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <img className="size-14 rounded-2xl object-cover" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
+                  <img className="size-14 rounded-xl object-cover" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
                   <div>
                     <h3 className="text-xl font-semibold text-[#212842] dark:text-[#F0E7D5]">{selectedInvoice.client}</h3>
                     <p className="text-sm text-[#212842]/40 dark:text-[#F0E7D5]/40">{selectedInvoice.email || "No email added"}</p>
@@ -315,10 +314,10 @@ export default function Invoices() {
                   ))}
                 </div>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => exportInvoice(selectedInvoice)} className="px-5 py-2.5 border border-[#212842]/10 dark:border-[#F0E7D5]/10 text-[#212842]/60 dark:text-[#F0E7D5]/60 rounded-full text-sm font-medium hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
+                  <button onClick={() => exportInvoice(selectedInvoice)} className="px-5 py-2.5 border border-[#212842]/10 dark:border-[#F0E7D5]/10 text-[#212842]/60 dark:text-[#F0E7D5]/60 rounded-xl text-sm font-medium hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
                     Download
                   </button>
-                  <button onClick={() => openEditModal(selectedInvoice)} className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-full hover:opacity-90 transition-all active:scale-[0.97] text-sm">
+                  <button onClick={() => openEditModal(selectedInvoice)} className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-xl hover:opacity-90 transition-all active:scale-[0.97] text-sm">
                     Edit Invoice
                   </button>
                 </div>
@@ -331,6 +330,6 @@ export default function Invoices() {
       <footer className="mt-auto border-t border-[#212842]/6 dark:border-[#F0E7D5]/6 p-6 text-center">
         <p className="text-xs font-medium text-[#212842]/30 dark:text-[#F0E7D5]/30">© 2023 BillCraft. All rights reserved.</p>
       </footer>
-    </DashboardLayout>
+    </>
   );
 }

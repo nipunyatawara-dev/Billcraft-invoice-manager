@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardLayout } from "@/components/dashboard-layout";
 import { formatCurrency, getClientsFromInvoices, getInvoiceTotals } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -16,7 +15,7 @@ export default function Analytics() {
   const topClient = [...clients].sort((a, b) => b.totalBilled - a.totalBilled)[0];
 
   return (
-    <DashboardLayout>
+    <>
       <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10">
         
         {/* Header */}
@@ -28,10 +27,10 @@ export default function Analytics() {
             </h1>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
-             <div className="bg-[#212842]/5 dark:bg-[#F0E7D5]/5 p-1 rounded-2xl flex border border-[#212842]/10 dark:border-[#F0E7D5]/10 w-full md:w-auto overflow-x-auto">
-                <button className="px-4 py-1.5 rounded-xl bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] text-sm font-medium shadow-sm transition-all whitespace-nowrap">This Month</button>
-                <button className="px-4 py-1.5 rounded-xl text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:text-[#212842] dark:hover:text-[#F0E7D5] text-sm font-medium transition-all whitespace-nowrap">Last Quarter</button>
-                <button className="px-4 py-1.5 rounded-xl text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:text-[#212842] dark:hover:text-[#F0E7D5] text-sm font-medium transition-all whitespace-nowrap">This Year</button>
+             <div className="bg-[#212842]/5 dark:bg-[#F0E7D5]/5 p-1 rounded-xl flex border border-[#212842]/10 dark:border-[#F0E7D5]/10 w-full md:w-auto overflow-x-auto">
+                <button className="px-4 py-1.5 rounded-lg bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] text-sm font-medium shadow-sm transition-all whitespace-nowrap">This Month</button>
+                <button className="px-4 py-1.5 rounded-lg text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:text-[#212842] dark:hover:text-[#F0E7D5] text-sm font-medium transition-all whitespace-nowrap">Last Quarter</button>
+                <button className="px-4 py-1.5 rounded-lg text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:text-[#212842] dark:hover:text-[#F0E7D5] text-sm font-medium transition-all whitespace-nowrap">This Year</button>
              </div>
           </div>
         </div>
@@ -40,7 +39,7 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-auto mb-4">
           
           {/* Main Chart Area */}
-          <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-8 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 min-h-[350px] relative overflow-hidden group">
+          <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 lg:p-8 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 min-h-[350px] relative overflow-hidden group">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1">Revenue Flow</h3>
@@ -74,7 +73,7 @@ export default function Analytics() {
           </div>
 
           {/* Realizer Rate */}
-          <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-3xl p-6 lg:p-8 flex flex-col justify-between border border-[#212842]/10 dark:border-[#F0E7D5]/10 relative overflow-hidden group min-h-[350px]">
+          <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-2xl p-6 lg:p-8 flex flex-col justify-between border border-[#212842]/10 dark:border-[#F0E7D5]/10 relative overflow-hidden group min-h-[350px]">
              <div className="absolute inset-0 bg-gradient-to-br from-[#F0E7D5]/5 to-transparent dark:from-[#212842]/5 pointer-events-none" />
              <div className="absolute -right-20 -top-20 w-60 h-60 rounded-full bg-[#F0E7D5]/10 dark:bg-[#212842]/10 blur-3xl pointer-events-none group-hover:bg-[#F0E7D5]/15 dark:group-hover:bg-[#212842]/15 transition-all duration-700" />
             
@@ -116,7 +115,7 @@ export default function Analytics() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-auto">
            {/* Average Invoice Value */}
-           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] group">
+           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] group">
               <div className="flex items-center justify-between">
                  <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Avg. Invoice</p>
                  <div className="size-10 rounded-xl bg-[#212842]/6 dark:bg-[#F0E7D5]/6 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -130,7 +129,7 @@ export default function Analytics() {
            </div>
 
            {/* Client LTV */}
-           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] group">
+           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] group">
               <div className="flex items-center justify-between">
                  <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Avg. LTV</p>
                  <div className="size-10 rounded-xl bg-[#212842]/6 dark:bg-[#F0E7D5]/6 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -144,7 +143,7 @@ export default function Analytics() {
            </div>
 
            {/* Top Performing Service */}
-           <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] relative overflow-hidden group">
+           <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] relative overflow-hidden group">
               <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-[#212842]/5 dark:from-[#F0E7D5]/5 to-transparent pointer-events-none" />
               <div className="flex items-center justify-between mb-4">
                  <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Top Client</p>
@@ -170,6 +169,6 @@ export default function Analytics() {
       <footer className="mt-auto border-t border-[#212842]/6 dark:border-[#F0E7D5]/6 p-6 text-center">
         <p className="text-xs font-medium text-[#212842]/30 dark:text-[#F0E7D5]/30">© 2023 BillCraft. All rights reserved.</p>
       </footer>
-    </DashboardLayout>
+    </>
   );
 }

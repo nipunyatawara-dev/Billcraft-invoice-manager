@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -33,7 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <DashboardLayout>{children}</DashboardLayout>
         </ThemeProvider>
       </body>
     </html>

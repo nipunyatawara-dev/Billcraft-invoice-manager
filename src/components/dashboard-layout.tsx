@@ -9,6 +9,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
+  function closeSidebarOnMobile() {
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setIsSidebarOpen(false);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="flex items-center justify-between border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 bg-[#F0E7D5]/80 dark:bg-[#212842]/80 backdrop-blur-xl px-6 h-[76px] sticky top-0 z-50 shrink-0">
@@ -52,30 +58,30 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         >
           <div className="w-[260px] flex flex-col h-full shrink-0">
             <nav className="flex-1 p-4 overflow-y-auto space-y-1">
-              <Link href="/" onClick={() => setIsSidebarOpen(false)} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
+              <Link href="/" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">dashboard</span>
                 Dashboard
               </Link>
-              <Link href="/invoices" onClick={() => setIsSidebarOpen(false)} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/invoices' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
+              <Link href="/invoices" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/invoices' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">receipt_long</span>
                 Invoices
               </Link>
-              <Link href="/clients" onClick={() => setIsSidebarOpen(false)} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/clients' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
+              <Link href="/clients" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/clients' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">group</span>
                 Clients
               </Link>
-              <Link href="/analytics" onClick={() => setIsSidebarOpen(false)} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/analytics' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
+              <Link href="/analytics" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/analytics' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">bar_chart</span>
                 Analytics
               </Link>
             </nav>
 
             <div className="p-4 border-t border-[#212842]/10 dark:border-[#F0E7D5]/10 space-y-1 bg-transparent shrink-0">
-              <Link href="/settings" onClick={() => setIsSidebarOpen(false)} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all ${pathname === '/settings' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
+              <Link href="/settings" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/settings' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
                 <span className="material-symbols-outlined text-lg">settings</span>
                 Settings
               </Link>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-xl transition-all text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]">
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]">
                 <span className="material-symbols-outlined text-lg">logout</span>
                 Logout
               </button>
