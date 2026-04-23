@@ -1,9 +1,12 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { formatCurrency } from "@/data/invoices";
+import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { useState } from "react";
 
 export default function Settings() {
+  const { currency, setCurrency } = useCurrency();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [invoiceReminders, setInvoiceReminders] = useState(true);
@@ -100,6 +103,22 @@ export default function Settings() {
                   <input type="text" defaultValue="BillCraft Inc." className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2 text-lg font-semibold text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors font-display" />
                 </div>
 
+                <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 border border-[#212842]/6 dark:border-[#F0E7D5]/6 space-y-2">
+                  <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase" htmlFor="currency">Currency</label>
+                  <select
+                    id="currency"
+                    value={currency}
+                    onChange={(event) => setCurrency(event.target.value as CurrencyCode)}
+                    className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2 text-lg font-semibold text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors font-display"
+                  >
+                    {CURRENCIES.map((option) => (
+                      <option key={option.code} value={option.code}>
+                        {option.code} - {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex justify-end pt-2">
                   <button className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-full hover:opacity-90 transition-all active:scale-[0.97] text-sm">
                     Save Changes
@@ -171,7 +190,7 @@ export default function Settings() {
                   </div>
                   <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-6 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
                     <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Next Billing</p>
-                    <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">$29.00</p>
+                    <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(29, currency)}</p>
                     <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mt-1">Due Nov 1, 2023</p>
                   </div>
                 </div>

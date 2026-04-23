@@ -1,8 +1,12 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { useState, useMemo } from "react";
-import { INVOICES, getClientsFromInvoices, type Invoice } from "@/data/invoices";
+import { ChangeEvent, useState, useMemo } from "react";
+import { formatCurrency, getClientsFromInvoices, parseInvoiceAmount, type Client, type Invoice } from "@/data/invoices";
+import { useCurrency } from "@/hooks/use-currency";
+import { useInvoices } from "@/hooks/use-invoices";
+
+type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
 export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,8 +19,20 @@ export default function Clients() {
   const [formEmail, setFormEmail] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formCompany, setFormCompany] = useState("");
+  const [formAvatar, setFormAvatar] = useState("");
 
-  const clients = useMemo(() => getClientsFromInvoices(INVOICES), []);
+  const { invoices, clientRecords, saveClient } = useInvoices();
+  const { currency } = useCurrency();
+
+  const clients = useMemo<ClientWithInvoices[]>(() => {
+    const invoiceClients = getClientsFromInvoices(invoices);
+    const invoiceClientNames = new Set(invoiceClients.map((client) => client.name));
+    const standaloneClients = clientRecords
+      .filter((client) => !invoiceClientNames.has(client.name))
+      .map((client) => ({ ...client, invoices: [], totalBilled: 0 }));
+
+    return [...standaloneClients, ...invoiceClients];
+  }, [clientRecords, invoices]);
 
   const filteredClients = clients.filter((c) =>
     searchQuery === "" ||
@@ -33,6 +49,7 @@ export default function Clients() {
     setFormEmail(client.email);
     setFormPhone(client.phone);
     setFormCompany(client.company || "");
+    setFormAvatar(client.avatar);
   }
 
   function closeModal() {
@@ -42,6 +59,39 @@ export default function Clients() {
     setFormEmail("");
     setFormPhone("");
     setFormCompany("");
+    setFormAvatar("");
+  }
+
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setFormAvatar(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleSaveClient() {
+    if (!formName.trim()) {
+      return;
+    }
+
+    saveClient(editingClient, {
+      client: formName,
+      email: formEmail,
+      phone: formPhone,
+      company: formCompany,
+      avatar: formAvatar,
+    });
+    setSelectedClient(formName.trim());
+    closeModal();
   }
 
   function getStatusBreakdown(invoices: Invoice[]) {
@@ -77,7 +127,7 @@ export default function Clients() {
           <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-2xl p-5 relative overflow-hidden">
             <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-[#F0E7D5]/5 dark:bg-[#212842]/5 blur-2xl pointer-events-none" />
             <p className="text-xs font-medium text-[#F0E7D5]/50 dark:text-[#212842]/50 tracking-wide uppercase mb-3">Total Revenue</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#F0E7D5] dark:text-[#212842] font-display">${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="text-2xl font-semibold tracking-tight text-[#F0E7D5] dark:text-[#212842] font-display">{formatCurrency(totalRevenue, currency)}</p>
           </div>
           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
             <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Clients</p>
@@ -85,11 +135,11 @@ export default function Clients() {
           </div>
           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
             <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Invoices</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{INVOICES.length} <span className="text-sm font-normal text-[#212842]/40 dark:text-[#F0E7D5]/40">total</span></p>
+            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{invoices.length} <span className="text-sm font-normal text-[#212842]/40 dark:text-[#F0E7D5]/40">total</span></p>
           </div>
           <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
             <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Avg / Client</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">${clients.length > 0 ? (totalRevenue / clients.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</p>
+            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
           </div>
         </div>
 
@@ -143,7 +193,7 @@ export default function Clients() {
                       
                       <div className="flex items-center gap-4 mt-4">
                         <div>
-                          <p className="text-lg font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">${client.totalBilled.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                          <p className="text-lg font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(client.totalBilled, currency)}</p>
                           <p className="text-[10px] text-[#212842]/30 dark:text-[#F0E7D5]/30 tracking-wide uppercase">Total Billed</p>
                         </div>
                         <div className="w-px h-8 bg-[#212842]/8 dark:bg-[#F0E7D5]/8" />
@@ -196,7 +246,7 @@ export default function Clients() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <p className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5] font-display">{inv.amount}</p>
+                          <p className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
                           <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>
                             {inv.status}
                           </span>
@@ -233,6 +283,19 @@ export default function Clients() {
             </div>
 
             <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="size-16 rounded-2xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 overflow-hidden bg-[#212842]/5 dark:bg-[#F0E7D5]/5 flex items-center justify-center shrink-0">
+                  {formAvatar ? (
+                    <img className="w-full h-full object-cover" alt="Client preview" src={formAvatar} />
+                  ) : (
+                    <span className="material-symbols-outlined text-[#212842]/35 dark:text-[#F0E7D5]/35">image</span>
+                  )}
+                </div>
+                <label className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-full text-sm font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors cursor-pointer">
+                  <span>{formAvatar ? "Change Image" : "Add Image"}</span>
+                  <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
+                </label>
+              </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Full Name</label>
                 <input 
@@ -282,7 +345,7 @@ export default function Clients() {
                 Cancel
               </button>
               <button 
-                onClick={closeModal}
+                onClick={handleSaveClient}
                 className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-full hover:opacity-90 transition-all active:scale-[0.97] text-sm"
               >
                 {editingClient ? "Save Changes" : "Add Client"}

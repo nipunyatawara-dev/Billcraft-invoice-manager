@@ -2,10 +2,15 @@
 
 import { DashboardLayout } from "@/components/dashboard-layout";
 import Link from "next/link";
-import { INVOICES } from "@/data/invoices";
+import { formatCurrency, getInvoiceTotals, parseInvoiceAmount } from "@/data/invoices";
+import { useCurrency } from "@/hooks/use-currency";
+import { useInvoices } from "@/hooks/use-invoices";
 
 export default function Home() {
-  const recentInvoices = INVOICES.slice(0, 4);
+  const { invoices } = useInvoices();
+  const { currency } = useCurrency();
+  const recentInvoices = invoices.slice(0, 4);
+  const totals = getInvoiceTotals(invoices);
 
   return (
     <DashboardLayout>
@@ -49,7 +54,7 @@ export default function Home() {
 
             <div className="relative z-10">
               <h2 className="text-5xl lg:text-6xl font-semibold tracking-tighter text-[#F0E7D5] dark:text-[#212842] mb-3 font-display">
-                $45,210
+                {formatCurrency(totals.paidAmount, currency)}
               </h2>
               <div className="flex items-center gap-4">
                 <span className="text-sm text-[#F0E7D5]/50 dark:text-[#212842]/50 font-medium flex items-center gap-1.5">
@@ -69,8 +74,8 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$12,840</h3>
-              <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">14 invoices awaiting</p>
+              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">{formatCurrency(totals.pendingAmount, currency)}</h3>
+              <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">{totals.unpaidCount} invoices awaiting</p>
             </div>
           </div>
 
@@ -83,7 +88,7 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$3,150</h3>
+              <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">{formatCurrency(totals.overdueAmount, currency)}</h3>
               <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">Requires attention</p>
             </div>
           </div>
@@ -98,12 +103,12 @@ export default function Home() {
                 </div>
                 <span className="text-xs font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 text-center">New Invoice</span>
               </Link>
-              <button className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
+              <Link href="/clients" className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
                 <div className="size-11 rounded-2xl bg-[#212842]/8 dark:bg-[#F0E7D5]/8 flex items-center justify-center group-hover:bg-[#212842]/12 dark:group-hover:bg-[#F0E7D5]/12 transition-colors">
                   <span className="material-symbols-outlined text-[20px] text-[#212842]/60 dark:text-[#F0E7D5]/60">person_add</span>
                 </div>
                 <span className="text-xs font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 text-center">Add Client</span>
-              </button>
+              </Link>
               <button className="flex flex-col items-center gap-2.5 p-4 rounded-2xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all group cursor-pointer">
                 <div className="size-11 rounded-2xl bg-[#212842]/8 dark:bg-[#F0E7D5]/8 flex items-center justify-center group-hover:bg-[#212842]/12 dark:group-hover:bg-[#F0E7D5]/12 transition-colors">
                   <span className="material-symbols-outlined text-[20px] text-[#212842]/60 dark:text-[#F0E7D5]/60">description</span>
@@ -136,7 +141,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-lg font-semibold text-[#212842] dark:text-[#F0E7D5] tracking-tight font-display">{inv.amount}</p>
+                      <p className="text-lg font-semibold text-[#212842] dark:text-[#F0E7D5] tracking-tight font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
                       <p className="text-xs text-[#212842]/30 dark:text-[#F0E7D5]/30 mt-0.5">{inv.date}</p>
                     </div>
                     <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>

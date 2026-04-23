@@ -11,6 +11,14 @@ export interface Invoice {
   phone: string;
 }
 
+export type InvoiceStatus = Invoice["status"];
+
+const STATUS_STYLES: Record<InvoiceStatus, string> = {
+  Paid: "bg-[#212842]/10 text-[#212842] dark:bg-[#F0E7D5]/10 dark:text-[#F0E7D5]",
+  Unpaid: "bg-[#212842]/20 text-[#212842] dark:bg-[#F0E7D5]/20 dark:text-[#F0E7D5] border border-[#212842]/10 dark:border-[#F0E7D5]/10",
+  Overdue: "bg-[#212842] text-[#F0E7D5] dark:bg-[#F0E7D5] dark:text-[#212842]",
+};
+
 export const INVOICES: Invoice[] = [
   {
     id: "#INV-0089",
@@ -71,6 +79,64 @@ export interface Client {
   notes?: string;
 }
 
+export function getStatusColor(status: InvoiceStatus) {
+  return STATUS_STYLES[status];
+}
+
+export function parseInvoiceAmount(amount: string) {
+  return Number(amount.replace(/[^\d.-]/g, "")) || 0;
+}
+
+export function formatCurrency(value: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
+export function formatDisplayDate(date: string) {
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsed);
+}
+
+export function createAvatar(name: string) {
+  const encodedName = encodeURIComponent(name || "Client");
+  return `https://api.dicebear.com/9.x/initials/svg?seed=${encodedName}&backgroundColor=d1d4f9,f0e7d5,c0aede`;
+}
+
+export function getInvoiceTotals(invoices: Invoice[]) {
+  const totalAmount = invoices.reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+  const paidAmount = invoices
+    .filter((invoice) => invoice.status === "Paid")
+    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+  const pendingAmount = invoices
+    .filter((invoice) => invoice.status === "Unpaid")
+    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+  const overdueAmount = invoices
+    .filter((invoice) => invoice.status === "Overdue")
+    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+
+  return {
+    totalAmount,
+    paidAmount,
+    pendingAmount,
+    overdueAmount,
+    paidCount: invoices.filter((invoice) => invoice.status === "Paid").length,
+    unpaidCount: invoices.filter((invoice) => invoice.status === "Unpaid").length,
+    overdueCount: invoices.filter((invoice) => invoice.status === "Overdue").length,
+  };
+}
+
 export function getClientsFromInvoices(invoices: Invoice[]): (Client & { invoices: Invoice[]; totalBilled: number })[] {
   const clientMap = new Map<string, { client: Client; invoices: Invoice[]; totalBilled: number }>();
   
@@ -89,7 +155,7 @@ export function getClientsFromInvoices(invoices: Invoice[]): (Client & { invoice
     }
     const entry = clientMap.get(inv.client)!;
     entry.invoices.push(inv);
-    entry.totalBilled += parseFloat(inv.amount.replace(/[$,]/g, ''));
+    entry.totalBilled += parseInvoiceAmount(inv.amount);
   }
   
   return Array.from(clientMap.values()).map(({ client, invoices, totalBilled }) => ({

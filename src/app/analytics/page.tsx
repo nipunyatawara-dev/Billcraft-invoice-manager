@@ -1,14 +1,19 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { INVOICES } from "@/data/invoices";
+import { formatCurrency, getClientsFromInvoices, getInvoiceTotals } from "@/data/invoices";
+import { useCurrency } from "@/hooks/use-currency";
+import { useInvoices } from "@/hooks/use-invoices";
 
 export default function Analytics() {
-  const totalRevenue = INVOICES.filter(i => i.status === "Paid").reduce((acc, curr) => acc + parseFloat(curr.amount.replace(/[$,]/g, '')), 0);
-  const totalPending = INVOICES.filter(i => i.status === "Unpaid" || i.status === "Overdue").reduce((acc, curr) => acc + parseFloat(curr.amount.replace(/[$,]/g, '')), 0);
-  
-  // Format as currency
-  const formatCurrency = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val);
+  const { invoices } = useInvoices();
+  const { currency } = useCurrency();
+  const totals = getInvoiceTotals(invoices);
+  const clients = getClientsFromInvoices(invoices);
+  const paidRatio = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
+  const averageInvoice = invoices.length > 0 ? totals.totalAmount / invoices.length : 0;
+  const averageClientValue = clients.length > 0 ? totals.totalAmount / clients.length : 0;
+  const topClient = [...clients].sort((a, b) => b.totalBilled - a.totalBilled)[0];
 
   return (
     <DashboardLayout>
@@ -92,7 +97,7 @@ export default function Analytics() {
                        />
                        <path
                          className="text-[#F0E7D5] dark:text-[#212842]"
-                         strokeDasharray="82, 100"
+                         strokeDasharray={`${paidRatio}, 100`}
                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                          fill="none"
                          stroke="currentColor"
@@ -101,10 +106,10 @@ export default function Analytics() {
                        />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <span className="text-3xl font-semibold tracking-tighter text-[#F0E7D5] dark:text-[#212842] font-display">82%</span>
+                       <span className="text-3xl font-semibold tracking-tighter text-[#F0E7D5] dark:text-[#212842] font-display">{paidRatio}%</span>
                     </div>
                  </div>
-                 <p className="text-[#F0E7D5]/80 dark:text-[#212842]/80 text-sm font-medium text-center">82% of all invoices are paid on time. Excellent work.</p>
+                 <p className="text-[#F0E7D5]/80 dark:text-[#212842]/80 text-sm font-medium text-center">{paidRatio}% of invoices are currently marked paid.</p>
              </div>
           </div>
         </div>
@@ -119,7 +124,7 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$2,405</h3>
+                 <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">{formatCurrency(averageInvoice, currency)}</h3>
                  <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium text-emerald-600 dark:text-emerald-400">+5.2% than last month</p>
               </div>
            </div>
@@ -133,7 +138,7 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">$15,200</h3>
+                 <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">{formatCurrency(averageClientValue, currency)}</h3>
                  <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">Per client lifetime</p>
               </div>
            </div>
@@ -142,18 +147,18 @@ export default function Analytics() {
            <div className="md:col-span-2 bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-3xl p-6 lg:p-7 flex flex-col justify-between border border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15 transition-all duration-300 min-h-[160px] relative overflow-hidden group">
               <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-[#212842]/5 dark:from-[#F0E7D5]/5 to-transparent pointer-events-none" />
               <div className="flex items-center justify-between mb-4">
-                 <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Top Earning Service</p>
+                 <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Top Client</p>
                  <div className="size-10 rounded-xl bg-[#212842]/6 dark:bg-[#F0E7D5]/6 flex items-center justify-center group-hover:scale-105 transition-transform">
                    <span className="material-symbols-outlined text-[18px] text-[#212842]/60 dark:text-[#F0E7D5]/60">star</span>
                  </div>
               </div>
               <div className="flex justify-between items-end relative z-10">
                  <div>
-                   <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">Web App Dev</h3>
-                   <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">Accounting for 45% of total revenue</p>
+                   <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] mb-1 font-display">{topClient?.name || "No client yet"}</h3>
+                   <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">Highest billed client by invoice total</p>
                  </div>
                  <div className="text-right">
-                    <p className="text-lg font-semibold text-[#212842] dark:text-[#F0E7D5]">$62,400</p>
+                    <p className="text-lg font-semibold text-[#212842] dark:text-[#F0E7D5]">{formatCurrency(topClient?.totalBilled || 0, currency)}</p>
                     <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">YTD</p>
                  </div>
               </div>

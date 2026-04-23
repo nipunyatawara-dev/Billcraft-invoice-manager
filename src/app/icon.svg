@@ -1,6 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="144" fill="#0d59f2" />
-  <g transform="translate(64, 448) scale(0.4)">
-    <path fill="#ffffff" d="M280-280h400v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80ZM160-120v-720q0-33 23.5-56.5T240-920h480q33 0 56.5 23.5T800-840v720l-160-60-160 60-160-60-160 60Zm80-134 80-30 160 60 160-60 80 30v-606H240v606Zm0 0v-606 606Z" />
-  </g>
+  <style>
+    .mark-bg { fill: #212842; }
+    .mark-fg { fill: #F0E7D5; }
+
+    @media (prefers-color-scheme: dark) {
+      .mark-bg { fill: #F0E7D5; }
+      .mark-fg { fill: #212842; }
+    }
+  </style>
+  <rect class="mark-bg" width="512" height="512" rx="136" />
+  <path
+    class="mark-fg"
+    d="M164 112c0-17.7 14.3-32 32-32h176c17.7 0 32 14.3 32 32v288l-60-24-44 18-44-18-44 18-48-20V112Zm64 84h112v-32H228v32Zm0 76h112v-32H228v32Zm0 76h112v-32H228v32Z"
+  />
 </svg>
