@@ -14,9 +14,9 @@ export interface Invoice {
 export type InvoiceStatus = Invoice["status"];
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
-  Paid: "bg-[#212842]/10 text-[#212842] dark:bg-[#F0E7D5]/10 dark:text-[#F0E7D5]",
-  Unpaid: "bg-[#212842]/20 text-[#212842] dark:bg-[#F0E7D5]/20 dark:text-[#F0E7D5] border border-[#212842]/10 dark:border-[#F0E7D5]/10",
-  Overdue: "bg-[#212842] text-[#F0E7D5] dark:bg-[#F0E7D5] dark:text-[#212842]",
+  Paid: "bg-[var(--sage)]/15 text-[var(--sage)]",
+  Unpaid: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
+  Overdue: "bg-[var(--accent)]/15 text-[var(--accent)]",
 };
 
 export const INVOICES: Invoice[] = [
@@ -27,8 +27,8 @@ export const INVOICES: Invoice[] = [
     date: "Oct 12, 2023",
     amount: "$2,450.00",
     status: "Paid",
-    statusColor: "bg-[#212842]/10 text-[#212842] dark:bg-[#F0E7D5]/10 dark:text-[#F0E7D5]",
-    clientColor: "bg-[#212842]/10",
+    statusColor: "bg-[var(--sage)]/15 text-[var(--sage)]",
+    clientColor: "bg-[var(--foreground)]/10",
     email: "billing@acmecorp.com",
     phone: "+1 (555) 234-5678"
   },
@@ -39,8 +39,8 @@ export const INVOICES: Invoice[] = [
     date: "Oct 14, 2023",
     amount: "$850.00",
     status: "Unpaid",
-    statusColor: "bg-[#212842]/20 text-[#212842] dark:bg-[#F0E7D5]/20 dark:text-[#F0E7D5] border border-[#212842]/10 dark:border-[#F0E7D5]/10",
-    clientColor: "bg-[#212842]/10",
+    statusColor: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
+    clientColor: "bg-[var(--foreground)]/10",
     email: "sarah@jenkins.design",
     phone: "+1 (555) 876-5432"
   },
@@ -51,8 +51,8 @@ export const INVOICES: Invoice[] = [
     date: "Oct 15, 2023",
     amount: "$5,120.00",
     status: "Overdue",
-    statusColor: "bg-[#212842] text-[#F0E7D5] dark:bg-[#F0E7D5] dark:text-[#212842]",
-    clientColor: "bg-[#212842]/10",
+    statusColor: "bg-[var(--accent)]/15 text-[var(--accent)]",
+    clientColor: "bg-[var(--foreground)]/10",
     email: "accounts@globallogistics.co",
     phone: "+1 (555) 321-7890"
   },
@@ -63,8 +63,8 @@ export const INVOICES: Invoice[] = [
     date: "Oct 18, 2023",
     amount: "$1,200.00",
     status: "Paid",
-    statusColor: "bg-[#212842]/10 text-[#212842] dark:bg-[#F0E7D5]/10 dark:text-[#F0E7D5]",
-    clientColor: "bg-[#212842]/10",
+    statusColor: "bg-[var(--sage)]/15 text-[var(--sage)]",
+    clientColor: "bg-[var(--foreground)]/10",
     email: "hello@pixelperfect.io",
     phone: "+1 (555) 654-3210"
   }

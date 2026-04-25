@@ -102,54 +102,54 @@ export default function Clients() {
 
   return (
     <>
-      <main className="flex-1 max-w-[1200px] mx-auto w-full p-6 lg:p-10">
+      <main className="flex-1 max-w-[1100px] mx-auto w-full p-6 lg:p-10">
         
         {/* Header */}
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-sm font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-1">Manage</p>
-            <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] leading-[1.1]">
+            <p className="text-[13px] font-medium text-[var(--muted)] tracking-wide mb-1.5">Manage</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold tracking-tight text-[var(--foreground)] leading-[1.1]">
               Clients
             </h1>
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-5 py-2.5 font-medium rounded-xl flex items-center gap-2 hover:opacity-90 transition-all active:scale-[0.97] text-sm"
+            className="bg-[var(--accent)] text-white px-4 py-2 font-medium rounded-lg flex items-center gap-1.5 hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]"
           >
-            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            <span className="material-symbols-outlined text-[16px]">person_add</span>
             Add Client
           </button>
         </div>
 
         {/* Stats Strip */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-[#212842] dark:bg-[#F0E7D5] rounded-2xl p-5 relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-[#F0E7D5]/5 dark:bg-[#212842]/5 blur-2xl pointer-events-none" />
-            <p className="text-xs font-medium text-[#F0E7D5]/50 dark:text-[#212842]/50 tracking-wide uppercase mb-3">Total Revenue</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#F0E7D5] dark:text-[#212842] font-display">{formatCurrency(totalRevenue, currency)}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="bg-[var(--featured)] rounded-xl p-4 relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[var(--featured-text)]/[0.04] blur-2xl pointer-events-none" />
+            <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
+            <p className="text-xl font-semibold tracking-tight text-[var(--featured-text)] font-display">{formatCurrency(totalRevenue, currency)}</p>
           </div>
-          <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
-            <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Clients</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{clients.length} <span className="text-sm font-normal text-[#212842]/40 dark:text-[#F0E7D5]/40">active</span></p>
+          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Clients</p>
+            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{clients.length} <span className="text-[12px] font-normal text-[var(--sage)]">active</span></p>
           </div>
-          <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
-            <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Invoices</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{invoices.length} <span className="text-sm font-normal text-[#212842]/40 dark:text-[#F0E7D5]/40">total</span></p>
+          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Invoices</p>
+            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
           </div>
-          <div className="bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl p-5 border border-[#212842]/6 dark:border-[#F0E7D5]/6">
-            <p className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase mb-3">Avg / Client</p>
-            <p className="text-2xl font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
+          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Avg / Client</p>
+            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
           </div>
         </div>
 
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">
-            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#212842]/30 dark:text-[#F0E7D5]/30 text-[20px]">search</span>
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/25 text-[18px]">search</span>
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 border border-[#212842]/8 dark:border-[#F0E7D5]/8 rounded-xl py-2.5 text-sm bg-transparent outline-none transition-all text-[#212842] dark:text-[#F0E7D5] placeholder:text-[#212842]/30 dark:placeholder:text-[#F0E7D5]/30 focus:border-[#212842]/25 dark:focus:border-[#F0E7D5]/25"
+              className="w-full pl-9 pr-3 border border-[var(--card-border)] rounded-lg py-2 text-[13px] bg-transparent outline-none transition-smooth text-[var(--foreground)] placeholder:text-[var(--foreground)]/25 focus:border-[var(--foreground)]/20"
               placeholder="Search clients..."
               type="text"
             />
@@ -157,7 +157,7 @@ export default function Clients() {
         </div>
 
         {/* Client Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           {filteredClients.map((client) => {
             const breakdown = getStatusBreakdown(client.invoices);
             const isSelected = selectedClient === client.name;
@@ -166,64 +166,64 @@ export default function Clients() {
               <div key={client.name} className="flex flex-col">
                 <div 
                   onClick={() => setSelectedClient(isSelected ? null : client.name)}
-                  className={`bg-[#F0E7D5]/60 dark:bg-[#F0E7D5]/5 rounded-2xl border p-6 cursor-pointer transition-all group ${
+                  className={`bg-[var(--card)] rounded-xl border p-5 cursor-pointer transition-smooth group ${
                     isSelected 
-                      ? 'border-[#212842]/25 dark:border-[#F0E7D5]/25 rounded-b-none' 
-                      : 'border-[#212842]/6 dark:border-[#F0E7D5]/6 hover:border-[#212842]/15 dark:hover:border-[#F0E7D5]/15'
+                      ? 'border-[var(--accent)]/30 rounded-b-none' 
+                      : 'border-[var(--card-border)] hover:border-[var(--foreground)]/12'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="size-14 rounded-xl border border-[#212842]/8 dark:border-[#F0E7D5]/8 overflow-hidden shrink-0">
+                  <div className="flex items-start gap-3">
+                    <div className="size-12 rounded-lg border border-[var(--card-border)] overflow-hidden shrink-0">
                       <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="font-semibold text-[15px] text-[#212842] dark:text-[#F0E7D5] truncate">{client.name}</h3>
-                          <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40 mt-0.5">{client.email}</p>
+                          <h3 className="font-semibold text-[14px] text-[var(--foreground)] truncate">{client.name}</h3>
+                          <p className="text-[11px] text-[var(--muted)] mt-0.5">{client.email}</p>
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); openEdit(client); }}
-                          className="size-8 flex items-center justify-center rounded-xl text-[#212842]/30 dark:text-[#F0E7D5]/30 hover:text-[#212842] dark:hover:text-[#F0E7D5] hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors opacity-0 group-hover:opacity-100"
+                          className="size-7 flex items-center justify-center rounded-lg text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth opacity-0 group-hover:opacity-100"
                         >
-                          <span className="material-symbols-outlined text-[16px]">edit</span>
+                          <span className="material-symbols-outlined text-[14px]">edit</span>
                         </button>
                       </div>
                       
-                      <div className="flex items-center gap-4 mt-4">
+                      <div className="flex items-center gap-3 mt-3">
                         <div>
-                          <p className="text-lg font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(client.totalBilled, currency)}</p>
-                          <p className="text-[10px] text-[#212842]/30 dark:text-[#F0E7D5]/30 tracking-wide uppercase">Total Billed</p>
+                          <p className="text-base font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(client.totalBilled, currency)}</p>
+                          <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Total Billed</p>
                         </div>
-                        <div className="w-px h-8 bg-[#212842]/8 dark:bg-[#F0E7D5]/8" />
+                        <div className="w-px h-7 bg-[var(--card-border)]" />
                         <div>
-                          <p className="text-lg font-semibold tracking-tight text-[#212842] dark:text-[#F0E7D5] font-display">{client.invoices.length}</p>
-                          <p className="text-[10px] text-[#212842]/30 dark:text-[#F0E7D5]/30 tracking-wide uppercase">Invoices</p>
+                          <p className="text-base font-semibold tracking-tight text-[var(--foreground)] font-display">{client.invoices.length}</p>
+                          <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Invoices</p>
                         </div>
-                        <div className="w-px h-8 bg-[#212842]/8 dark:bg-[#F0E7D5]/8" />
-                        <div className="flex gap-2">
+                        <div className="w-px h-7 bg-[var(--card-border)]" />
+                        <div className="flex gap-1.5">
                           {breakdown.paid > 0 && (
-                            <span className="px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase bg-[#212842]/10 text-[#212842] dark:bg-[#F0E7D5]/10 dark:text-[#F0E7D5]">{breakdown.paid} paid</span>
+                            <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--sage)]/15 text-[var(--sage)]">{breakdown.paid} paid</span>
                           )}
                           {breakdown.unpaid > 0 && (
-                            <span className="px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase bg-[#212842]/20 text-[#212842] dark:bg-[#F0E7D5]/20 dark:text-[#F0E7D5]">{breakdown.unpaid} unpaid</span>
+                            <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50">{breakdown.unpaid} unpaid</span>
                           )}
                           {breakdown.overdue > 0 && (
-                            <span className="px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase bg-[#212842] text-[#F0E7D5] dark:bg-[#F0E7D5] dark:text-[#212842]">{breakdown.overdue} overdue</span>
+                            <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]">{breakdown.overdue} overdue</span>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#212842]/6 dark:border-[#F0E7D5]/6">
-                    <div className="flex items-center gap-3 text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--card-border)]">
+                    <div className="flex items-center gap-2 text-[11px] text-[var(--muted)]">
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">phone</span>
+                        <span className="material-symbols-outlined text-[13px]">phone</span>
                         {client.phone}
                       </span>
                     </div>
-                    <span className={`material-symbols-outlined text-[18px] text-[#212842]/30 dark:text-[#F0E7D5]/30 transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
+                    <span className={`material-symbols-outlined text-[16px] text-[var(--foreground)]/20 transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
                       expand_more
                     </span>
                   </div>
@@ -231,22 +231,22 @@ export default function Clients() {
 
                 {/* Expanded Invoice List */}
                 {isSelected && selectedClientData && (
-                  <div className="bg-[#212842]/[0.03] dark:bg-[#F0E7D5]/[0.03] rounded-b-2xl border border-t-0 border-[#212842]/25 dark:border-[#F0E7D5]/25 overflow-hidden">
-                    <div className="px-6 py-3 border-b border-[#212842]/6 dark:border-[#F0E7D5]/6">
-                      <p className="text-[10px] font-semibold text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-widest uppercase">Invoice History</p>
+                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-xl border border-t-0 border-[var(--accent)]/30 overflow-hidden">
+                    <div className="px-5 py-2.5 border-b border-[var(--card-border)]">
+                      <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">Invoice History</p>
                     </div>
                     {selectedClientData.invoices.map((inv) => (
-                      <div key={inv.id} className="px-6 py-4 flex items-center justify-between border-b border-[#212842]/4 dark:border-[#F0E7D5]/4 last:border-0 hover:bg-[#212842]/3 dark:hover:bg-[#F0E7D5]/3 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-[18px] text-[#212842]/30 dark:text-[#F0E7D5]/30">receipt_long</span>
+                      <div key={inv.id} className="px-5 py-3 flex items-center justify-between border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--foreground)]/[0.02] transition-smooth">
+                        <div className="flex items-center gap-2.5">
+                          <span className="material-symbols-outlined text-[16px] text-[var(--foreground)]/25">receipt_long</span>
                           <div>
-                            <p className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5]">{inv.id}</p>
-                            <p className="text-xs text-[#212842]/40 dark:text-[#F0E7D5]/40">{inv.date}</p>
+                            <p className="text-[13px] font-semibold text-[var(--foreground)]">{inv.id}</p>
+                            <p className="text-[11px] text-[var(--muted)]">{inv.date}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <p className="text-sm font-semibold text-[#212842] dark:text-[#F0E7D5] font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
-                          <span className={`px-2.5 py-1 text-[10px] font-semibold rounded-md tracking-wide uppercase ${inv.statusColor}`}>
+                        <div className="flex items-center gap-3">
+                          <p className="text-[13px] font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
+                          <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase ${inv.statusColor}`}>
                             {inv.status}
                           </span>
                         </div>
@@ -261,8 +261,8 @@ export default function Clients() {
 
         {filteredClients.length === 0 && (
           <div className="text-center py-16">
-            <span className="material-symbols-outlined text-[48px] text-[#212842]/15 dark:text-[#F0E7D5]/15 mb-4 block">person_search</span>
-            <p className="text-sm text-[#212842]/40 dark:text-[#F0E7D5]/40 font-medium">No clients found</p>
+            <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">person_search</span>
+            <p className="text-[13px] text-[var(--muted)] font-medium">No clients found</p>
           </div>
         )}
       </main>
@@ -270,82 +270,82 @@ export default function Clients() {
       {/* Add / Edit Client Modal */}
       {(showAddModal || editingClient) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-[#212842]/40 dark:bg-[#212842]/60 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative bg-[#F0E7D5] dark:bg-[#2d3555] rounded-3xl w-full max-w-lg p-8 shadow-2xl">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-semibold text-[#212842] dark:text-[#F0E7D5] font-display">
+          <div className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
+          <div className="relative bg-[var(--background)] rounded-2xl w-full max-w-lg p-7 shadow-2xl border border-[var(--card-border)]">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {editingClient ? "Edit Client" : "Add Client"}
               </h2>
-              <button onClick={closeModal} className="size-9 flex items-center justify-center rounded-xl hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors">
-                <span className="material-symbols-outlined text-[20px] text-[#212842]/40 dark:text-[#F0E7D5]/40">close</span>
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>
             </div>
 
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="size-16 rounded-xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 overflow-hidden bg-[#212842]/5 dark:bg-[#F0E7D5]/5 flex items-center justify-center shrink-0">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="size-14 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                   {formAvatar ? (
                     <img className="w-full h-full object-cover" alt="Client preview" src={formAvatar} />
                   ) : (
-                    <span className="material-symbols-outlined text-[#212842]/35 dark:text-[#F0E7D5]/35">image</span>
+                    <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
                   )}
                 </div>
-                <label className="px-4 py-2 border border-[#212842]/10 dark:border-[#F0E7D5]/10 rounded-xl text-sm font-medium text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-colors cursor-pointer">
+                <label className="px-3 py-1.5 border border-[var(--card-border)] rounded-lg text-[12px] font-medium text-[var(--muted)] hover:bg-[var(--foreground)]/[0.03] transition-smooth cursor-pointer">
                   <span>{formAvatar ? "Change Image" : "Add Image"}</span>
                   <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
                 </label>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Full Name</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Full Name</label>
                 <input 
                   type="text" 
                   value={formName} 
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Enter client name"
-                  className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2.5 text-base font-medium text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors placeholder:text-[#212842]/25 dark:placeholder:text-[#F0E7D5]/25" 
+                  className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Email</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Email</label>
                 <input 
                   type="email" 
                   value={formEmail} 
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="client@example.com"
-                  className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2.5 text-base font-medium text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors placeholder:text-[#212842]/25 dark:placeholder:text-[#F0E7D5]/25" 
+                  className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
                 />
               </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Phone</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Phone</label>
                   <input 
                     type="tel" 
                     value={formPhone} 
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="+1 (555) 000-0000"
-                    className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2.5 text-base font-medium text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors placeholder:text-[#212842]/25 dark:placeholder:text-[#F0E7D5]/25" 
+                    className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-[#212842]/40 dark:text-[#F0E7D5]/40 tracking-wide uppercase">Company</label>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Company</label>
                   <input 
                     type="text" 
                     value={formCompany} 
                     onChange={(e) => setFormCompany(e.target.value)}
                     placeholder="Company name"
-                    className="w-full bg-transparent border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 py-2.5 text-base font-medium text-[#212842] dark:text-[#F0E7D5] outline-none focus:border-[#212842]/30 dark:focus:border-[#F0E7D5]/30 transition-colors placeholder:text-[#212842]/25 dark:placeholder:text-[#F0E7D5]/25" 
+                    className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-8">
-              <button onClick={closeModal} className="px-5 py-2.5 text-sm font-medium text-[#212842]/50 dark:text-[#F0E7D5]/50 hover:text-[#212842] dark:hover:text-[#F0E7D5] transition-colors rounded-xl">
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={closeModal} className="px-4 py-2 text-[13px] font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-smooth rounded-lg">
                 Cancel
               </button>
               <button 
                 onClick={handleSaveClient}
-                className="bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] px-6 py-2.5 font-medium rounded-xl hover:opacity-90 transition-all active:scale-[0.97] text-sm"
+                className="bg-[var(--accent)] text-white px-5 py-2 font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]"
               >
                 {editingClient ? "Save Changes" : "Add Client"}
               </button>
@@ -354,8 +354,8 @@ export default function Clients() {
         </div>
       )}
 
-      <footer className="mt-auto border-t border-[#212842]/6 dark:border-[#F0E7D5]/6 p-6 text-center">
-        <p className="text-xs font-medium text-[#212842]/30 dark:text-[#F0E7D5]/30">© 2023 BillCraft. All rights reserved.</p>
+      <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2023 BillCraft. All rights reserved.</p>
       </footer>
     </>
   );

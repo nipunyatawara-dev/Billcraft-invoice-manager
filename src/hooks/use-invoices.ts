@@ -105,7 +105,7 @@ export function useInvoices() {
       amount: normalizeAmount(draft.amount, currency),
       status: draft.status,
       statusColor: getStatusColor(draft.status),
-      clientColor: "bg-[#212842]/10",
+    clientColor: "bg-[var(--foreground)]/10",
     });
 
     const nextInvoices = draft.id

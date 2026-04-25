@@ -6,6 +6,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const NAV_ITEMS = [
+  { href: "/", label: "Dashboard", icon: "dashboard" },
+  { href: "/invoices", label: "Invoices", icon: "receipt_long" },
+  { href: "/clients", label: "Clients", icon: "group" },
+  { href: "/analytics", label: "Analytics", icon: "bar_chart" },
+];
+
+const BOTTOM_NAV = [
+  { href: "/settings", label: "Settings", icon: "settings" },
+];
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
@@ -18,85 +29,115 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex items-center justify-between border-b border-[#212842]/10 dark:border-[#F0E7D5]/10 bg-[#F0E7D5]/80 dark:bg-[#212842]/80 backdrop-blur-xl px-6 h-[76px] sticky top-0 z-50 shrink-0">
-        <div className="flex items-center gap-4">
+      {/* Header */}
+      <header className="flex items-center justify-between border-b border-[var(--card-border)] bg-[var(--background)]/90 backdrop-blur-xl px-5 h-[60px] sticky top-0 z-50 shrink-0">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 flex items-center justify-center rounded-xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all active:scale-95"
+            className="p-1.5 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/5 transition-smooth active:scale-95"
           >
-            <span className="material-symbols-outlined text-[#212842]/70 dark:text-[#F0E7D5]/70">menu</span>
+            <span className="material-symbols-outlined text-[20px] text-[var(--foreground)]/60">{isSidebarOpen ? 'close' : 'menu'}</span>
           </button>
-          <Link href="/" className="flex items-center gap-2.5" aria-label="BillCraft dashboard">
+          <Link href="/" className="flex items-center gap-2" aria-label="BillCraft dashboard">
             <Image
               src="/billcraft-dark-circle.png"
               alt=""
-              width={40}
-              height={40}
-              sizes="40px"
-              className="size-10 rounded-full object-cover dark:hidden"
+              width={32}
+              height={32}
+              sizes="32px"
+              className="size-8 rounded-full object-cover dark:hidden"
             />
             <Image
               src="/billcraft-light-circle.png"
               alt=""
-              width={40}
-              height={40}
-              sizes="40px"
-              className="hidden size-10 rounded-full object-cover dark:block"
+              width={32}
+              height={32}
+              sizes="32px"
+              className="hidden size-8 rounded-full object-cover dark:block"
             />
-            <h2 className="translate-y-px text-[22px] font-bold leading-none tracking-normal text-[#212842] dark:text-[#F0E7D5] font-display">BillCraft</h2>
+            <span className="text-[17px] font-bold tracking-tight text-[var(--foreground)] font-display">BillCraft</span>
           </Link>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
-          <button className="p-2 flex items-center justify-center rounded-xl border border-[#212842]/10 dark:border-[#F0E7D5]/10 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 transition-all active:scale-95 hidden sm:flex">
-            <span className="material-symbols-outlined text-[#212842]/70 dark:text-[#F0E7D5]/70">notifications</span>
+          <button className="p-1.5 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/5 transition-smooth active:scale-95 hidden sm:flex relative">
+            <span className="material-symbols-outlined text-[20px] text-[var(--foreground)]/50">notifications</span>
+            <span className="absolute top-1 right-1.5 size-1.5 rounded-full bg-[var(--accent)]" />
           </button>
-          <button className="bg-[#212842] dark:bg-[#F0E7D5] p-2 flex items-center justify-center rounded-xl shadow-sm text-[#F0E7D5] dark:text-[#212842] hover:opacity-90 transition-all active:scale-95">
-            <span className="material-symbols-outlined">person</span>
-          </button>
+          <div className="size-8 rounded-full bg-[var(--accent)]/10 flex items-center justify-center cursor-pointer hover:bg-[var(--accent)]/15 transition-smooth">
+            <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">person</span>
+          </div>
         </div>
       </header>
 
       <div className="flex flex-1 relative">
         {/* Sidebar Overlay */}
         <div 
-          className={`lg:hidden fixed inset-0 top-[76px] bg-[#212842]/40 dark:bg-[#212842]/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+          className={`lg:hidden fixed inset-0 top-[60px] bg-[var(--foreground)]/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
           onClick={() => setIsSidebarOpen(false)}
         />
 
         {/* Sidebar */}
         <aside 
-          className={`bg-[#F0E7D5]/80 dark:bg-[#212842]/80 backdrop-blur-xl flex flex-col fixed lg:sticky top-[76px] h-[calc(100vh-76px)] z-40 shrink-0 left-0 transition-all duration-300 ease-in-out overflow-hidden border-[#212842]/10 dark:border-[#F0E7D5]/10 ${
-            isSidebarOpen ? "w-[260px] translate-x-0 border-r" : "w-[260px] lg:w-0 -translate-x-full lg:translate-x-0 border-r-0"
+          className={`bg-[var(--background)] flex flex-col fixed lg:sticky top-[60px] h-[calc(100vh-60px)] z-40 shrink-0 left-0 transition-all duration-300 ease-in-out overflow-hidden border-[var(--card-border)] ${
+            isSidebarOpen ? "w-[240px] translate-x-0 border-r" : "w-[240px] lg:w-0 -translate-x-full lg:translate-x-0 border-r-0"
           }`}
         >
-          <div className="w-[260px] flex flex-col h-full shrink-0">
-            <nav className="flex-1 p-4 overflow-y-auto space-y-1">
-              <Link href="/" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
-                <span className="material-symbols-outlined text-lg">dashboard</span>
-                Dashboard
-              </Link>
-              <Link href="/invoices" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/invoices' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
-                <span className="material-symbols-outlined text-lg">receipt_long</span>
-                Invoices
-              </Link>
-              <Link href="/clients" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/clients' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
-                <span className="material-symbols-outlined text-lg">group</span>
-                Clients
-              </Link>
-              <Link href="/analytics" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/analytics' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
-                <span className="material-symbols-outlined text-lg">bar_chart</span>
-                Analytics
-              </Link>
+          <div className="w-[240px] flex flex-col h-full shrink-0">
+            {/* Search */}
+            <div className="px-3 pt-4 pb-2">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--foreground)]/25 text-[16px]">search</span>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-8 pr-3 py-2 text-[13px] bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-lg text-[var(--foreground)] placeholder:text-[var(--foreground)]/30 outline-none focus:border-[var(--foreground)]/15 transition-smooth"
+                />
+              </div>
+            </div>
+
+            <nav className="flex-1 px-3 py-2 space-y-0.5">
+              {NAV_ITEMS.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeSidebarOnMobile}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                      isActive
+                        ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                        : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[var(--accent)]' : ''}`} style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
 
-            <div className="p-4 border-t border-[#212842]/10 dark:border-[#F0E7D5]/10 space-y-1 bg-transparent shrink-0">
-              <Link href="/settings" onClick={closeSidebarOnMobile} className={`w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all ${pathname === '/settings' ? 'bg-[#212842] dark:bg-[#F0E7D5] text-[#F0E7D5] dark:text-[#212842] shadow-sm' : 'text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]'}`}>
-                <span className="material-symbols-outlined text-lg">settings</span>
-                Settings
-              </Link>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 font-medium rounded-lg transition-all text-[#212842]/60 dark:text-[#F0E7D5]/60 hover:bg-[#212842]/5 dark:hover:bg-[#F0E7D5]/5 hover:text-[#212842] dark:hover:text-[#F0E7D5]">
-                <span className="material-symbols-outlined text-lg">logout</span>
+            <div className="px-3 pb-4 pt-2 border-t border-[var(--card-border)] space-y-0.5 bg-transparent shrink-0">
+              {BOTTOM_NAV.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeSidebarOnMobile}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                      isActive
+                        ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                        : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[var(--accent)]' : ''}`} style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+              <button className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80">
+                <span className="material-symbols-outlined text-[18px]">logout</span>
                 Logout
               </button>
             </div>
@@ -104,7 +145,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </aside>
         
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#F0E7D5] dark:bg-[#212842]">
+        <div className="flex-1 flex flex-col min-w-0 bg-[var(--background)]">
           {children}
         </div>
       </div>
