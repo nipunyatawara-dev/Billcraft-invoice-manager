@@ -112,17 +112,17 @@ export default function Invoices() {
 
   return (
     <>
-      <main className="flex-1 max-w-[1100px] mx-auto w-full p-6 lg:p-10">
+      <main className="app-main flex-1">
         
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="page-heading">
           <div>
-            <p className="text-[13px] font-medium text-[var(--muted)] tracking-wide mb-1.5">Billing</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold tracking-tight text-[var(--foreground)] leading-[1.1]">
+            <p className="section-eyebrow">Billing</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
               Invoices
             </h1>
           </div>
-          <button onClick={openCreateModal} className="bg-[var(--accent)] text-white px-4 py-2 font-medium rounded-lg flex items-center gap-1.5 hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]">
+          <button onClick={openCreateModal} className="btn-primary active:scale-[0.97]">
             <span className="material-symbols-outlined text-[16px]">add</span>
             New Invoice
           </button>
@@ -130,22 +130,22 @@ export default function Invoices() {
 
         {/* Stats Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[var(--featured)] rounded-xl p-4 relative overflow-hidden">
+          <div className="surface-featured p-4 relative overflow-hidden">
             <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[var(--featured-text)]/[0.04] blur-2xl pointer-events-none" />
             <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Billed</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--featured-text)] font-display">{formatCurrency(totals.totalAmount, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--featured-text)] font-display">{formatCurrency(totals.totalAmount, currency)}</p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Total</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">invoices</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">invoices</span></p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Paid</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{totals.paidCount} <span className="text-[12px] font-normal text-[var(--sage)]">cleared</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{totals.paidCount} <span className="text-[12px] font-normal text-[var(--positive)]">cleared</span></p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Attention</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{totals.unpaidCount + totals.overdueCount} <span className="text-[12px] font-normal text-[var(--accent)]">pending</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{totals.unpaidCount + totals.overdueCount} <span className="text-[12px] font-normal text-[var(--accent)]">pending</span></p>
           </div>
         </div>
 
@@ -156,7 +156,7 @@ export default function Invoices() {
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full pl-9 pr-3 border border-[var(--card-border)] rounded-lg py-2 text-[13px] bg-transparent outline-none transition-smooth text-[var(--foreground)] placeholder:text-[var(--foreground)]/25 focus:border-[var(--foreground)]/20"
+              className="field-control py-2 pl-9 pr-3 text-[13px]"
               placeholder="Search invoices..."
               type="text"
             />
@@ -168,7 +168,7 @@ export default function Invoices() {
                 onClick={() => setActiveFilter(filter)}
                 className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-smooth active:scale-[0.95] tracking-wide uppercase ${
                   activeFilter === filter
-                    ? "bg-[var(--accent)] text-white"
+                    ? "bg-[var(--action)] text-[var(--action-text)]"
                     : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] border border-[var(--card-border)]"
                 }`}
               >
@@ -185,7 +185,7 @@ export default function Invoices() {
               type="button"
               key={invoice.id}
               onClick={() => openViewModal(invoice)}
-              className="w-full text-left bg-[var(--card)] rounded-xl border border-[var(--card-border)] p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
+              className="surface-card w-full text-left p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
             >
               <div className="flex items-center gap-4">
                 <div className="size-10 rounded-lg border border-[var(--card-border)] overflow-hidden shrink-0">
@@ -200,13 +200,13 @@ export default function Invoices() {
                   </p>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="text-lg font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
+                  <p className="text-lg font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
                   <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-md tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
                   {invoice.status}
                 </span>
-                <div className="flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
@@ -219,7 +219,7 @@ export default function Invoices() {
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
-                <p className="text-base font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
+                <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
               </div>
             </button>
           ))}
@@ -240,7 +240,7 @@ export default function Invoices() {
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div role="dialog" aria-modal="true" className="relative bg-[var(--background)] rounded-2xl w-full max-w-xl p-7 shadow-2xl max-h-[90vh] overflow-y-auto border border-[var(--card-border)]">
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id}
@@ -254,39 +254,39 @@ export default function Invoices() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-client">Client</label>
-                  <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" />
+                  <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="field-control px-3 py-2" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-email">Email</label>
-                    <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" />
+                    <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="field-control px-3 py-2" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-phone">Phone</label>
-                    <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" />
+                    <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-date">Date</label>
-                    <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth" />
+                    <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-2" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-amount">Amount</label>
-                    <input id="invoice-amount" required type="number" min="0" step="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="0.00" className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" />
+                    <input id="invoice-amount" required type="number" min="0" step="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="0.00" className="field-control px-3 py-2" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-status">Status</label>
-                    <select id="invoice-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as InvoiceStatus })} className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth">
+                    <select id="invoice-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as InvoiceStatus })} className="field-control px-3 py-2">
                       {STATUSES.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={closeModal} className="px-4 py-2 text-[13px] font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-smooth rounded-lg">
+                  <button type="button" onClick={closeModal} className="btn-ghost">
                     Cancel
                   </button>
-                  <button type="submit" className="bg-[var(--accent)] text-white px-5 py-2 font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]">
+                  <button type="submit" className="btn-primary active:scale-[0.97]">
                     {modalMode === "edit" ? "Save Changes" : "Create Invoice"}
                   </button>
                 </div>
@@ -307,17 +307,17 @@ export default function Invoices() {
                     ["Date", selectedInvoice.date],
                     ["Phone", selectedInvoice.phone || "No phone added"],
                   ].map(([label, value]) => (
-                    <div key={label} className="rounded-xl border border-[var(--card-border)] p-3.5">
+                    <div key={label} className="surface-card p-3.5">
                       <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">{label}</p>
                       <p className="text-[13px] font-semibold text-[var(--foreground)]">{value}</p>
                     </div>
                   ))}
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => exportInvoice(selectedInvoice)} className="px-4 py-2 border border-[var(--card-border)] text-[var(--muted)] rounded-lg text-[13px] font-medium hover:bg-[var(--foreground)]/[0.03] transition-smooth">
+                  <button onClick={() => exportInvoice(selectedInvoice)} className="btn-secondary">
                     Download
                   </button>
-                  <button onClick={() => openEditModal(selectedInvoice)} className="bg-[var(--accent)] text-white px-5 py-2 font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]">
+                  <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary active:scale-[0.97]">
                     Edit Invoice
                   </button>
                 </div>
@@ -328,7 +328,7 @@ export default function Invoices() {
       )}
 
       <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2023 BillCraft. All rights reserved.</p>
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
       </footer>
     </>
   );

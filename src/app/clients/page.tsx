@@ -102,19 +102,19 @@ export default function Clients() {
 
   return (
     <>
-      <main className="flex-1 max-w-[1100px] mx-auto w-full p-6 lg:p-10">
+      <main className="app-main flex-1">
         
         {/* Header */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="page-heading">
           <div>
-            <p className="text-[13px] font-medium text-[var(--muted)] tracking-wide mb-1.5">Manage</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold tracking-tight text-[var(--foreground)] leading-[1.1]">
+            <p className="section-eyebrow">Manage</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
               Clients
             </h1>
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="bg-[var(--accent)] text-white px-4 py-2 font-medium rounded-lg flex items-center gap-1.5 hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]"
+            className="btn-primary active:scale-[0.97]"
           >
             <span className="material-symbols-outlined text-[16px]">person_add</span>
             Add Client
@@ -123,22 +123,22 @@ export default function Clients() {
 
         {/* Stats Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[var(--featured)] rounded-xl p-4 relative overflow-hidden">
+          <div className="surface-featured p-4 relative overflow-hidden">
             <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[var(--featured-text)]/[0.04] blur-2xl pointer-events-none" />
             <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--featured-text)] font-display">{formatCurrency(totalRevenue, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--featured-text)] font-display">{formatCurrency(totalRevenue, currency)}</p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Clients</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{clients.length} <span className="text-[12px] font-normal text-[var(--sage)]">active</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{clients.length} <span className="text-[12px] font-normal text-[var(--positive)]">active</span></p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Invoices</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
           </div>
-          <div className="bg-[var(--card)] rounded-xl p-4 border border-[var(--card-border)]">
+          <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Avg / Client</p>
-            <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
           </div>
         </div>
 
@@ -149,7 +149,7 @@ export default function Clients() {
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 border border-[var(--card-border)] rounded-lg py-2 text-[13px] bg-transparent outline-none transition-smooth text-[var(--foreground)] placeholder:text-[var(--foreground)]/25 focus:border-[var(--foreground)]/20"
+              className="field-control py-2 pl-9 pr-3 text-[13px]"
               placeholder="Search clients..."
               type="text"
             />
@@ -166,7 +166,7 @@ export default function Clients() {
               <div key={client.name} className="flex flex-col">
                 <div 
                   onClick={() => setSelectedClient(isSelected ? null : client.name)}
-                  className={`bg-[var(--card)] rounded-xl border p-5 cursor-pointer transition-smooth group ${
+                  className={`surface-card p-5 cursor-pointer transition-smooth group ${
                     isSelected 
                       ? 'border-[var(--accent)]/30 rounded-b-none' 
                       : 'border-[var(--card-border)] hover:border-[var(--foreground)]/12'
@@ -190,20 +190,20 @@ export default function Clients() {
                         </button>
                       </div>
                       
-                      <div className="flex items-center gap-3 mt-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                         <div>
-                          <p className="text-base font-semibold tracking-tight text-[var(--foreground)] font-display">{formatCurrency(client.totalBilled, currency)}</p>
+                          <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(client.totalBilled, currency)}</p>
                           <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Total Billed</p>
                         </div>
                         <div className="w-px h-7 bg-[var(--card-border)]" />
                         <div>
-                          <p className="text-base font-semibold tracking-tight text-[var(--foreground)] font-display">{client.invoices.length}</p>
+                          <p className="text-base font-semibold text-[var(--foreground)] font-display">{client.invoices.length}</p>
                           <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Invoices</p>
                         </div>
                         <div className="w-px h-7 bg-[var(--card-border)]" />
-                        <div className="flex gap-1.5">
+                        <div className="flex flex-wrap gap-1.5">
                           {breakdown.paid > 0 && (
-                            <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--sage)]/15 text-[var(--sage)]">{breakdown.paid} paid</span>
+                            <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]">{breakdown.paid} paid</span>
                           )}
                           {breakdown.unpaid > 0 && (
                             <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50">{breakdown.unpaid} unpaid</span>
@@ -231,7 +231,7 @@ export default function Clients() {
 
                 {/* Expanded Invoice List */}
                 {isSelected && selectedClientData && (
-                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-xl border border-t-0 border-[var(--accent)]/30 overflow-hidden">
+                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-lg border border-t-0 border-[var(--accent)]/30 overflow-hidden">
                     <div className="px-5 py-2.5 border-b border-[var(--card-border)]">
                       <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">Invoice History</p>
                     </div>
@@ -271,7 +271,7 @@ export default function Clients() {
       {(showAddModal || editingClient) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative bg-[var(--background)] rounded-2xl w-full max-w-lg p-7 shadow-2xl border border-[var(--card-border)]">
+          <div className="modal-surface relative max-w-lg p-5 sm:p-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {editingClient ? "Edit Client" : "Add Client"}
@@ -302,7 +302,7 @@ export default function Clients() {
                   value={formName} 
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Enter client name"
-                  className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
+                  className="field-control px-3 py-2" 
                 />
               </div>
               <div className="space-y-1.5">
@@ -312,7 +312,7 @@ export default function Clients() {
                   value={formEmail} 
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="client@example.com"
-                  className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
+                  className="field-control px-3 py-2" 
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -323,7 +323,7 @@ export default function Clients() {
                     value={formPhone} 
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="+1 (555) 000-0000"
-                    className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
+                    className="field-control px-3 py-2" 
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -333,19 +333,19 @@ export default function Clients() {
                     value={formCompany} 
                     onChange={(e) => setFormCompany(e.target.value)}
                     placeholder="Company name"
-                    className="w-full bg-transparent border border-[var(--card-border)] rounded-lg px-3 py-2 text-[14px] font-medium text-[var(--foreground)] outline-none focus:border-[var(--foreground)]/20 transition-smooth placeholder:text-[var(--foreground)]/20" 
+                    className="field-control px-3 py-2" 
                   />
                 </div>
               </div>
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={closeModal} className="px-4 py-2 text-[13px] font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-smooth rounded-lg">
+              <button onClick={closeModal} className="btn-ghost">
                 Cancel
               </button>
               <button 
                 onClick={handleSaveClient}
-                className="bg-[var(--accent)] text-white px-5 py-2 font-medium rounded-lg hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]"
+                className="btn-primary active:scale-[0.97]"
               >
                 {editingClient ? "Save Changes" : "Add Client"}
               </button>
@@ -355,7 +355,7 @@ export default function Clients() {
       )}
 
       <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2023 BillCraft. All rights reserved.</p>
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
       </footer>
     </>
   );

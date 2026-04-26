@@ -14,7 +14,7 @@ export interface Invoice {
 export type InvoiceStatus = Invoice["status"];
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
-  Paid: "bg-[var(--sage)]/15 text-[var(--sage)]",
+  Paid: "bg-[var(--positive)]/15 text-[var(--positive)]",
   Unpaid: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
   Overdue: "bg-[var(--accent)]/15 text-[var(--accent)]",
 };
@@ -27,7 +27,7 @@ export const INVOICES: Invoice[] = [
     date: "Oct 12, 2023",
     amount: "$2,450.00",
     status: "Paid",
-    statusColor: "bg-[var(--sage)]/15 text-[var(--sage)]",
+    statusColor: "bg-[var(--positive)]/15 text-[var(--positive)]",
     clientColor: "bg-[var(--foreground)]/10",
     email: "billing@acmecorp.com",
     phone: "+1 (555) 234-5678"
@@ -63,7 +63,7 @@ export const INVOICES: Invoice[] = [
     date: "Oct 18, 2023",
     amount: "$1,200.00",
     status: "Paid",
-    statusColor: "bg-[var(--sage)]/15 text-[var(--sage)]",
+    statusColor: "bg-[var(--positive)]/15 text-[var(--positive)]",
     clientColor: "bg-[var(--foreground)]/10",
     email: "hello@pixelperfect.io",
     phone: "+1 (555) 654-3210"

@@ -1,0 +1,211 @@
+html,
+html[data-light-palette="palette-1"] {
+  --palette-1: #ffdbfd;
+  --palette-2: #c9beff;
+  --palette-3: #8494ff;
+  --palette-4: #6367ff;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: var(--palette-2);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-4);
+  --accent: var(--palette-4);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-4);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-4);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html[data-light-palette="palette-2"] {
+  --palette-1: #fde2f3;
+  --palette-2: #e5beec;
+  --palette-3: #917fb3;
+  --palette-4: #2a2f4f;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: var(--palette-2);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-4);
+  --accent: var(--palette-4);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-4);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-4);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html[data-light-palette="palette-3"] {
+  --palette-1: #ffc85c;
+  --palette-2: #ff653f;
+  --palette-3: #452e5a;
+  --palette-4: #1e104e;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: var(--palette-2);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-4);
+  --accent: var(--palette-4);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-4);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-4);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html[data-light-palette="palette-4"] {
+  --palette-1: #fcdec0;
+  --palette-2: #e5b299;
+  --palette-3: #b4846c;
+  --palette-4: #7d5a50;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: var(--palette-2);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-4);
+  --accent: var(--palette-4);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-4);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-4);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html[data-light-palette="palette-5"] {
+  --palette-1: #e5d9b6;
+  --palette-2: #a4be7b;
+  --palette-3: #5f8d4e;
+  --palette-4: #285430;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: var(--palette-2);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-4);
+  --accent: var(--palette-4);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-4);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-4);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html.dark[data-dark-palette="palette-1"] {
+  --palette-1: #ffdbfd;
+  --palette-2: #c9beff;
+  --palette-3: #8494ff;
+  --palette-4: #6367ff;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: var(--palette-3);
+  --card-border: var(--palette-2);
+  --muted: var(--palette-2);
+  --accent: var(--palette-2);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-2);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-4);
+  --positive: var(--palette-2);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html.dark,
+html.dark[data-dark-palette="palette-2"] {
+  --palette-1: #fde2f3;
+  --palette-2: #e5beec;
+  --palette-3: #917fb3;
+  --palette-4: #2a2f4f;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: var(--palette-3);
+  --card-border: var(--palette-2);
+  --muted: var(--palette-2);
+  --accent: var(--palette-2);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-2);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-4);
+  --positive: var(--palette-2);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html.dark[data-dark-palette="palette-3"] {
+  --palette-1: #ffc85c;
+  --palette-2: #ff653f;
+  --palette-3: #452e5a;
+  --palette-4: #1e104e;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: var(--palette-3);
+  --card-border: var(--palette-2);
+  --muted: var(--palette-2);
+  --accent: var(--palette-2);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-2);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-4);
+  --positive: var(--palette-2);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html.dark[data-dark-palette="palette-4"] {
+  --palette-1: #fcdec0;
+  --palette-2: #e5b299;
+  --palette-3: #b4846c;
+  --palette-4: #7d5a50;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: var(--palette-3);
+  --card-border: var(--palette-2);
+  --muted: var(--palette-2);
+  --accent: var(--palette-2);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-2);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-4);
+  --positive: var(--palette-2);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}
+
+html.dark[data-dark-palette="palette-5"] {
+  --palette-1: #e5d9b6;
+  --palette-2: #a4be7b;
+  --palette-3: #5f8d4e;
+  --palette-4: #285430;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: var(--palette-3);
+  --card-border: var(--palette-2);
+  --muted: var(--palette-2);
+  --accent: var(--palette-2);
+  --accent-hover: var(--palette-3);
+  --action: var(--palette-2);
+  --action-hover: var(--palette-3);
+  --action-text: var(--palette-4);
+  --positive: var(--palette-2);
+  --featured: var(--palette-4);
+  --featured-text: var(--palette-1);
+  --featured-muted: var(--palette-2);
+}

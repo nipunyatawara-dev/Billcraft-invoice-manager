@@ -13,22 +13,22 @@ export default function Home() {
 
   return (
     <>
-      <main className="flex-1 max-w-[1100px] mx-auto w-full p-6 lg:p-10">
+      <main className="app-main flex-1">
         
         {/* Greeting */}
-        <div className="flex items-end justify-between mb-10">
+        <div className="page-heading">
           <div>
-            <p className="text-[13px] font-medium text-[var(--muted)] tracking-wide mb-1.5">Dashboard</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold tracking-tight text-[var(--foreground)] leading-[1.1]">
+            <p className="section-eyebrow">Dashboard</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
               Good Morning, John
             </h1>
           </div>
           <div className="hidden md:flex gap-2.5">
-            <Link href="/invoices" className="bg-[var(--accent)] text-white px-4 py-2 font-medium rounded-lg flex items-center gap-1.5 hover:bg-[var(--accent-hover)] transition-smooth active:scale-[0.97] text-[13px]">
+            <Link href="/invoices" className="btn-primary active:scale-[0.97]">
               <span className="material-symbols-outlined text-[16px]">add</span>
               New Invoice
             </Link>
-            <button className="border border-[var(--card-border)] text-[var(--muted)] px-4 py-2 font-medium rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth active:scale-[0.97] text-[13px]">
+            <button className="btn-secondary active:scale-[0.97]">
               View Reports
             </button>
           </div>
@@ -38,7 +38,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           
           {/* Revenue — Featured Card (spans 2 cols, 2 rows) */}
-          <div className="md:col-span-2 md:row-span-2 bg-[var(--featured)] rounded-xl p-7 lg:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[280px]">
+          <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[280px]">
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.04] to-transparent pointer-events-none" />
             <div className="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-[var(--featured-text)]/[0.04] blur-3xl pointer-events-none group-hover:bg-[var(--featured-text)]/[0.06] transition-all duration-700" />
             
@@ -52,11 +52,11 @@ export default function Home() {
             </div>
 
             <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-semibold tracking-tighter text-[var(--featured-text)] mb-2 font-display">
+              <h2 className="text-4xl lg:text-5xl font-semibold text-[var(--featured-text)] mb-2 font-display">
                 {formatCurrency(totals.paidAmount, currency)}
               </h2>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1 text-[12px] text-[var(--sage)] font-medium bg-[var(--sage)]/15 px-2 py-0.5 rounded-md">
+                <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-md">
                   <span className="material-symbols-outlined text-[14px]">trending_up</span>
                   +12.5%
                 </span>
@@ -66,7 +66,7 @@ export default function Home() {
           </div>
 
           {/* Pending Payments Card */}
-          <div className="bg-[var(--card)] rounded-xl p-5 lg:p-6 flex flex-col justify-between border border-[var(--card-border)] relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
+          <div className="surface-card p-5 lg:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Pending</p>
               <div className="size-7 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
@@ -74,13 +74,13 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.pendingAmount, currency)}</h3>
+              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.pendingAmount, currency)}</h3>
               <p className="text-[11px] text-[var(--muted)] font-medium">{totals.unpaidCount} invoices awaiting</p>
             </div>
           </div>
 
           {/* Overdue Card */}
-          <div className="bg-[var(--card)] rounded-xl p-5 lg:p-6 flex flex-col justify-between border border-[var(--card-border)] relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
+          <div className="surface-card p-5 lg:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Overdue</p>
               <div className="size-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
@@ -88,13 +88,13 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.overdueAmount, currency)}</h3>
+              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.overdueAmount, currency)}</h3>
               <p className="text-[11px] text-[var(--accent)] font-medium">Requires attention</p>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="md:col-span-2 bg-[var(--card)] rounded-xl p-5 lg:p-6 border border-[var(--card-border)] min-h-[133px] flex flex-col justify-between">
+          <div className="md:col-span-2 surface-card p-5 lg:p-6 min-h-[133px] flex flex-col justify-between">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Quick Actions</p>
             <div className="grid grid-cols-3 gap-2">
               <Link href="/invoices" className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth group cursor-pointer">
@@ -104,8 +104,8 @@ export default function Home() {
                 <span className="text-[11px] font-medium text-[var(--muted)] text-center">New Invoice</span>
               </Link>
               <Link href="/clients" className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth group cursor-pointer">
-                <div className="size-9 rounded-lg bg-[var(--sage)]/10 flex items-center justify-center group-hover:bg-[var(--sage)]/15 transition-smooth">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--sage)]">person_add</span>
+                <div className="size-9 rounded-lg bg-[var(--positive)]/10 flex items-center justify-center group-hover:bg-[var(--positive)]/15 transition-smooth">
+                  <span className="material-symbols-outlined text-[18px] text-[var(--positive)]">person_add</span>
                 </div>
                 <span className="text-[11px] font-medium text-[var(--muted)] text-center">Add Client</span>
               </Link>
@@ -119,11 +119,11 @@ export default function Home() {
           </div>
 
           {/* Recent Invoices — Full Width */}
-          <div className="md:col-span-2 lg:col-span-4 bg-[var(--card)] rounded-xl border border-[var(--card-border)] overflow-hidden">
+          <div className="md:col-span-2 lg:col-span-4 surface-card overflow-hidden">
             <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Recent Invoices</p>
-              <Link href="/invoices" className="text-[12px] font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-smooth">
-                View All →
+              <Link href="/invoices" className="text-[12px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-smooth">
+                View All
               </Link>
             </div>
             
@@ -141,7 +141,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-base font-semibold text-[var(--foreground)] tracking-tight font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
+                      <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
                       <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">{inv.date}</p>
                     </div>
                     <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase ${inv.statusColor}`}>
@@ -157,7 +157,7 @@ export default function Home() {
       </main>
 
       <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2023 BillCraft. All rights reserved.</p>
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
       </footer>
     </>
   );

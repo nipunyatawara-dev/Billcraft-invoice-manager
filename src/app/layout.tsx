@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+import "./palette.css";
 
 export const metadata: Metadata = {
   title: "BillCraft | Premium Invoice Management",
@@ -20,6 +21,25 @@ export const metadata: Metadata = {
   },
 };
 
+const paletteBootstrapScript = `
+(() => {
+  const paletteIds = new Set(["palette-1", "palette-2", "palette-3", "palette-4", "palette-5"]);
+  const lightKey = "billcraft.light-palette.v1";
+  const darkKey = "billcraft.dark-palette.v1";
+  const readPalette = (key, fallback) => {
+    try {
+      const storedPalette = window.localStorage.getItem(key);
+      return paletteIds.has(storedPalette) ? storedPalette : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-1");
+  document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-2");
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,6 +55,7 @@ export default function RootLayout({
           rel="stylesheet" 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" 
         />
+        <script dangerouslySetInnerHTML={{ __html: paletteBootstrapScript }} />
       </head>
       <body
         className="font-sans antialiased"

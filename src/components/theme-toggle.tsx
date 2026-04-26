@@ -31,7 +31,6 @@ export function ThemeToggle() {
   const applyThemeToDocument = React.useCallback((theme: ThemeMode) => {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
-    root.style.colorScheme = theme;
   }, []);
 
   const handleToggle = React.useCallback(() => {
@@ -41,6 +40,7 @@ export function ThemeToggle() {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setTheme(nextTheme);
+      applyThemeToDocument(nextTheme);
       return;
     }
 
@@ -50,6 +50,7 @@ export function ThemeToggle() {
 
     if (!button || !startViewTransition) {
       setTheme(nextTheme);
+      applyThemeToDocument(nextTheme);
       return;
     }
 
@@ -86,8 +87,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="p-1.5 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/5 transition-smooth active:scale-95">
-        <span className="material-symbols-outlined text-[20px] text-[var(--foreground)]/50">light_mode</span>
+      <button className="icon-button active:scale-95" aria-label="Toggle Theme">
+        <span className="material-symbols-outlined text-[20px]">light_mode</span>
       </button>
     );
   }
@@ -97,12 +98,12 @@ export function ThemeToggle() {
       type="button"
       ref={buttonRef}
       onClick={handleToggle}
-      className="p-1.5 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/5 transition-smooth active:scale-95 disabled:cursor-not-allowed"
+      className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={isAnimating}
       aria-label="Toggle Theme"
       aria-disabled={isAnimating}
     >
-      <span className="material-symbols-outlined text-[20px] text-[var(--foreground)]/50">
+      <span className="material-symbols-outlined text-[20px]">
         {activeTheme === "dark" ? "light_mode" : "dark_mode"}
       </span>
     </button>

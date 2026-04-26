@@ -16,19 +16,19 @@ export default function Analytics() {
 
   return (
     <>
-      <main className="flex-1 max-w-[1100px] mx-auto w-full p-6 lg:p-10">
+      <main className="app-main flex-1">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-10 gap-4">
+        <div className="page-heading">
           <div>
-            <p className="text-[13px] font-medium text-[var(--muted)] tracking-wide mb-1.5">Overview</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold tracking-tight text-[var(--foreground)] leading-[1.1]">
+            <p className="section-eyebrow">Overview</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
               Analytics
             </h1>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
              <div className="bg-[var(--foreground)]/[0.03] p-0.5 rounded-lg flex border border-[var(--card-border)] w-full md:w-auto overflow-x-auto">
-                <button className="px-3 py-1 rounded-md bg-[var(--accent)] text-white text-[12px] font-medium transition-smooth whitespace-nowrap">This Month</button>
+                <button className="px-3 py-1 rounded-md bg-[var(--action)] text-[var(--action-text)] text-[12px] font-medium transition-smooth whitespace-nowrap">This Month</button>
                 <button className="px-3 py-1 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] text-[12px] font-medium transition-smooth whitespace-nowrap">Last Quarter</button>
                 <button className="px-3 py-1 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] text-[12px] font-medium transition-smooth whitespace-nowrap">This Year</button>
              </div>
@@ -39,11 +39,11 @@ export default function Analytics() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 auto-rows-auto mb-3">
           
           {/* Main Chart Area */}
-          <div className="md:col-span-2 bg-[var(--card)] rounded-xl p-6 lg:p-7 flex flex-col justify-between border border-[var(--card-border)] min-h-[320px] relative overflow-hidden group">
+          <div className="md:col-span-2 surface-card p-6 lg:p-7 flex flex-col justify-between min-h-[320px] relative overflow-hidden group">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-lg font-semibold tracking-tight text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
-                <p className="text-[12px] font-medium text-[var(--sage)]">+12% from last period</p>
+                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
+                <p className="text-[12px] font-medium text-[var(--positive)]">+12% from last period</p>
               </div>
               <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
                  <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
@@ -72,7 +72,7 @@ export default function Analytics() {
           </div>
 
           {/* Paid Ratio */}
-          <div className="bg-[var(--featured)] rounded-xl p-6 lg:p-7 flex flex-col justify-between relative overflow-hidden group min-h-[320px]">
+          <div className="surface-featured p-6 lg:p-7 flex flex-col justify-between relative overflow-hidden group min-h-[320px]">
              <div className="absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.03] to-transparent pointer-events-none" />
              <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none group-hover:bg-[var(--accent)]/15 transition-all duration-700" />
             
@@ -104,7 +104,7 @@ export default function Analytics() {
                        />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <span className="text-2xl font-semibold tracking-tighter text-[var(--featured-text)] font-display">{paidRatio}%</span>
+                       <span className="text-2xl font-semibold text-[var(--featured-text)] font-display">{paidRatio}%</span>
                     </div>
                  </div>
                  <p className="text-[var(--featured-text)]/50 text-[12px] font-medium text-center">{paidRatio}% of invoices are marked paid.</p>
@@ -114,7 +114,7 @@ export default function Analytics() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-auto">
            {/* Average Invoice Value */}
-           <div className="bg-[var(--card)] rounded-xl p-5 lg:p-6 flex flex-col justify-between border border-[var(--card-border)] hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
+           <div className="surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
               <div className="flex items-center justify-between">
                  <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Avg. Invoice</p>
                  <div className="size-8 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -122,13 +122,13 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageInvoice, currency)}</h3>
-                 <p className="text-[11px] text-[var(--sage)] font-medium">+5.2% than last month</p>
+                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageInvoice, currency)}</h3>
+                 <p className="text-[11px] text-[var(--positive)] font-medium">+5.2% than last month</p>
               </div>
            </div>
 
            {/* Client LTV */}
-           <div className="bg-[var(--card)] rounded-xl p-5 lg:p-6 flex flex-col justify-between border border-[var(--card-border)] hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
+           <div className="surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
               <div className="flex items-center justify-between">
                  <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Avg. LTV</p>
                  <div className="size-8 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -136,13 +136,13 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageClientValue, currency)}</h3>
+                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageClientValue, currency)}</h3>
                  <p className="text-[11px] text-[var(--muted)] font-medium">Per client lifetime</p>
               </div>
            </div>
 
            {/* Top Client */}
-           <div className="md:col-span-2 bg-[var(--card)] rounded-xl p-5 lg:p-6 flex flex-col justify-between border border-[var(--card-border)] hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] relative overflow-hidden group">
+           <div className="md:col-span-2 surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] relative overflow-hidden group">
               <div className="absolute right-0 bottom-0 top-0 w-24 bg-gradient-to-l from-[var(--accent)]/[0.04] to-transparent pointer-events-none" />
               <div className="flex items-center justify-between mb-3">
                  <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Top Client</p>
@@ -152,12 +152,12 @@ export default function Analytics() {
               </div>
               <div className="flex justify-between items-end relative z-10">
                  <div>
-                   <h3 className="text-lg lg:text-xl font-semibold tracking-tight text-[var(--foreground)] mb-0.5 font-display">{topClient?.name || "No client yet"}</h3>
+                   <h3 className="text-lg lg:text-xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{topClient?.name || "No client yet"}</h3>
                    <p className="text-[11px] text-[var(--muted)] font-medium">Highest billed client by invoice total</p>
                  </div>
                  <div className="text-right">
                     <p className="text-base font-semibold text-[var(--foreground)]">{formatCurrency(topClient?.totalBilled || 0, currency)}</p>
-                    <p className="text-[10px] font-semibold text-[var(--sage)]">YTD</p>
+                    <p className="text-[10px] font-semibold text-[var(--positive)]">YTD</p>
                  </div>
               </div>
            </div>
@@ -166,7 +166,7 @@ export default function Analytics() {
       </main>
 
       <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2023 BillCraft. All rights reserved.</p>
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
       </footer>
     </>
   );
