@@ -25,20 +25,20 @@ html[data-light-palette="palette-2"] {
   --palette-2: #e5beec;
   --palette-3: #917fb3;
   --palette-4: #2a2f4f;
-  --background: var(--palette-1);
+  --background: color-mix(in srgb, var(--palette-1) 88%, var(--palette-2));
   --foreground: var(--palette-4);
-  --card: var(--palette-2);
-  --card-border: var(--palette-3);
-  --muted: var(--palette-4);
-  --accent: var(--palette-4);
-  --accent-hover: var(--palette-3);
+  --card: color-mix(in srgb, var(--palette-1) 68%, var(--palette-2));
+  --card-border: color-mix(in srgb, var(--palette-3) 42%, var(--palette-1));
+  --muted: color-mix(in srgb, var(--palette-4) 72%, var(--palette-3));
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: var(--palette-3);
+  --action-hover: color-mix(in srgb, var(--palette-4) 78%, var(--palette-3));
   --action-text: var(--palette-1);
-  --positive: var(--palette-4);
+  --positive: var(--palette-3);
   --featured: var(--palette-4);
   --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured-muted: color-mix(in srgb, var(--palette-2) 72%, var(--palette-1));
 }
 
 html[data-light-palette="palette-3"] {
@@ -46,20 +46,20 @@ html[data-light-palette="palette-3"] {
   --palette-2: #ff653f;
   --palette-3: #452e5a;
   --palette-4: #1e104e;
-  --background: var(--palette-1);
+  --background: color-mix(in srgb, var(--palette-1) 70%, var(--palette-4));
   --foreground: var(--palette-4);
-  --card: var(--palette-2);
-  --card-border: var(--palette-3);
-  --muted: var(--palette-4);
-  --accent: var(--palette-4);
-  --accent-hover: var(--palette-3);
+  --card: color-mix(in srgb, var(--palette-1) 86%, var(--palette-4));
+  --card-border: color-mix(in srgb, var(--palette-3) 48%, var(--palette-1));
+  --muted: color-mix(in srgb, var(--palette-4) 82%, var(--palette-2));
+  --accent: var(--palette-3);
+  --accent-hover: color-mix(in srgb, var(--palette-3) 72%, var(--palette-2));
   --action: var(--palette-4);
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
-  --positive: var(--palette-4);
+  --positive: var(--palette-3);
   --featured: var(--palette-4);
   --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured-muted: color-mix(in srgb, var(--palette-1) 84%, var(--palette-2));
 }
 
 html[data-light-palette="palette-4"] {
@@ -133,18 +133,18 @@ html.dark[data-dark-palette="palette-2"] {
   --palette-4: #2a2f4f;
   --background: var(--palette-4);
   --foreground: var(--palette-1);
-  --card: var(--palette-3);
-  --card-border: var(--palette-2);
-  --muted: var(--palette-2);
+  --card: color-mix(in srgb, var(--palette-4) 78%, var(--palette-3));
+  --card-border: color-mix(in srgb, var(--palette-3) 52%, var(--palette-2));
+  --muted: color-mix(in srgb, var(--palette-2) 78%, var(--palette-3));
   --accent: var(--palette-2);
   --accent-hover: var(--palette-3);
-  --action: var(--palette-2);
+  --action: color-mix(in srgb, var(--palette-2) 76%, var(--palette-3));
   --action-hover: var(--palette-3);
   --action-text: var(--palette-4);
-  --positive: var(--palette-2);
+  --positive: color-mix(in srgb, var(--palette-2) 80%, var(--palette-1));
   --featured: var(--palette-4);
   --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured-muted: color-mix(in srgb, var(--palette-2) 78%, var(--palette-3));
 }
 
 html.dark[data-dark-palette="palette-3"] {
@@ -154,18 +154,18 @@ html.dark[data-dark-palette="palette-3"] {
   --palette-4: #1e104e;
   --background: var(--palette-4);
   --foreground: var(--palette-1);
-  --card: var(--palette-3);
-  --card-border: var(--palette-2);
-  --muted: var(--palette-2);
-  --accent: var(--palette-2);
+  --card: color-mix(in srgb, var(--palette-4) 72%, var(--palette-3));
+  --card-border: color-mix(in srgb, var(--palette-3) 62%, var(--palette-2));
+  --muted: color-mix(in srgb, var(--palette-1) 68%, var(--palette-2));
+  --accent: var(--palette-1);
   --accent-hover: var(--palette-3);
-  --action: var(--palette-2);
+  --action: var(--palette-3);
   --action-hover: var(--palette-3);
-  --action-text: var(--palette-4);
-  --positive: var(--palette-2);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-1);
   --featured: var(--palette-4);
   --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured-muted: color-mix(in srgb, var(--palette-1) 72%, var(--palette-2));
 }
 
 html.dark[data-dark-palette="palette-4"] {
