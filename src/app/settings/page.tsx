@@ -1,6 +1,5 @@
 "use client";
 
-import { formatCurrency } from "@/data/invoices";
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
@@ -14,11 +13,9 @@ export default function Settings() {
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
   const { activeProfile, updateProfile } = useUserData();
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
   const [invoiceReminders, setInvoiceReminders] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
-  const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "billing" | "security">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "security">("profile");
   const [profileForm, setProfileForm] = useState<ProfileDraft>({
     name: "",
     profession: "",
@@ -51,7 +48,6 @@ export default function Settings() {
     { id: "profile" as const, label: "Profile", icon: "person" },
     { id: "appearance" as const, label: "Appearance", icon: "palette" },
     { id: "notifications" as const, label: "Notifications", icon: "notifications" },
-    { id: "billing" as const, label: "Billing", icon: "payments" },
     { id: "security" as const, label: "Security", icon: "shield" },
   ];
 
@@ -396,9 +392,7 @@ export default function Settings() {
             {activeTab === "notifications" && (
               <div className="surface-card overflow-hidden">
                 {[
-                  { label: "Email Notifications", desc: "Receive alerts when invoices are paid or overdue", state: emailNotifications, toggle: setEmailNotifications },
                   { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices", state: invoiceReminders, toggle: setInvoiceReminders },
-                  { label: "Marketing Emails", desc: "Receive feature updates and promotional content", state: marketingEmails, toggle: setMarketingEmails },
                   { label: "Auto Backup", desc: "Automatically back up your invoice data weekly", state: autoBackup, toggle: setAutoBackup },
                 ].map((item, i, arr) => (
                   <div key={item.label} className={`flex items-center justify-between p-5 ${i < arr.length - 1 ? 'border-b border-[var(--card-border)]' : ''}`}>
@@ -418,48 +412,6 @@ export default function Settings() {
                   </div>
                 ))}
               </div>
-            )}
-
-            {/* Billing Tab */}
-            {activeTab === "billing" && (
-              <>
-                <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
-                  <div className="relative z-10">
-                    <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Current Plan</p>
-                    <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-0.5">Professional</h2>
-                    <p className="text-[12px] text-[var(--featured-text)]/45 mb-5">Unlimited invoices, clients, and export options</p>
-                    <div className="flex gap-2">
-                      <button className="btn-primary">
-                        Upgrade Plan
-                      </button>
-                      <button className="px-4 py-2 text-[var(--featured-text)]/50 text-[12px] font-medium hover:text-[var(--featured-text)] transition-smooth">
-                        View Billing History
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="surface-card p-5">
-                    <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Payment Method</p>
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-9 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">credit_card</span>
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-semibold text-[var(--foreground)]">•••• •••• •••• 4242</p>
-                        <p className="text-[11px] text-[var(--muted)]">Expires 12/2025</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="surface-card p-5">
-                    <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Next Billing</p>
-                    <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(29, currency)}</p>
-                    <p className="text-[11px] text-[var(--muted)] mt-0.5">Due Nov 1, 2023</p>
-                  </div>
-                </div>
-              </>
             )}
 
             {/* Security Tab */}

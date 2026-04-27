@@ -3,8 +3,16 @@
 import { formatCurrency, getClientsFromInvoices, getInvoiceTotal, getInvoiceTotals, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
+import { useState } from "react";
 
-const DAY_FORMATTER = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+const RANGE_OPTIONS = [
+  { id: "month", label: "This Month" },
+  { id: "last-quarter", label: "Last Quarter" },
+  { id: "year", label: "This Year" },
+] as const;
+
+type AnalyticsRange = (typeof RANGE_OPTIONS)[number]["id"];
 
 function getDayKey(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -16,47 +24,95 @@ function startOfDay(date: Date) {
   return nextDate;
 }
 
-function getRevenueChartData(invoices: Invoice[]) {
+function endOfDay(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setHours(23, 59, 59, 999);
+  return nextDate;
+}
+
+function getDateRange(range: AnalyticsRange) {
   const today = startOfDay(new Date());
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (6 - index));
+  const end = endOfDay(today);
+
+  if (range === "month") {
+    return {
+      start: startOfDay(new Date(today.getFullYear(), today.getMonth(), 1)),
+      end,
+    };
+  }
+
+  if (range === "last-quarter") {
+    const currentQuarter = Math.floor(today.getMonth() / 3);
+    const previousQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
+    const year = currentQuarter === 0 ? today.getFullYear() - 1 : today.getFullYear();
+    const start = startOfDay(new Date(year, previousQuarter * 3, 1));
+    const previousQuarterEnd = endOfDay(new Date(year, previousQuarter * 3 + 3, 0));
+
+    return { start, end: previousQuarterEnd };
+  }
+
+  return {
+    start: startOfDay(new Date(today.getFullYear(), 0, 1)),
+    end,
+  };
+}
+
+function filterInvoicesByDate(invoices: Invoice[], range: AnalyticsRange) {
+  const { start, end } = getDateRange(range);
+
+  return invoices.filter((invoice) => {
+    const invoiceDate = startOfDay(new Date(invoice.date));
+
+    if (Number.isNaN(invoiceDate.getTime())) {
+      return false;
+    }
+
+    return invoiceDate >= start && invoiceDate <= end;
+  });
+}
+
+function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange) {
+  const { start, end } = getDateRange(range);
+  const bucketCount = 7;
+  const rangeLength = Math.max(end.getTime() - start.getTime(), 1);
+  const bucketLength = rangeLength / bucketCount;
+  const buckets = Array.from({ length: bucketCount }, (_, index) => {
+    const date = new Date(start.getTime() + bucketLength * index);
 
     return {
       key: getDayKey(date),
-      label: DAY_FORMATTER.format(date),
+      label: DATE_LABEL_FORMATTER.format(date),
       total: 0,
     };
   });
-  const dayMap = new Map(days.map((day) => [day.key, day]));
 
   invoices.forEach((invoice) => {
     const parsedDate = startOfDay(new Date(invoice.date));
 
-    if (Number.isNaN(parsedDate.getTime())) {
+    if (Number.isNaN(parsedDate.getTime()) || parsedDate < start || parsedDate > end) {
       return;
     }
 
-    const chartDay = dayMap.get(getDayKey(parsedDate));
-
-    if (chartDay) {
-      chartDay.total += getInvoiceTotal(invoice);
-    }
+    const bucketIndex = Math.min(Math.floor((parsedDate.getTime() - start.getTime()) / bucketLength), bucketCount - 1);
+    buckets[bucketIndex].total += getInvoiceTotal(invoice);
   });
 
-  return days;
+  return buckets;
 }
 
 export default function Analytics() {
   const { invoices } = useInvoices();
   const { currency } = useCurrency();
-  const totals = getInvoiceTotals(invoices);
-  const clients = getClientsFromInvoices(invoices);
-  const revenueChartData = getRevenueChartData(invoices);
+  const [activeRange, setActiveRange] = useState<AnalyticsRange>("month");
+  const filteredInvoices = filterInvoicesByDate(invoices, activeRange);
+  const activeRangeLabel = RANGE_OPTIONS.find((option) => option.id === activeRange)?.label || "This Month";
+  const totals = getInvoiceTotals(filteredInvoices);
+  const clients = getClientsFromInvoices(filteredInvoices);
+  const revenueChartData = getRevenueChartData(filteredInvoices, activeRange);
   const revenueChartMax = Math.max(...revenueChartData.map((day) => day.total), 0);
   const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
-  const paidRatio = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
-  const averageInvoice = invoices.length > 0 ? totals.totalAmount / invoices.length : 0;
+  const paidRatio = filteredInvoices.length > 0 ? Math.round((totals.paidCount / filteredInvoices.length) * 100) : 0;
+  const averageInvoice = filteredInvoices.length > 0 ? totals.totalAmount / filteredInvoices.length : 0;
   const averageClientValue = clients.length > 0 ? totals.totalAmount / clients.length : 0;
   const topClient = [...clients].sort((a, b) => b.totalBilled - a.totalBilled)[0];
 
@@ -74,9 +130,23 @@ export default function Analytics() {
           </div>
           <div className="flex gap-2 w-full md:w-auto">
              <div className="bg-[var(--foreground)]/[0.03] p-0.5 rounded-lg flex border border-[var(--card-border)] w-full md:w-auto overflow-x-auto">
-                <button className="px-3 py-1 rounded-md bg-[var(--action)] text-[var(--action-text)] text-[12px] font-medium transition-smooth whitespace-nowrap">This Month</button>
-                <button className="px-3 py-1 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] text-[12px] font-medium transition-smooth whitespace-nowrap">Last Quarter</button>
-                <button className="px-3 py-1 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] text-[12px] font-medium transition-smooth whitespace-nowrap">This Year</button>
+                {RANGE_OPTIONS.map((option) => {
+                  const isActive = activeRange === option.id;
+
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => setActiveRange(option.id)}
+                      className={`px-3 py-1 rounded-md text-[12px] font-medium transition-smooth whitespace-nowrap ${
+                        isActive
+                          ? "bg-[var(--action)] text-[var(--action-text)]"
+                          : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
              </div>
           </div>
         </div>
@@ -90,7 +160,7 @@ export default function Analytics() {
               <div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
                 <p className="text-[12px] font-medium text-[var(--muted)]">
-                  {invoices.length > 0 ? `${formatCurrency(revenueChartTotal, currency)} in the last 7 days` : "No invoice data yet"}
+                  {filteredInvoices.length > 0 ? `${formatCurrency(revenueChartTotal, currency)} in ${activeRangeLabel.toLowerCase()}` : `No invoice data for ${activeRangeLabel.toLowerCase()}`}
                 </p>
               </div>
               <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
@@ -98,7 +168,7 @@ export default function Analytics() {
               </div>
             </div>
             
-            {invoices.length > 0 ? (
+            {filteredInvoices.length > 0 ? (
               <>
                 <div className="flex-1 flex items-end gap-1.5 mt-3 pt-4 border-t border-[var(--card-border)]">
                   {revenueChartData.map((day) => {
@@ -127,7 +197,7 @@ export default function Analytics() {
               <div className="flex-1 mt-3 pt-4 border-t border-[var(--card-border)] flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3">monitoring</span>
                 <p className="text-[13px] font-semibold text-[var(--foreground)]">No revenue to chart</p>
-                <p className="text-[11px] text-[var(--muted)] mt-1">Create an invoice and this tile will update automatically.</p>
+                <p className="text-[11px] text-[var(--muted)] mt-1">Invoices in {activeRangeLabel.toLowerCase()} will appear here.</p>
               </div>
             )}
           </div>
@@ -168,7 +238,9 @@ export default function Analytics() {
                        <span className="text-2xl font-semibold text-[var(--featured-text)] font-display">{paidRatio}%</span>
                     </div>
                  </div>
-                 <p className="text-[var(--featured-text)]/50 text-[12px] font-medium text-center">{paidRatio}% of invoices are marked paid.</p>
+                 <p className="text-[var(--featured-text)]/50 text-[12px] font-medium text-center">
+                  {filteredInvoices.length > 0 ? `${paidRatio}% of ${activeRangeLabel.toLowerCase()} invoices are marked paid.` : `No invoices in ${activeRangeLabel.toLowerCase()}.`}
+                 </p>
              </div>
           </div>
         </div>
@@ -185,7 +257,7 @@ export default function Analytics() {
               <div>
                  <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageInvoice, currency)}</h3>
                  <p className="text-[11px] text-[var(--muted)] font-medium">
-                   {invoices.length > 0 ? `Based on ${invoices.length} invoices` : "No invoices yet"}
+                   {filteredInvoices.length > 0 ? `Based on ${filteredInvoices.length} invoices` : `No invoices in ${activeRangeLabel.toLowerCase()}`}
                  </p>
               </div>
            </div>
@@ -200,7 +272,9 @@ export default function Analytics() {
               </div>
               <div>
                  <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageClientValue, currency)}</h3>
-                 <p className="text-[11px] text-[var(--muted)] font-medium">Per client lifetime</p>
+                 <p className="text-[11px] text-[var(--muted)] font-medium">
+                  {clients.length > 0 ? `Across ${clients.length} clients` : "No client totals yet"}
+                 </p>
               </div>
            </div>
 

@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "dashboard" },
   { href: "/invoices", label: "Invoices", icon: "receipt_long" },
   { href: "/clients", label: "Clients", icon: "group" },
+  { href: "/outsourcing", label: "Outsourcing", icon: "engineering" },
   { href: "/analytics", label: "Analytics", icon: "bar_chart" },
 ];
 
@@ -34,6 +35,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [showCreateProfileForm, setShowCreateProfileForm] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileDraft>(EMPTY_PROFILE_FORM);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
@@ -52,6 +54,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isFirstRun) {
       setIsProfileModalOpen(true);
+      setShowCreateProfileForm(true);
     }
   }, [isFirstRun]);
 
@@ -67,6 +70,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
 
     setIsProfileModalOpen(false);
+    setShowCreateProfileForm(false);
+    setProfileForm(EMPTY_PROFILE_FORM);
     setProfileMessage("");
   }
 
@@ -99,6 +104,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     try {
       await createProfile(profileForm);
       setProfileForm(EMPTY_PROFILE_FORM);
+      setShowCreateProfileForm(false);
       setIsProfileModalOpen(false);
     } catch (createError) {
       setProfileMessage(createError instanceof Error ? createError.message : "Unable to create profile.");
@@ -165,7 +171,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <span className="absolute top-1 right-1.5 size-1.5 rounded-full bg-[var(--accent)]" />
           </button>
           <button
-            onClick={() => setIsProfileModalOpen(true)}
+            onClick={() => {
+              setIsProfileModalOpen(true);
+              setShowCreateProfileForm(false);
+              setProfileForm(EMPTY_PROFILE_FORM);
+            }}
             className="size-9 rounded-full bg-[var(--accent)]/10 flex items-center justify-center cursor-pointer hover:bg-[var(--accent)]/15 transition-smooth overflow-hidden"
             aria-label="Profiles"
           >
@@ -232,10 +242,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
-              <button className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80">
-                <span className="material-symbols-outlined text-[18px]">logout</span>
-                Logout
-              </button>
             </div>
           </div>
         </aside>
@@ -305,6 +311,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
+            {!isFirstRun && !showCreateProfileForm && profiles.length < 5 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateProfileForm(true)}
+                  className="btn-primary active:scale-[0.97]"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  Create New Profile
+                </button>
+              </div>
+            )}
+
+            {(isFirstRun || showCreateProfileForm) && (
             <form onSubmit={handleCreateProfile} className={`space-y-4 ${profiles.length >= 5 ? "opacity-50 pointer-events-none" : ""}`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -410,7 +430,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
               <div className="flex justify-end gap-2 pt-1">
                 {!isFirstRun && (
-                  <button type="button" onClick={closeProfileModal} className="btn-ghost">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateProfileForm(false);
+                      setProfileForm(EMPTY_PROFILE_FORM);
+                      setProfileMessage("");
+                    }}
+                    className="btn-ghost"
+                  >
                     Cancel
                   </button>
                 )}
@@ -419,6 +447,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             </form>
+            )}
 
             {profiles.length >= 5 && (
               <p className="mt-4 text-[12px] text-[var(--muted)]">Profile limit reached. Switch between your existing profiles above.</p>

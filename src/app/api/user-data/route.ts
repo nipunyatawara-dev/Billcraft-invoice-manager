@@ -4,8 +4,11 @@ import {
   loadLocalDataSnapshot,
   saveClient,
   saveInvoice,
+  saveOutsourcingInvoice,
+  saveVendor,
   updateProfile,
   type SaveInvoicePayload,
+  type SaveOutsourcingInvoicePayload,
 } from "@/lib/user-data-store";
 
 export const runtime = "nodejs";
@@ -14,7 +17,9 @@ type UserDataAction =
   | { action: "createProfile"; profile: Parameters<typeof createProfile>[0] }
   | { action: "updateProfile"; profileId: string; profile: Parameters<typeof updateProfile>[1] }
   | { action: "saveClient"; profileId: string; originalClientId: string | null; client: Parameters<typeof saveClient>[2] }
-  | ({ action: "saveInvoice" } & SaveInvoicePayload);
+  | ({ action: "saveInvoice" } & SaveInvoicePayload)
+  | { action: "saveVendor"; profileId: string; originalVendorId: string | null; vendor: Parameters<typeof saveVendor>[2] }
+  | ({ action: "saveOutsourcingInvoice" } & SaveOutsourcingInvoicePayload);
 
 function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "Unable to update local user data.";
@@ -55,6 +60,16 @@ export async function POST(request: NextRequest) {
     if (body.action === "saveInvoice") {
       const invoice = await saveInvoice(body);
       activeProfileId = body.profileId || invoice.clientId || null;
+    }
+
+    if (body.action === "saveVendor") {
+      const vendor = await saveVendor(body.profileId, body.originalVendorId, body.vendor);
+      activeProfileId = body.profileId || vendor.id;
+    }
+
+    if (body.action === "saveOutsourcingInvoice") {
+      const invoice = await saveOutsourcingInvoice(body);
+      activeProfileId = body.profileId || invoice.vendorId || null;
     }
 
     const snapshot = await loadLocalDataSnapshot(activeProfileId);

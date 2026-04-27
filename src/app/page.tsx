@@ -12,6 +12,7 @@ export default function Home() {
   const { activeProfile } = useUserData();
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
+  const collectionRate = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
 
   return (
     <>
@@ -30,9 +31,9 @@ export default function Home() {
               <span className="material-symbols-outlined text-[16px]">add</span>
               New Invoice
             </Link>
-            <button className="btn-secondary active:scale-[0.97]">
-              View Reports
-            </button>
+            <Link href="/analytics" className="btn-secondary active:scale-[0.97]">
+              View Analytics
+            </Link>
           </div>
         </div>
 
@@ -49,7 +50,7 @@ export default function Home() {
                 <div className="size-7 rounded-lg bg-[var(--featured-text)]/10 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[14px] text-[var(--featured-text)]/60">payments</span>
                 </div>
-                <p className="text-[13px] font-medium text-[var(--featured-muted)] tracking-wide">Total Revenue</p>
+                <p className="text-[13px] font-medium text-[var(--featured-muted)] tracking-wide">Collected Revenue</p>
               </div>
             </div>
 
@@ -59,10 +60,12 @@ export default function Home() {
               </h2>
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-md">
-                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                  +12.5%
+                  <span className="material-symbols-outlined text-[14px]">receipt_long</span>
+                  {totals.paidCount} paid
                 </span>
-                <span className="text-[12px] text-[var(--featured-text)]/35 font-medium">from last month</span>
+                <span className="text-[12px] text-[var(--featured-text)]/35 font-medium">
+                  {invoices.length > 0 ? `${invoices.length} total invoices` : "No invoices yet"}
+                </span>
               </div>
             </div>
           </div>
@@ -91,32 +94,36 @@ export default function Home() {
             </div>
             <div>
               <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.overdueAmount, currency)}</h3>
-              <p className="text-[11px] text-[var(--accent)] font-medium">Requires attention</p>
+              <p className="text-[11px] text-[var(--accent)] font-medium">{totals.overdueCount} invoices overdue</p>
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Payment Health */}
           <div className="md:col-span-2 surface-card p-5 lg:p-6 min-h-[133px] flex flex-col justify-between">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Quick Actions</p>
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div>
+                <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-1">Payment Health</p>
+                <p className="text-[12px] text-[var(--muted)]">
+                  {invoices.length > 0 ? `${collectionRate}% of invoices are paid` : "Create an invoice to start tracking"}
+                </p>
+              </div>
+              <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">query_stats</span>
+              </div>
+            </div>
             <div className="grid grid-cols-3 gap-2">
-              <Link href="/invoices" className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth group cursor-pointer">
-                <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center group-hover:bg-[var(--accent)]/15 transition-smooth">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">add_circle</span>
-                </div>
-                <span className="text-[11px] font-medium text-[var(--muted)] text-center">New Invoice</span>
-              </Link>
-              <Link href="/clients" className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth group cursor-pointer">
-                <div className="size-9 rounded-lg bg-[var(--positive)]/10 flex items-center justify-center group-hover:bg-[var(--positive)]/15 transition-smooth">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--positive)]">person_add</span>
-                </div>
-                <span className="text-[11px] font-medium text-[var(--muted)] text-center">Add Client</span>
-              </Link>
-              <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[var(--foreground)]/[0.03] transition-smooth group cursor-pointer">
-                <div className="size-9 rounded-lg bg-[var(--foreground)]/[0.06] flex items-center justify-center group-hover:bg-[var(--foreground)]/[0.08] transition-smooth">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">description</span>
-                </div>
-                <span className="text-[11px] font-medium text-[var(--muted)] text-center">Estimates</span>
-              </button>
+              <div className="rounded-lg border border-[var(--card-border)] p-3">
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.paidCount}</p>
+                <p className="text-[10px] font-semibold text-[var(--positive)] tracking-wide uppercase">Paid</p>
+              </div>
+              <div className="rounded-lg border border-[var(--card-border)] p-3">
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.unpaidCount}</p>
+                <p className="text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">Unpaid</p>
+              </div>
+              <div className="rounded-lg border border-[var(--card-border)] p-3">
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.overdueCount}</p>
+                <p className="text-[10px] font-semibold text-[var(--accent)] tracking-wide uppercase">Overdue</p>
+              </div>
             </div>
           </div>
 

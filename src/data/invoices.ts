@@ -65,6 +65,43 @@ export interface Client {
   updatedAt?: string;
 }
 
+export interface Vendor {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  company?: string;
+  address?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OutsourcingInvoice {
+  id: string;
+  vendorId?: string;
+  vendor: string;
+  avatar: string;
+  date: string;
+  dueDate?: string;
+  amount: string;
+  subtotal?: number;
+  total?: number;
+  templateId?: string;
+  templateName?: string;
+  items?: InvoiceItem[];
+  status: InvoiceStatus;
+  statusColor: string;
+  vendorColor: string;
+  email: string;
+  phone: string;
+  company?: string;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export function getStatusColor(status: InvoiceStatus) {
   return STATUS_STYLES[status];
 }
@@ -74,6 +111,14 @@ export function parseInvoiceAmount(amount: string) {
 }
 
 export function getInvoiceTotal(invoice: Invoice) {
+  if (typeof invoice.total === "number") {
+    return invoice.total;
+  }
+
+  return parseInvoiceAmount(invoice.amount);
+}
+
+export function getOutsourcingInvoiceTotal(invoice: OutsourcingInvoice) {
   if (typeof invoice.total === "number") {
     return invoice.total;
   }
@@ -136,6 +181,29 @@ export function getInvoiceTotals(invoices: Invoice[]) {
   const overdueAmount = invoices
     .filter((invoice) => invoice.status === "Overdue")
     .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
+
+  return {
+    totalAmount,
+    paidAmount,
+    pendingAmount,
+    overdueAmount,
+    paidCount: invoices.filter((invoice) => invoice.status === "Paid").length,
+    unpaidCount: invoices.filter((invoice) => invoice.status === "Unpaid").length,
+    overdueCount: invoices.filter((invoice) => invoice.status === "Overdue").length,
+  };
+}
+
+export function getOutsourcingTotals(invoices: OutsourcingInvoice[]) {
+  const totalAmount = invoices.reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const paidAmount = invoices
+    .filter((invoice) => invoice.status === "Paid")
+    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const pendingAmount = invoices
+    .filter((invoice) => invoice.status === "Unpaid")
+    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const overdueAmount = invoices
+    .filter((invoice) => invoice.status === "Overdue")
+    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
 
   return {
     totalAmount,

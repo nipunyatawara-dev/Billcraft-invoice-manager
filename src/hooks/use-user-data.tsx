@@ -10,7 +10,9 @@ import {
   type Invoice,
   type InvoiceItem,
   type InvoiceStatus,
+  type OutsourcingInvoice,
   type UserProfile,
+  type Vendor,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -23,6 +25,8 @@ type LocalDataSnapshot = {
   activeProfile: UserProfile | null;
   clients: Client[];
   invoices: Invoice[];
+  vendors: Vendor[];
+  outsourcingInvoices: OutsourcingInvoice[];
   userDataPath: string;
 };
 
@@ -37,6 +41,17 @@ export type ProfileDraft = {
 };
 
 export type ClientDraft = {
+  id?: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  avatar?: string;
+  notes?: string;
+};
+
+export type VendorDraft = {
   id?: string;
   name: string;
   email?: string;
@@ -65,6 +80,24 @@ export type InvoiceDraft = {
   saveClientMode?: "regular" | "onetime";
 };
 
+export type OutsourcingInvoiceDraft = {
+  id?: string;
+  vendorId?: string;
+  vendor: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  avatar?: string;
+  date: string;
+  dueDate?: string;
+  status: InvoiceStatus;
+  templateId: string;
+  templateName: string;
+  items: InvoiceItem[];
+  saveVendorMode?: "regular" | "onetime";
+};
+
 type UserDataContextValue = LocalDataSnapshot & {
   loading: boolean;
   error: string | null;
@@ -73,7 +106,10 @@ type UserDataContextValue = LocalDataSnapshot & {
   switchProfile: (profileId: string) => Promise<void>;
   saveClient: (originalClientId: string | null, client: ClientDraft) => Promise<Client | null>;
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
+  saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
+  saveOutsourcingInvoice: (invoice: OutsourcingInvoiceDraft) => Promise<OutsourcingInvoice | null>;
   exportInvoice: (invoice: Invoice) => void;
+  exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => void;
   refresh: () => Promise<void>;
 };
 
@@ -83,6 +119,8 @@ const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   activeProfile: null,
   clients: [],
   invoices: [],
+  vendors: [],
+  outsourcingInvoices: [],
   userDataPath: "",
 };
 
@@ -117,6 +155,15 @@ function getNextInvoiceId(invoices: Invoice[]) {
   return `#INV-${String(highestNumber + 1).padStart(4, "0")}`;
 }
 
+function getNextOutsourcingInvoiceId(invoices: OutsourcingInvoice[]) {
+  const highestNumber = invoices.reduce((highest, invoice) => {
+    const parsed = Number(invoice.id.replace(/\D/g, ""));
+    return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
+  }, 0);
+
+  return `#OUT-${String(highestNumber + 1).padStart(4, "0")}`;
+}
+
 function normalizeLineItems(items: InvoiceItem[]) {
   return items
     .map((item, index) => ({
@@ -140,6 +187,14 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
       statusColor: getStatusColor(invoice.status),
       clientColor: invoice.clientColor || "bg-[var(--foreground)]/10",
       avatar: invoice.avatar || createAvatar(invoice.client),
+      items: invoice.items || [],
+    })),
+    vendors: snapshot.vendors || [],
+    outsourcingInvoices: (snapshot.outsourcingInvoices || []).map((invoice) => ({
+      ...invoice,
+      statusColor: getStatusColor(invoice.status),
+      vendorColor: invoice.vendorColor || "bg-[var(--foreground)]/10",
+      avatar: invoice.avatar || createAvatar(invoice.vendor),
       items: invoice.items || [],
     })),
   };
@@ -324,6 +379,78 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     return nextSnapshot.invoices.find((currentInvoice) => currentInvoice.id === invoice.id) || invoice;
   }, [currency, postAction, snapshot.activeProfileId, snapshot.invoices]);
 
+  const saveVendor = useCallback(async (originalVendorId: string | null, vendor: VendorDraft) => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    setError(null);
+    const nextSnapshot = await postAction({
+      action: "saveVendor",
+      profileId: snapshot.activeProfileId,
+      originalVendorId,
+      vendor,
+    });
+
+    return nextSnapshot.vendors.find((currentVendor) => (
+      currentVendor.id === originalVendorId ||
+      currentVendor.id === vendor.id ||
+      currentVendor.name === vendor.name.trim()
+    )) || null;
+  }, [postAction, snapshot.activeProfileId]);
+
+  const saveOutsourcingInvoice = useCallback(async (draft: OutsourcingInvoiceDraft) => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    const items = normalizeLineItems(draft.items);
+    const total = getInvoiceItemsTotal(items);
+    const invoice: OutsourcingInvoice = {
+      id: draft.id || getNextOutsourcingInvoiceId(snapshot.outsourcingInvoices),
+      vendorId: draft.vendorId,
+      vendor: draft.vendor.trim(),
+      email: draft.email?.trim() || "",
+      phone: draft.phone?.trim() || "",
+      company: draft.company?.trim() || undefined,
+      address: draft.address?.trim() || undefined,
+      avatar: draft.avatar || createAvatar(draft.vendor.trim()),
+      date: formatDisplayDate(draft.date),
+      dueDate: draft.dueDate ? formatDisplayDate(draft.dueDate) : undefined,
+      amount: formatCurrency(total, currency),
+      subtotal: total,
+      total,
+      templateId: draft.templateId,
+      templateName: draft.templateName,
+      items,
+      status: draft.status,
+      statusColor: getStatusColor(draft.status),
+      vendorColor: "bg-[var(--foreground)]/10",
+    };
+
+    setError(null);
+
+    const nextSnapshot = await postAction({
+      action: "saveOutsourcingInvoice",
+      profileId: snapshot.activeProfileId,
+      invoice,
+      vendorSaveMode: draft.saveVendorMode,
+      vendor: draft.saveVendorMode === "regular"
+        ? {
+          id: draft.vendorId,
+          name: draft.vendor,
+          email: draft.email,
+          phone: draft.phone,
+          company: draft.company,
+          address: draft.address,
+          avatar: draft.avatar,
+        }
+        : undefined,
+    });
+
+    return nextSnapshot.outsourcingInvoices.find((currentInvoice) => currentInvoice.id === invoice.id) || invoice;
+  }, [currency, postAction, snapshot.activeProfileId, snapshot.outsourcingInvoices]);
+
   const exportInvoice = useCallback((invoice: Invoice) => {
     const profile = snapshot.activeProfile;
     const lineItems = (invoice.items || []).map((item) => (
@@ -357,6 +484,39 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     URL.revokeObjectURL(url);
   }, [currency, snapshot.activeProfile]);
 
+  const exportOutsourcingInvoice = useCallback((invoice: OutsourcingInvoice) => {
+    const profile = snapshot.activeProfile;
+    const lineItems = (invoice.items || []).map((item) => (
+      `${item.description} | ${item.quantity} x ${formatCurrency(item.price, currency)} = ${formatCurrency(item.quantity * item.price, currency)}`
+    ));
+    const contents = [
+      profile?.businessName || profile?.name || "BillCraft",
+      profile?.profession ? `Profession: ${profile.profession}` : "",
+      "",
+      `Outsourcing Invoice: ${invoice.id}`,
+      `Template: ${invoice.templateName || "Outsourcing Invoice"}`,
+      `Pay To: ${invoice.vendor}`,
+      `Email: ${invoice.email || "Not provided"}`,
+      `Phone: ${invoice.phone || "Not provided"}`,
+      `Date: ${invoice.date}`,
+      invoice.dueDate ? `Due: ${invoice.dueDate}` : "",
+      `Status: ${invoice.status}`,
+      "",
+      "Work",
+      ...(lineItems.length > 0 ? lineItems : ["No line items"]),
+      "",
+      `Total Payable: ${formatCurrency(invoice.total || getInvoiceItemsTotal(invoice.items), currency)}`,
+    ].filter(Boolean).join("\n");
+    const blob = new Blob([contents], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${invoice.id.replace("#", "")}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [currency, snapshot.activeProfile]);
+
   const value = useMemo<UserDataContextValue>(() => ({
     ...snapshot,
     loading,
@@ -366,16 +526,22 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     switchProfile,
     saveClient,
     saveInvoice,
+    saveVendor,
+    saveOutsourcingInvoice,
     exportInvoice,
+    exportOutsourcingInvoice,
     refresh,
   }), [
     createProfile,
     error,
     exportInvoice,
+    exportOutsourcingInvoice,
     loading,
     refresh,
     saveClient,
     saveInvoice,
+    saveOutsourcingInvoice,
+    saveVendor,
     snapshot,
     switchProfile,
     updateProfile,

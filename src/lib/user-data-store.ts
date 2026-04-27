@@ -6,7 +6,9 @@ import {
   getStatusColor,
   type Client,
   type Invoice,
+  type OutsourcingInvoice,
   type UserProfile,
+  type Vendor,
 } from "@/data/invoices";
 
 const USER_DATA_DIR = path.join(process.cwd(), "User data");
@@ -38,12 +40,25 @@ type ClientDraft = {
   notes?: string;
 };
 
+type VendorDraft = {
+  id?: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  avatar?: string;
+  notes?: string;
+};
+
 export type LocalDataSnapshot = {
   profiles: UserProfile[];
   activeProfileId: string | null;
   activeProfile: UserProfile | null;
   clients: Client[];
   invoices: Invoice[];
+  vendors: Vendor[];
+  outsourcingInvoices: OutsourcingInvoice[];
   userDataPath: string;
 };
 
@@ -52,6 +67,13 @@ export type SaveInvoicePayload = {
   invoice: Invoice;
   clientSaveMode?: "regular" | "onetime";
   client?: ClientDraft;
+};
+
+export type SaveOutsourcingInvoicePayload = {
+  profileId: string;
+  invoice: OutsourcingInvoice;
+  vendorSaveMode?: "regular" | "onetime";
+  vendor?: VendorDraft;
 };
 
 function slugify(value: string) {
@@ -74,7 +96,7 @@ function getProfileDir(profileId: string) {
   return path.join(USER_DATA_DIR, profileId);
 }
 
-function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json") {
+function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json") {
   return path.join(getProfileDir(profileId), fileName);
 }
 
@@ -203,6 +225,17 @@ function hydrateClient(client: Client): Client {
   };
 }
 
+function hydrateVendor(vendor: Vendor): Vendor {
+  return {
+    ...vendor,
+    id: vendor.id || uniqueEntityId("vendor"),
+    name: vendor.name || "Unnamed Vendor",
+    email: vendor.email || "",
+    phone: vendor.phone || "",
+    avatar: vendor.avatar || createAvatar(vendor.name),
+  };
+}
+
 function hydrateInvoice(invoice: Invoice): Invoice {
   const items = invoice.items || [];
   const total = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(items);
@@ -220,6 +253,23 @@ function hydrateInvoice(invoice: Invoice): Invoice {
   };
 }
 
+function hydrateOutsourcingInvoice(invoice: OutsourcingInvoice): OutsourcingInvoice {
+  const items = invoice.items || [];
+  const total = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(items);
+
+  return {
+    ...invoice,
+    items,
+    total,
+    subtotal: typeof invoice.subtotal === "number" ? invoice.subtotal : total,
+    statusColor: getStatusColor(invoice.status),
+    vendorColor: invoice.vendorColor || "bg-[var(--foreground)]/10",
+    avatar: invoice.avatar || createAvatar(invoice.vendor),
+    templateId: invoice.templateId || "outsourcing",
+    templateName: invoice.templateName || "Outsourcing Invoice",
+  };
+}
+
 async function readClients(profileId: string) {
   const clients = await readJson<Client[]>(getProfileDataPath(profileId, "clients.json"), []);
   return clients.map(hydrateClient);
@@ -229,6 +279,15 @@ async function writeClients(profileId: string, clients: Client[]) {
   await writeJson(getProfileDataPath(profileId, "clients.json"), clients.map(hydrateClient));
 }
 
+async function readVendors(profileId: string) {
+  const vendors = await readJson<Vendor[]>(getProfileDataPath(profileId, "vendors.json"), []);
+  return vendors.map(hydrateVendor);
+}
+
+async function writeVendors(profileId: string, vendors: Vendor[]) {
+  await writeJson(getProfileDataPath(profileId, "vendors.json"), vendors.map(hydrateVendor));
+}
+
 async function readInvoices(profileId: string) {
   const invoices = await readJson<Invoice[]>(getProfileDataPath(profileId, "invoices.json"), []);
   return invoices.map(hydrateInvoice);
@@ -236,6 +295,15 @@ async function readInvoices(profileId: string) {
 
 async function writeInvoices(profileId: string, invoices: Invoice[]) {
   await writeJson(getProfileDataPath(profileId, "invoices.json"), invoices.map(hydrateInvoice));
+}
+
+async function readOutsourcingInvoices(profileId: string) {
+  const invoices = await readJson<OutsourcingInvoice[]>(getProfileDataPath(profileId, "outsourcing-invoices.json"), []);
+  return invoices.map(hydrateOutsourcingInvoice);
+}
+
+async function writeOutsourcingInvoices(profileId: string, invoices: OutsourcingInvoice[]) {
+  await writeJson(getProfileDataPath(profileId, "outsourcing-invoices.json"), invoices.map(hydrateOutsourcingInvoice));
 }
 
 async function saveProfileFile(profile: UserProfile) {
@@ -262,6 +330,8 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
       activeProfile: null,
       clients: [],
       invoices: [],
+      vendors: [],
+      outsourcingInvoices: [],
       userDataPath: USER_DATA_DIR,
     };
   }
@@ -274,6 +344,8 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
     activeProfile,
     clients: await readClients(activeProfileId),
     invoices: await readInvoices(activeProfileId),
+    vendors: await readVendors(activeProfileId),
+    outsourcingInvoices: await readOutsourcingInvoices(activeProfileId),
     userDataPath: USER_DATA_DIR,
   };
 }
@@ -299,6 +371,8 @@ export async function createProfile(draft: ProfileDraft) {
   await saveProfileFile(profile);
   await writeClients(profileId, []);
   await writeInvoices(profileId, []);
+  await writeVendors(profileId, []);
+  await writeOutsourcingInvoices(profileId, []);
 
   return profile;
 }
@@ -379,6 +453,61 @@ export async function saveClient(profileId: string, originalClientId: string | n
   return client;
 }
 
+export async function saveVendor(profileId: string, originalVendorId: string | null, draft: VendorDraft) {
+  if (!draft.name.trim()) {
+    throw new Error("Vendor name is required.");
+  }
+
+  await ensureProfileDir(profileId);
+
+  const vendors = await readVendors(profileId);
+  const now = new Date().toISOString();
+  const vendorId = originalVendorId || draft.id || uniqueEntityId("vendor");
+  const existingVendor = vendors.find((vendor) => vendor.id === vendorId);
+  const avatar = await saveDataUrlAsset(profileId, `vendor-${vendorId}`, draft.avatar || existingVendor?.avatar);
+  const vendor: Vendor = hydrateVendor({
+    id: vendorId,
+    name: draft.name.trim(),
+    email: draft.email?.trim() || "",
+    phone: draft.phone?.trim() || "",
+    company: draft.company?.trim() || undefined,
+    address: draft.address?.trim() || undefined,
+    avatar: avatar || createAvatar(draft.name.trim()),
+    notes: draft.notes?.trim() || undefined,
+    createdAt: existingVendor?.createdAt || now,
+    updatedAt: now,
+  });
+
+  const nextVendors = existingVendor
+    ? vendors.map((currentVendor) => currentVendor.id === vendorId ? vendor : currentVendor)
+    : [vendor, ...vendors];
+
+  await writeVendors(profileId, nextVendors);
+
+  const outsourcingInvoices = await readOutsourcingInvoices(profileId);
+  const nextOutsourcingInvoices = outsourcingInvoices.map((invoice) => {
+    if (invoice.vendorId !== vendorId) {
+      return invoice;
+    }
+
+    return hydrateOutsourcingInvoice({
+      ...invoice,
+      vendor: vendor.name,
+      email: vendor.email,
+      phone: vendor.phone,
+      company: vendor.company,
+      address: vendor.address,
+      avatar: vendor.avatar,
+    });
+  });
+
+  if (nextOutsourcingInvoices.some((invoice, index) => invoice !== outsourcingInvoices[index])) {
+    await writeOutsourcingInvoices(profileId, nextOutsourcingInvoices);
+  }
+
+  return vendor;
+}
+
 export async function saveInvoice({ profileId, invoice, clientSaveMode, client }: SaveInvoicePayload) {
   await ensureProfileDir(profileId);
 
@@ -406,6 +535,37 @@ export async function saveInvoice({ profileId, invoice, clientSaveMode, client }
     : [hydratedInvoice, ...invoices];
 
   await writeInvoices(profileId, nextInvoices);
+
+  return hydratedInvoice;
+}
+
+export async function saveOutsourcingInvoice({ profileId, invoice, vendorSaveMode, vendor }: SaveOutsourcingInvoicePayload) {
+  await ensureProfileDir(profileId);
+
+  let regularVendor: Vendor | null = null;
+
+  if (vendorSaveMode === "regular" && vendor?.name.trim()) {
+    regularVendor = await saveVendor(profileId, vendor.id || null, vendor);
+  }
+
+  const invoices = await readOutsourcingInvoices(profileId);
+  const existingInvoice = invoices.find((currentInvoice) => currentInvoice.id === invoice.id);
+  const now = new Date().toISOString();
+  const hydratedInvoice = hydrateOutsourcingInvoice({
+    ...invoice,
+    vendorId: invoice.vendorId || regularVendor?.id,
+    avatar: invoice.avatar || regularVendor?.avatar || createAvatar(invoice.vendor),
+    statusColor: getStatusColor(invoice.status),
+    vendorColor: "bg-[var(--foreground)]/10",
+    createdAt: existingInvoice?.createdAt || invoice.createdAt || now,
+    updatedAt: now,
+  });
+
+  const nextInvoices = existingInvoice
+    ? invoices.map((currentInvoice) => currentInvoice.id === hydratedInvoice.id ? hydratedInvoice : currentInvoice)
+    : [hydratedInvoice, ...invoices];
+
+  await writeOutsourcingInvoices(profileId, nextInvoices);
 
   return hydratedInvoice;
 }
