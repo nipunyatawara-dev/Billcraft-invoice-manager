@@ -1,14 +1,60 @@
 "use client";
 
-import { formatCurrency, getClientsFromInvoices, getInvoiceTotals } from "@/data/invoices";
+import { formatCurrency, getClientsFromInvoices, getInvoiceTotal, getInvoiceTotals, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
+
+const DAY_FORMATTER = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+
+function getDayKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function startOfDay(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setHours(0, 0, 0, 0);
+  return nextDate;
+}
+
+function getRevenueChartData(invoices: Invoice[]) {
+  const today = startOfDay(new Date());
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+
+    return {
+      key: getDayKey(date),
+      label: DAY_FORMATTER.format(date),
+      total: 0,
+    };
+  });
+  const dayMap = new Map(days.map((day) => [day.key, day]));
+
+  invoices.forEach((invoice) => {
+    const parsedDate = startOfDay(new Date(invoice.date));
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return;
+    }
+
+    const chartDay = dayMap.get(getDayKey(parsedDate));
+
+    if (chartDay) {
+      chartDay.total += getInvoiceTotal(invoice);
+    }
+  });
+
+  return days;
+}
 
 export default function Analytics() {
   const { invoices } = useInvoices();
   const { currency } = useCurrency();
   const totals = getInvoiceTotals(invoices);
   const clients = getClientsFromInvoices(invoices);
+  const revenueChartData = getRevenueChartData(invoices);
+  const revenueChartMax = Math.max(...revenueChartData.map((day) => day.total), 0);
+  const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
   const paidRatio = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
   const averageInvoice = invoices.length > 0 ? totals.totalAmount / invoices.length : 0;
   const averageClientValue = clients.length > 0 ? totals.totalAmount / clients.length : 0;
@@ -43,32 +89,47 @@ export default function Analytics() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
-                <p className="text-[12px] font-medium text-[var(--positive)]">+12% from last period</p>
+                <p className="text-[12px] font-medium text-[var(--muted)]">
+                  {invoices.length > 0 ? `${formatCurrency(revenueChartTotal, currency)} in the last 7 days` : "No invoice data yet"}
+                </p>
               </div>
               <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
                  <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
               </div>
             </div>
             
-            {/* Chart bars */}
-            <div className="flex-1 flex items-end gap-1.5 mt-3 pt-4 border-t border-[var(--card-border)]">
-               <div className="flex-1 bg-[var(--foreground)]/[0.06] rounded-t-lg h-[30%] hover:bg-[var(--accent)]/20 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$2.1k</span></div>
-               <div className="flex-1 bg-[var(--foreground)]/[0.1] rounded-t-lg h-[50%] hover:bg-[var(--accent)]/25 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$3.4k</span></div>
-               <div className="flex-1 bg-[var(--foreground)]/[0.06] rounded-t-lg h-[40%] hover:bg-[var(--accent)]/20 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$2.8k</span></div>
-               <div className="flex-1 bg-[var(--accent)]/25 rounded-t-lg h-[70%] hover:bg-[var(--accent)]/35 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$5.2k</span></div>
-               <div className="flex-1 bg-[var(--foreground)]/[0.08] rounded-t-lg h-[45%] hover:bg-[var(--accent)]/20 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$3.1k</span></div>
-               <div className="flex-1 bg-[var(--accent)] rounded-t-lg h-[90%] shadow-lg transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$8.4k</span></div>
-               <div className="flex-1 bg-[var(--accent)]/30 rounded-t-lg h-[60%] hover:bg-[var(--accent)]/40 transition-all relative group/bar cursor-pointer"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity">$4.5k</span></div>
-            </div>
-            <div className="flex justify-between mt-2.5 text-[9px] font-semibold text-[var(--foreground)]/25 px-1 uppercase tracking-widest">
-               <span>Mon</span>
-               <span>Tue</span>
-               <span>Wed</span>
-               <span>Thu</span>
-               <span>Fri</span>
-               <span>Sat</span>
-               <span>Sun</span>
-            </div>
+            {invoices.length > 0 ? (
+              <>
+                <div className="flex-1 flex items-end gap-1.5 mt-3 pt-4 border-t border-[var(--card-border)]">
+                  {revenueChartData.map((day) => {
+                    const barHeight = revenueChartMax > 0 ? Math.max((day.total / revenueChartMax) * 90, 4) : 4;
+
+                    return (
+                      <div
+                        key={day.key}
+                        className={`flex-1 rounded-t-lg transition-all relative group/bar cursor-pointer ${
+                          day.total > 0 ? "bg-[var(--accent)]/35 hover:bg-[var(--accent)]/45" : "bg-[var(--foreground)]/[0.06]"
+                        }`}
+                        style={{ height: `${barHeight}%` }}
+                      >
+                        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">
+                          {formatCurrency(day.total, currency)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between mt-2.5 text-[9px] font-semibold text-[var(--foreground)]/25 px-1 uppercase tracking-widest">
+                  {revenueChartData.map((day) => <span key={day.key}>{day.label}</span>)}
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 mt-3 pt-4 border-t border-[var(--card-border)] flex flex-col items-center justify-center text-center">
+                <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3">monitoring</span>
+                <p className="text-[13px] font-semibold text-[var(--foreground)]">No revenue to chart</p>
+                <p className="text-[11px] text-[var(--muted)] mt-1">Create an invoice and this tile will update automatically.</p>
+              </div>
+            )}
           </div>
 
           {/* Paid Ratio */}
@@ -123,7 +184,9 @@ export default function Analytics() {
               </div>
               <div>
                  <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageInvoice, currency)}</h3>
-                 <p className="text-[11px] text-[var(--positive)] font-medium">+5.2% than last month</p>
+                 <p className="text-[11px] text-[var(--muted)] font-medium">
+                   {invoices.length > 0 ? `Based on ${invoices.length} invoices` : "No invoices yet"}
+                 </p>
               </div>
            </div>
 
@@ -157,7 +220,7 @@ export default function Analytics() {
                  </div>
                  <div className="text-right">
                     <p className="text-base font-semibold text-[var(--foreground)]">{formatCurrency(topClient?.totalBilled || 0, currency)}</p>
-                    <p className="text-[10px] font-semibold text-[var(--positive)]">YTD</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)]">Total</p>
                  </div>
               </div>
            </div>

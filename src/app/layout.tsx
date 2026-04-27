@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
+import { UserDataProvider } from "@/hooks/use-user-data";
 import "./globals.css";
 import "./palette.css";
 
@@ -66,7 +67,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <DashboardLayout>{children}</DashboardLayout>
+          <UserDataProvider>
+            <DashboardLayout>{children}</DashboardLayout>
+          </UserDataProvider>
         </ThemeProvider>
       </body>
     </html>

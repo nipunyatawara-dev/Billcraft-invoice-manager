@@ -1,17 +1,48 @@
 export interface Invoice {
   id: string;
+  clientId?: string;
   client: string;
   avatar: string;
   date: string;
+  dueDate?: string;
   amount: string;
+  subtotal?: number;
+  total?: number;
+  templateId?: string;
+  templateName?: string;
+  items?: InvoiceItem[];
   status: "Paid" | "Unpaid" | "Overdue";
   statusColor: string;
   clientColor: string;
   email: string;
   phone: string;
+  company?: string;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type InvoiceStatus = Invoice["status"];
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  price: number;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  profession: string;
+  email?: string;
+  phone?: string;
+  businessName?: string;
+  profilePic?: string;
+  signature?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
   Paid: "bg-[var(--positive)]/15 text-[var(--positive)]",
@@ -19,64 +50,19 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
   Overdue: "bg-[var(--accent)]/15 text-[var(--accent)]",
 };
 
-export const INVOICES: Invoice[] = [
-  {
-    id: "#INV-0089",
-    client: "Acme Corp",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAsXeqo_w1hhyG5J0kVBACXMjyKrUpAOavnYe05vjVQhQ6TupxXOY6urT_uDg_aovFvQM9FVGKwnGSkJCJfiQHrWhpGS0OkKIctnqyEHDpgG81YNpHtbZkF4grPBORiQLbgsNleUjNLsTbhtSH_cvpx9UNuiqXqPyHlrElxGbUE6YY8FkObAeSaIxDuCAtTFTVZrA_AW7bBv1AsHOErx1NzARISTL8MPnwpz7I_L9ZdWiaPLYzlmVaWwEEV0EdWFk7_MTRnVggu_fI",
-    date: "Oct 12, 2023",
-    amount: "$2,450.00",
-    status: "Paid",
-    statusColor: "bg-[var(--positive)]/15 text-[var(--positive)]",
-    clientColor: "bg-[var(--foreground)]/10",
-    email: "billing@acmecorp.com",
-    phone: "+1 (555) 234-5678"
-  },
-  {
-    id: "#INV-0090",
-    client: "Sarah Jenkins",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDCDi7ktVtRXHtCGjKYlY3hUraj2z4v9h93mnRJoWdHQcidX3hT_UwnrRwbUlEh-NwV0zM_A3-1q1DA9LQgnaKMxRJUrLR0fTuNjVdprsV1IA3-TeJY_VM5lGn0mpXmmYUn6Ab6m3nuCbPZnL9lBdu2U_56Ltt5Rps9-q0538Nue77DiRYgHZ7QT3PMJolEZ99xrm9cjbweK_ocj77NaZsyFleo8879bysKPmsVKeRcfxGRYc4cQimFlVOtse9eGFOmf0mT295MifQ",
-    date: "Oct 14, 2023",
-    amount: "$850.00",
-    status: "Unpaid",
-    statusColor: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
-    clientColor: "bg-[var(--foreground)]/10",
-    email: "sarah@jenkins.design",
-    phone: "+1 (555) 876-5432"
-  },
-  {
-    id: "#INV-0091",
-    client: "Global Logistics",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAkMaqJSltMTbMHXmsFM_hXhpNf1BzjHFLW-ES7ZIAgZZbaLCLTDacEqWABBuE1b3e2eNM1ALPEGTSGLcTHiJbSHM8DxcnojHo5FS1AZttmx8U524sJWMAUzecbyKNvyUgAHyi0_XMQ18pSEGQeYJfbvXcfXOY3UERlwtRv7-dM2Tsoq1OdNxTrAH363vtmSEqtD8GqRbxBEyaO4bJEuRc9uwRtS4YJi8rVN4qaJydC8uiZsvjvFmyfPktcZ_yjIWFmx7yCsiaNWKw",
-    date: "Oct 15, 2023",
-    amount: "$5,120.00",
-    status: "Overdue",
-    statusColor: "bg-[var(--accent)]/15 text-[var(--accent)]",
-    clientColor: "bg-[var(--foreground)]/10",
-    email: "accounts@globallogistics.co",
-    phone: "+1 (555) 321-7890"
-  },
-  {
-    id: "#INV-0092",
-    client: "Pixel Perfect Ltd",
-    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuANMJLtMXpSsmkSFHVzC42VEDqWeZWIrggcJqfUrJUMISNnCcOLAVGAAoweif4AGm_KovI3V_tWdVuTGfLm1diKdY3jj2Ott1F0KFSJCqZBICQOk8REP-P3n9WCQP2uOizmID5U5uYyrn_U7UBP3dJosV9PiQfcEuO-2uwCmJXowL0Bxothp_flG0y1USEeorl49cduyYFaJMP6XRw14fXmyQEJvoUoVW_2a5lLZm1-F6R49gvsPcB4GlU6VvI02uPLIjdc65J2Mjs",
-    date: "Oct 18, 2023",
-    amount: "$1,200.00",
-    status: "Paid",
-    statusColor: "bg-[var(--positive)]/15 text-[var(--positive)]",
-    clientColor: "bg-[var(--foreground)]/10",
-    email: "hello@pixelperfect.io",
-    phone: "+1 (555) 654-3210"
-  }
-];
+export const INVOICES: Invoice[] = [];
 
 export interface Client {
+  id: string;
   name: string;
   email: string;
   phone: string;
   avatar: string;
   company?: string;
+  address?: string;
   notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export function getStatusColor(status: InvoiceStatus) {
@@ -85,6 +71,22 @@ export function getStatusColor(status: InvoiceStatus) {
 
 export function parseInvoiceAmount(amount: string) {
   return Number(amount.replace(/[^\d.-]/g, "")) || 0;
+}
+
+export function getInvoiceTotal(invoice: Invoice) {
+  if (typeof invoice.total === "number") {
+    return invoice.total;
+  }
+
+  return parseInvoiceAmount(invoice.amount);
+}
+
+export function getInvoiceItemsTotal(items: InvoiceItem[] = []) {
+  return items.reduce((sum, item) => {
+    const quantity = Number.isFinite(item.quantity) ? item.quantity : 0;
+    const price = Number.isFinite(item.price) ? item.price : 0;
+    return sum + quantity * price;
+  }, 0);
 }
 
 export function formatCurrency(value: number, currency = "USD") {
@@ -110,21 +112,30 @@ export function formatDisplayDate(date: string) {
 }
 
 export function createAvatar(name: string) {
-  const encodedName = encodeURIComponent(name || "Client");
-  return `https://api.dicebear.com/9.x/initials/svg?seed=${encodedName}&backgroundColor=d1d4f9,f0e7d5,c0aede`;
+  const initials = (name || "Client")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "C";
+  const palette = ["#d1d4f9", "#f0e7d5", "#c0aede", "#d6f3e5", "#f7d8ce"];
+  const index = [...(name || "Client")].reduce((sum, character) => sum + character.charCodeAt(0), 0) % palette.length;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect width="96" height="96" rx="18" fill="${palette[index]}"/><text x="48" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#212842">${initials}</text></svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 export function getInvoiceTotals(invoices: Invoice[]) {
-  const totalAmount = invoices.reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+  const totalAmount = invoices.reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
   const paidAmount = invoices
     .filter((invoice) => invoice.status === "Paid")
-    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
   const pendingAmount = invoices
     .filter((invoice) => invoice.status === "Unpaid")
-    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
   const overdueAmount = invoices
     .filter((invoice) => invoice.status === "Overdue")
-    .reduce((sum, invoice) => sum + parseInvoiceAmount(invoice.amount), 0);
+    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
 
   return {
     totalAmount,
@@ -144,10 +155,13 @@ export function getClientsFromInvoices(invoices: Invoice[]): (Client & { invoice
     if (!clientMap.has(inv.client)) {
       clientMap.set(inv.client, {
         client: {
+          id: inv.clientId || inv.client,
           name: inv.client,
           email: inv.email,
           phone: inv.phone,
           avatar: inv.avatar,
+          company: inv.company,
+          address: inv.address,
         },
         invoices: [],
         totalBilled: 0,
@@ -155,7 +169,7 @@ export function getClientsFromInvoices(invoices: Invoice[]): (Client & { invoice
     }
     const entry = clientMap.get(inv.client)!;
     entry.invoices.push(inv);
-    entry.totalBilled += parseInvoiceAmount(inv.amount);
+    entry.totalBilled += getInvoiceTotal(inv);
   }
   
   return Array.from(clientMap.values()).map(({ client, invoices, totalBilled }) => ({

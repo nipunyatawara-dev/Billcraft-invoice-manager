@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { formatCurrency, getInvoiceTotals, parseInvoiceAmount } from "@/data/invoices";
+import { formatCurrency, getInvoiceTotal, getInvoiceTotals } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
+import { useUserData } from "@/hooks/use-user-data";
 
 export default function Home() {
   const { invoices } = useInvoices();
   const { currency } = useCurrency();
+  const { activeProfile } = useUserData();
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
 
@@ -20,7 +22,7 @@ export default function Home() {
           <div>
             <p className="section-eyebrow">Dashboard</p>
             <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              Good Morning, John
+              Good Morning{activeProfile ? `, ${activeProfile.name}` : ""}
             </h1>
           </div>
           <div className="hidden md:flex gap-2.5">
@@ -141,7 +143,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(inv.amount), currency)}</p>
+                      <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(inv), currency)}</p>
                       <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">{inv.date}</p>
                     </div>
                     <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase ${inv.statusColor}`}>
@@ -150,6 +152,12 @@ export default function Home() {
                   </div>
                 </div>
               ))}
+              {recentInvoices.length === 0 && (
+                <div className="px-6 py-10 sm:col-span-2 lg:col-span-4 text-center">
+                  <span className="material-symbols-outlined text-[38px] text-[var(--foreground)]/10 mb-2 block">receipt_long</span>
+                  <p className="text-[13px] text-[var(--muted)] font-medium">No invoices yet</p>
+                </div>
+              )}
             </div>
           </div>
 

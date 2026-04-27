@@ -1,61 +1,142 @@
 "use client";
 
-import { formatCurrency, getInvoiceTotals, parseInvoiceAmount, type Invoice, type InvoiceStatus } from "@/data/invoices";
+import {
+  formatCurrency,
+  getInvoiceItemsTotal,
+  getInvoiceTotal,
+  getInvoiceTotals,
+  type Client,
+  type Invoice,
+  type InvoiceItem,
+  type InvoiceStatus,
+} from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
-import { FormEvent, useMemo, useState } from "react";
+import { useUserData } from "@/hooks/use-user-data";
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
+const TEMPLATES = [
+  {
+    id: "classic",
+    name: "Classic Invoice",
+    description: "A clean one-page invoice with profile, client, work, and total.",
+  },
+] as const;
 
 type ModalMode = "create" | "edit" | "view" | null;
+type ClientMode = "saved" | "new";
+type SaveClientMode = "regular" | "onetime";
 
 type InvoiceForm = {
+  templateId: string;
+  clientMode: ClientMode;
+  clientId: string;
   client: string;
   email: string;
   phone: string;
+  company: string;
+  address: string;
+  avatar: string;
   date: string;
-  amount: string;
+  dueDate: string;
   status: InvoiceStatus;
+  items: InvoiceItem[];
+  saveClientMode: SaveClientMode | null;
 };
 
-const EMPTY_FORM: InvoiceForm = {
-  client: "",
-  email: "",
-  phone: "",
-  date: new Date().toISOString().slice(0, 10),
-  amount: "",
-  status: "Unpaid",
-};
-
-function toDateInputValue(date: string) {
-  const parsed = new Date(date);
-  return Number.isNaN(parsed.getTime()) ? new Date().toISOString().slice(0, 10) : parsed.toISOString().slice(0, 10);
-}
-
-function toAmountInputValue(amount: string) {
-  return amount.replace(/[$,]/g, "");
-}
-
-function getInvoiceForm(invoice: Invoice): InvoiceForm {
+function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
   return {
+    id: `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    description,
+    quantity,
+    price,
+  };
+}
+
+function todayInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function createEmptyForm(): InvoiceForm {
+  return {
+    templateId: TEMPLATES[0].id,
+    clientMode: "saved",
+    clientId: "",
+    client: "",
+    email: "",
+    phone: "",
+    company: "",
+    address: "",
+    avatar: "",
+    date: todayInputValue(),
+    dueDate: "",
+    status: "Unpaid",
+    items: [createItem()],
+    saveClientMode: null,
+  };
+}
+
+function toDateInputValue(date?: string) {
+  if (!date) {
+    return "";
+  }
+
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+function getFormFromClient(client: Client, currentForm: InvoiceForm): InvoiceForm {
+  return {
+    ...currentForm,
+    clientMode: "saved",
+    clientId: client.id,
+    client: client.name,
+    email: client.email,
+    phone: client.phone,
+    company: client.company || "",
+    address: client.address || "",
+    avatar: client.avatar,
+    saveClientMode: null,
+  };
+}
+
+function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
+  const matchingClient = clients.find((client) => client.id === invoice.clientId || client.name === invoice.client);
+  const fallbackItems = invoice.items && invoice.items.length > 0
+    ? invoice.items
+    : [createItem("Invoice total", 1, getInvoiceTotal(invoice))];
+
+  return {
+    templateId: invoice.templateId || TEMPLATES[0].id,
+    clientMode: matchingClient ? "saved" : "new",
+    clientId: matchingClient?.id || "",
     client: invoice.client,
     email: invoice.email,
     phone: invoice.phone,
-    date: toDateInputValue(invoice.date),
-    amount: toAmountInputValue(invoice.amount),
+    company: invoice.company || matchingClient?.company || "",
+    address: invoice.address || matchingClient?.address || "",
+    avatar: invoice.avatar,
+    date: toDateInputValue(invoice.date) || todayInputValue(),
+    dueDate: toDateInputValue(invoice.dueDate),
     status: invoice.status,
+    items: fallbackItems,
+    saveClientMode: null,
   };
 }
 
 export default function Invoices() {
-  const { invoices, saveInvoice, exportInvoice } = useInvoices();
+  const { invoices, clientRecords, saveInvoice, exportInvoice } = useInvoices();
+  const { activeProfile } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [form, setForm] = useState<InvoiceForm>(EMPTY_FORM);
+  const [form, setForm] = useState<InvoiceForm>(createEmptyForm);
+  const [needsClientSaveChoice, setNeedsClientSaveChoice] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const filteredInvoices = useMemo(() => invoices.filter((invoice) => {
     const normalizedSearch = searchQuery.toLowerCase();
@@ -70,51 +151,159 @@ export default function Invoices() {
 
   const totals = getInvoiceTotals(invoices);
   const isFormMode = modalMode === "create" || modalMode === "edit";
+  const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];
+  const invoiceTotal = getInvoiceItemsTotal(form.items);
 
   function openCreateModal() {
+    const initialForm = createEmptyForm();
+    const firstClient = clientRecords[0];
+
     setSelectedInvoice(null);
-    setForm({ ...EMPTY_FORM, date: new Date().toISOString().slice(0, 10) });
+    setNeedsClientSaveChoice(false);
+    setForm(firstClient ? getFormFromClient(firstClient, initialForm) : { ...initialForm, clientMode: "new" });
     setModalMode("create");
   }
 
   function openEditModal(invoice: Invoice) {
     setSelectedInvoice(invoice);
-    setForm(getInvoiceForm(invoice));
+    setNeedsClientSaveChoice(false);
+    setForm(getInvoiceForm(invoice, clientRecords));
     setModalMode("edit");
   }
 
   function openViewModal(invoice: Invoice) {
     setSelectedInvoice(invoice);
-    setForm(getInvoiceForm(invoice));
+    setNeedsClientSaveChoice(false);
+    setForm(getInvoiceForm(invoice, clientRecords));
     setModalMode("view");
   }
 
   function closeModal() {
+    if (isSaving) {
+      return;
+    }
+
     setModalMode(null);
     setSelectedInvoice(null);
-    setForm(EMPTY_FORM);
+    setNeedsClientSaveChoice(false);
+    setForm(createEmptyForm());
+  }
+
+  function setClientMode(clientMode: ClientMode) {
+    setNeedsClientSaveChoice(false);
+
+    if (clientMode === "saved") {
+      const firstClient = clientRecords[0];
+      setForm((currentForm) => firstClient ? getFormFromClient(firstClient, currentForm) : { ...currentForm, clientMode: "saved" });
+      return;
+    }
+
+    setForm((currentForm) => ({
+      ...currentForm,
+      clientMode: "new",
+      clientId: "",
+      client: "",
+      email: "",
+      phone: "",
+      company: "",
+      address: "",
+      avatar: "",
+      saveClientMode: null,
+    }));
+  }
+
+  function handleClientSelect(clientId: string) {
+    const client = clientRecords.find((currentClient) => currentClient.id === clientId);
+
+    if (!client) {
+      setForm((currentForm) => ({ ...currentForm, clientId, client: "" }));
+      return;
+    }
+
+    setForm((currentForm) => getFormFromClient(client, currentForm));
+  }
+
+  function handleClientImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setForm((currentForm) => ({ ...currentForm, avatar: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function updateItem(index: number, updates: Partial<InvoiceItem>) {
+    setForm((currentForm) => ({
+      ...currentForm,
+      items: currentForm.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...updates } : item),
+    }));
+  }
+
+  function removeItem(index: number) {
+    setForm((currentForm) => ({
+      ...currentForm,
+      items: currentForm.items.length === 1 ? currentForm.items : currentForm.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  async function submitInvoice(saveClientMode?: SaveClientMode) {
+    const normalizedItems = form.items.filter((item) => item.description.trim() || item.quantity > 0 || item.price > 0);
+    const clientName = form.client.trim();
+
+    if (!clientName || normalizedItems.length === 0 || isSaving) {
+      return;
+    }
+
+    if (form.clientMode === "new" && !saveClientMode && !form.saveClientMode) {
+      setNeedsClientSaveChoice(true);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      await saveInvoice({
+        id: modalMode === "edit" ? selectedInvoice?.id : undefined,
+        clientId: form.clientMode === "saved" ? form.clientId : undefined,
+        client: clientName,
+        email: form.email,
+        phone: form.phone,
+        company: form.company,
+        address: form.address,
+        avatar: form.avatar,
+        date: form.date,
+        dueDate: form.dueDate,
+        status: form.status,
+        templateId: selectedTemplate.id,
+        templateName: selectedTemplate.name,
+        items: normalizedItems,
+        saveClientMode: form.clientMode === "new" ? saveClientMode || form.saveClientMode || "onetime" : "onetime",
+      });
+
+      setModalMode(null);
+      setSelectedInvoice(null);
+      setNeedsClientSaveChoice(false);
+      setForm(createEmptyForm());
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (!form.client.trim() || !form.amount.trim()) {
-      return;
-    }
-
-    saveInvoice({
-      ...form,
-      id: modalMode === "edit" ? selectedInvoice?.id : undefined,
-      avatar: selectedInvoice?.avatar,
-    });
-    closeModal();
+    void submitInvoice();
   }
 
   return (
     <>
       <main className="app-main flex-1">
-        
-        {/* Header */}
         <div className="page-heading">
           <div>
             <p className="section-eyebrow">Billing</p>
@@ -128,10 +317,8 @@ export default function Invoices() {
           </button>
         </div>
 
-        {/* Stats Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
-            <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-[var(--featured-text)]/[0.04] blur-2xl pointer-events-none" />
             <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Billed</p>
             <p className="text-xl font-semibold text-[var(--featured-text)] font-display">{formatCurrency(totals.totalAmount, currency)}</p>
           </div>
@@ -149,7 +336,6 @@ export default function Invoices() {
           </div>
         </div>
 
-        {/* Search + Filter Chips */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
           <div className="relative flex-1 max-w-md">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/25 text-[18px]">search</span>
@@ -178,7 +364,6 @@ export default function Invoices() {
           </div>
         </div>
 
-        {/* Invoice Cards */}
         <div className="space-y-2">
           {filteredInvoices.map((invoice) => (
             <button
@@ -195,12 +380,14 @@ export default function Invoices() {
                   <h3 className="font-semibold text-[14px] text-[var(--foreground)] group-hover:text-[var(--accent)] transition-smooth truncate">{invoice.client}</h3>
                   <p className="text-[11px] text-[var(--muted)] mt-0.5 flex items-center gap-1.5">
                     <span className="font-medium">{invoice.id}</span>
-                    <span className="w-0.5 h-0.5 rounded-full bg-[var(--foreground)]/15"></span>
+                    <span className="w-0.5 h-0.5 rounded-full bg-[var(--foreground)]/15" />
                     {invoice.date}
+                    <span className="hidden sm:inline w-0.5 h-0.5 rounded-full bg-[var(--foreground)]/15" />
+                    <span className="hidden sm:inline">{invoice.templateName || "Classic Invoice"}</span>
                   </p>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="text-lg font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
+                  <p className="text-lg font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(invoice), currency)}</p>
                   <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-md tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
@@ -219,15 +406,15 @@ export default function Invoices() {
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
-                <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(parseInvoiceAmount(invoice.amount), currency)}</p>
+                <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(invoice), currency)}</p>
               </div>
             </button>
           ))}
 
           {filteredInvoices.length === 0 && (
             <div className="text-center py-16">
-              <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">search_off</span>
-              <p className="text-[13px] text-[var(--muted)] font-medium">No invoices match your filters</p>
+              <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">receipt_long</span>
+              <p className="text-[13px] text-[var(--muted)] font-medium">No invoices yet</p>
             </div>
           )}
         </div>
@@ -240,7 +427,7 @@ export default function Invoices() {
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id}
@@ -251,29 +438,144 @@ export default function Invoices() {
             </div>
 
             {isFormMode ? (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-client">Client</label>
-                  <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="field-control px-3 py-2" />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {TEMPLATES.map((template) => {
+                    const isSelected = form.templateId === template.id;
+
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        onClick={() => setForm({ ...form, templateId: template.id })}
+                        className={`surface-card p-4 text-left transition-smooth ${
+                          isSelected ? "border-[var(--accent)]/55 shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_13%,transparent)]" : "hover:border-[var(--foreground)]/15"
+                        }`}
+                      >
+                        <span className="flex items-center justify-between gap-3">
+                          <span>
+                            <span className="block text-[13px] font-semibold text-[var(--foreground)]">{template.name}</span>
+                            <span className="block mt-1 text-[11px] text-[var(--muted)]">{template.description}</span>
+                          </span>
+                          <span className={`size-7 rounded-lg flex items-center justify-center ${isSelected ? "bg-[var(--action)] text-[var(--action-text)]" : "border border-[var(--card-border)] text-transparent"}`}>
+                            <span className="material-symbols-outlined text-[16px]">check</span>
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-email">Email</label>
-                    <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="field-control px-3 py-2" />
+
+                <div className="surface-card p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Client</p>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Select a saved client or enter a one-time client for this invoice.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1">
+                      <button
+                        type="button"
+                        onClick={() => setClientMode("saved")}
+                        disabled={clientRecords.length === 0}
+                        className={`min-h-8 rounded-md px-3 text-[12px] font-semibold transition-smooth ${
+                          form.clientMode === "saved"
+                            ? "bg-[var(--action)] text-[var(--action-text)]"
+                            : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
+                        }`}
+                      >
+                        Saved
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setClientMode("new")}
+                        className={`min-h-8 rounded-md px-3 text-[12px] font-semibold transition-smooth ${
+                          form.clientMode === "new"
+                            ? "bg-[var(--action)] text-[var(--action-text)]"
+                            : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
+                        }`}
+                      >
+                        New
+                      </button>
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-phone">Phone</label>
-                    <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
-                  </div>
+
+                  {form.clientMode === "saved" && clientRecords.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="saved-client">Saved Client</label>
+                      <select id="saved-client" required value={form.clientId} onChange={(event) => handleClientSelect(event.target.value)} className="field-control px-3 py-2">
+                        {clientRecords.map((client) => (
+                          <option key={client.id} value={client.id}>{client.name}</option>
+                        ))}
+                      </select>
+                      <div className="mt-3 flex items-start gap-3 rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-3">
+                        {form.avatar ? (
+                          <img className="size-10 rounded-lg object-cover border border-[var(--card-border)]" alt={form.client} src={form.avatar} />
+                        ) : (
+                          <span className="size-10 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">person</span>
+                          </span>
+                        )}
+                        <div className="min-w-0 text-[12px] text-[var(--muted)]">
+                          <p className="font-semibold text-[var(--foreground)] truncate">{form.client}</p>
+                          <p className="truncate">{form.email || "No email saved"}</p>
+                          <p className="truncate">{form.phone || "No phone saved"}</p>
+                          {form.address && <p className="mt-1 whitespace-pre-line">{form.address}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                          {form.avatar ? (
+                            <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
+                          ) : (
+                            <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
+                          )}
+                        </div>
+                        <label className="btn-secondary text-[12px] min-h-8 px-3 py-1.5 cursor-pointer">
+                          <span>{form.avatar ? "Change Image" : "Add Image"}</span>
+                          <input className="sr-only" type="file" accept="image/*" onChange={handleClientImageChange} />
+                        </label>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-client">Client Name</label>
+                          <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="field-control px-3 py-2" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-company">Company</label>
+                          <input id="invoice-company" value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="Company name" className="field-control px-3 py-2" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-email">Email</label>
+                          <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="field-control px-3 py-2" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-phone">Phone</label>
+                          <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-address">Address</label>
+                        <textarea id="invoice-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Billing address" className="field-control min-h-20 px-3 py-2 resize-none" />
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-date">Date</label>
                     <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-2" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-amount">Amount</label>
-                    <input id="invoice-amount" required type="number" min="0" step="0.01" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} placeholder="0.00" className="field-control px-3 py-2" />
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-due-date">Due Date</label>
+                    <input id="invoice-due-date" type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} className="field-control px-3 py-2" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-status">Status</label>
@@ -282,37 +584,145 @@ export default function Invoices() {
                     </select>
                   </div>
                 </div>
+
+                <div className="surface-card overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)]">
+                    <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Work Items</p>
+                    <button type="button" onClick={() => setForm({ ...form, items: [...form.items, createItem()] })} className="btn-secondary text-[11px] min-h-8 px-3 py-1.5">
+                      <span className="material-symbols-outlined text-[14px]">add</span>
+                      Add Item
+                    </button>
+                  </div>
+                  <div className="divide-y divide-[var(--card-border)]">
+                    {form.items.map((item, index) => (
+                      <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_90px_130px_40px] gap-3 p-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-description-${item.id}`}>Work Done</label>
+                          <input id={`item-description-${item.id}`} required value={item.description} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="Logo design, consultation, repair work..." className="field-control px-3 py-2" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-quantity-${item.id}`}>Qty</label>
+                          <input id={`item-quantity-${item.id}`} type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => updateItem(index, { quantity: Number(event.target.value) })} className="field-control px-3 py-2" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-price-${item.id}`}>Price</label>
+                          <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateItem(index, { price: Number(event.target.value) })} className="field-control px-3 py-2" />
+                        </div>
+                        <div className="flex md:items-end">
+                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-lg text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">
+                            <span className="material-symbols-outlined text-[17px]">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-4 py-4 bg-[var(--foreground)]/[0.03]">
+                    <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Invoice Total</span>
+                    <span className="text-2xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(invoiceTotal, currency)}</span>
+                  </div>
+                </div>
+
+                {needsClientSaveChoice && (
+                  <div className="rounded-lg border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
+                    <p className="text-[13px] font-semibold text-[var(--foreground)] mb-1">Save this client?</p>
+                    <p className="text-[12px] text-[var(--muted)] mb-3">Regular clients are added to the Clients page. One-time clients stay only on this invoice.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => void submitInvoice("regular")} className="btn-primary active:scale-[0.97]">
+                        Save Regular Client
+                      </button>
+                      <button type="button" onClick={() => void submitInvoice("onetime")} className="btn-secondary">
+                        One-Time Only
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-2 pt-2">
                   <button type="button" onClick={closeModal} className="btn-ghost">
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary active:scale-[0.97]">
-                    {modalMode === "edit" ? "Save Changes" : "Create Invoice"}
+                  <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                    {isSaving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Create Invoice"}
                   </button>
                 </div>
               </form>
             ) : selectedInvoice && (
               <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <img className="size-12 rounded-lg object-cover" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
-                  <div>
-                    <h3 className="text-lg font-semibold text-[var(--foreground)]">{selectedInvoice.client}</h3>
-                    <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.email || "No email added"}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    ["Amount", formatCurrency(parseInvoiceAmount(selectedInvoice.amount), currency)],
-                    ["Status", selectedInvoice.status],
-                    ["Date", selectedInvoice.date],
-                    ["Phone", selectedInvoice.phone || "No phone added"],
-                  ].map(([label, value]) => (
-                    <div key={label} className="surface-card p-3.5">
-                      <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">{label}</p>
-                      <p className="text-[13px] font-semibold text-[var(--foreground)]">{value}</p>
+                <div className="surface-card p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-[var(--card-border)] pb-5 mb-5">
+                    <div className="flex items-center gap-3">
+                      {activeProfile?.profilePic ? (
+                        <img className="size-12 rounded-lg object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
+                      ) : (
+                        <div className="size-12 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-lg font-semibold text-[var(--foreground)]">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</h3>
+                        <p className="text-[12px] text-[var(--muted)]">{activeProfile?.profession || "Invoice profile"}</p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="text-left sm:text-right">
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">{selectedInvoice.templateName || "Classic Invoice"}</p>
+                      <p className="text-2xl font-semibold text-[var(--foreground)] font-display">{selectedInvoice.id}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div>
+                      <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-2">Bill To</p>
+                      <div className="flex items-start gap-3">
+                        <img className="size-10 rounded-lg object-cover border border-[var(--card-border)]" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
+                        <div>
+                          <p className="text-[14px] font-semibold text-[var(--foreground)]">{selectedInvoice.client}</p>
+                          <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.email || "No email added"}</p>
+                          <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.phone || "No phone added"}</p>
+                          {selectedInvoice.address && <p className="text-[12px] text-[var(--muted)] whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="surface-card p-3.5">
+                        <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">Date</p>
+                        <p className="text-[13px] font-semibold text-[var(--foreground)]">{selectedInvoice.date}</p>
+                      </div>
+                      <div className="surface-card p-3.5">
+                        <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">Status</p>
+                        <p className="text-[13px] font-semibold text-[var(--foreground)]">{selectedInvoice.status}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-hidden rounded-lg border border-[var(--card-border)]">
+                    <div className="grid grid-cols-[1fr_70px_110px] gap-3 bg-[var(--foreground)]/[0.04] px-4 py-2 text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">
+                      <span>Work</span>
+                      <span className="text-right">Qty</span>
+                      <span className="text-right">Amount</span>
+                    </div>
+                    {(selectedInvoice.items || []).map((item) => (
+                      <div key={item.id} className="grid grid-cols-[1fr_70px_110px] gap-3 border-t border-[var(--card-border)] px-4 py-3 text-[13px]">
+                        <span className="font-medium text-[var(--foreground)]">{item.description}</span>
+                        <span className="text-right text-[var(--muted)]">{item.quantity}</span>
+                        <span className="text-right font-semibold text-[var(--foreground)]">{formatCurrency(item.quantity * item.price, currency)}</span>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between border-t border-[var(--card-border)] px-4 py-4">
+                      <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Total</span>
+                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(selectedInvoice), currency)}</span>
+                    </div>
+                  </div>
+
+                  {activeProfile?.signature && (
+                    <div className="mt-5 flex justify-end">
+                      <div className="text-right">
+                        <img className="ml-auto h-14 max-w-44 object-contain" alt="Signature" src={activeProfile.signature} />
+                        <p className="mt-1 text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">Signature</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <div className="flex justify-end gap-2">
                   <button onClick={() => exportInvoice(selectedInvoice)} className="btn-secondary">
                     Download

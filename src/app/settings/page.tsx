@@ -3,8 +3,9 @@
 import { formatCurrency } from "@/data/invoices";
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
+import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
 
@@ -12,12 +13,39 @@ export default function Settings() {
   const { currency, setCurrency } = useCurrency();
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
+  const { activeProfile, updateProfile } = useUserData();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [invoiceReminders, setInvoiceReminders] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "billing" | "security">("profile");
+  const [profileForm, setProfileForm] = useState<ProfileDraft>({
+    name: "",
+    profession: "",
+    email: "",
+    phone: "",
+    businessName: "",
+    profilePic: "",
+    signature: "",
+  });
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const activeTheme = resolvedTheme === "dark" ? "dark" : "light";
+
+  useEffect(() => {
+    if (!activeProfile) {
+      return;
+    }
+
+    setProfileForm({
+      name: activeProfile.name,
+      profession: activeProfile.profession,
+      email: activeProfile.email || "",
+      phone: activeProfile.phone || "",
+      businessName: activeProfile.businessName || "",
+      profilePic: activeProfile.profilePic || "",
+      signature: activeProfile.signature || "",
+    });
+  }, [activeProfile]);
 
   const tabs = [
     { id: "profile" as const, label: "Profile", icon: "person" },
@@ -54,6 +82,36 @@ export default function Settings() {
     setTheme(themeMode);
     document.documentElement.classList.toggle("dark", themeMode === "dark");
     document.documentElement.classList.toggle("light", themeMode === "light");
+  }
+
+  function handleProfileImageChange(field: "profilePic" | "signature", event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setProfileForm((currentForm) => ({ ...currentForm, [field]: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleSaveProfile() {
+    if (!profileForm.name.trim() || !profileForm.profession.trim() || isSavingProfile) {
+      return;
+    }
+
+    setIsSavingProfile(true);
+
+    try {
+      await updateProfile(profileForm);
+    } finally {
+      setIsSavingProfile(false);
+    }
   }
 
   return (
@@ -97,46 +155,102 @@ export default function Settings() {
             {/* Profile Tab */}
             {activeTab === "profile" && (
               <>
-                {/* Avatar & Name */}
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
                   <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative z-10">
                     <div className="size-16 rounded-lg bg-[var(--featured-text)]/10 border border-[var(--featured-text)]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
-                      <span className="material-symbols-outlined text-2xl text-[var(--featured-text)]/35">person</span>
-                      <div className="absolute inset-0 bg-[var(--featured)]/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-lg">
-                        <span className="material-symbols-outlined text-lg text-[var(--featured-text)]">photo_camera</span>
-                      </div>
+                      {profileForm.profilePic ? (
+                        <img className="h-full w-full object-cover" alt={profileForm.name || "Profile"} src={profileForm.profilePic} />
+                      ) : (
+                        <span className="material-symbols-outlined text-2xl text-[var(--featured-text)]/35">person</span>
+                      )}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-xl font-semibold text-[var(--featured-text)] font-display mb-0.5">John Doe</h2>
-                      <p className="text-[12px] text-[var(--featured-text)]/45">hello@johndoe.com</p>
+                      <h2 className="text-xl font-semibold text-[var(--featured-text)] font-display mb-0.5">{profileForm.name || "Your profile"}</h2>
+                      <p className="text-[12px] text-[var(--featured-text)]/45">{profileForm.profession || "Profession"}</p>
                     </div>
-                    <button className="btn-secondary bg-[var(--featured-text)]/10 border-[var(--featured-text)]/10 text-[var(--featured-text)] hover:bg-[var(--featured-text)]/15 hover:text-[var(--featured-text)]">
+                    <label className="btn-secondary bg-[var(--featured-text)]/10 border-[var(--featured-text)]/10 text-[var(--featured-text)] hover:bg-[var(--featured-text)]/15 hover:text-[var(--featured-text)] cursor-pointer">
                       Change Photo
-                    </button>
+                      <input className="sr-only" type="file" accept="image/*" onChange={(event) => handleProfileImageChange("profilePic", event)} />
+                    </label>
                   </div>
                 </div>
 
-                {/* Form Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="surface-card p-5 space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">First Name</label>
-                    <input type="text" defaultValue="John" className="field-control px-3 py-2 text-base font-semibold font-display" />
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-name">Name</label>
+                    <input
+                      id="settings-name"
+                      type="text"
+                      value={profileForm.name}
+                      onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+                      className="field-control px-3 py-2 text-base font-semibold font-display"
+                    />
                   </div>
                   <div className="surface-card p-5 space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Last Name</label>
-                    <input type="text" defaultValue="Doe" className="field-control px-3 py-2 text-base font-semibold font-display" />
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-profession">Profession</label>
+                    <input
+                      id="settings-profession"
+                      type="text"
+                      value={profileForm.profession}
+                      onChange={(event) => setProfileForm({ ...profileForm, profession: event.target.value })}
+                      className="field-control px-3 py-2 text-base font-semibold font-display"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="surface-card p-5 space-y-1.5">
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-email">Email Address</label>
+                    <input
+                      id="settings-email"
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(event) => setProfileForm({ ...profileForm, email: event.target.value })}
+                      className="field-control px-3 py-2 text-base font-semibold font-display"
+                    />
+                  </div>
+                  <div className="surface-card p-5 space-y-1.5">
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-phone">Phone</label>
+                    <input
+                      id="settings-phone"
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })}
+                      className="field-control px-3 py-2 text-base font-semibold font-display"
+                    />
                   </div>
                 </div>
 
                 <div className="surface-card p-5 space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Email Address</label>
-                  <input type="email" defaultValue="hello@johndoe.com" className="field-control px-3 py-2 text-base font-semibold font-display" />
+                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-business">Business Name</label>
+                  <input
+                    id="settings-business"
+                    type="text"
+                    value={profileForm.businessName}
+                    onChange={(event) => setProfileForm({ ...profileForm, businessName: event.target.value })}
+                    className="field-control px-3 py-2 text-base font-semibold font-display"
+                  />
                 </div>
 
-                <div className="surface-card p-5 space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Company</label>
-                  <input type="text" defaultValue="BillCraft Inc." className="field-control px-3 py-2 text-base font-semibold font-display" />
+                <div className="surface-card p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="h-16 w-32 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                      {profileForm.signature ? (
+                        <img className="h-full w-full object-contain" alt="Signature" src={profileForm.signature} />
+                      ) : (
+                        <span className="material-symbols-outlined text-[var(--foreground)]/25">draw</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Signature</p>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Used on invoice previews for this profile.</p>
+                    </div>
+                    <label className="btn-secondary cursor-pointer">
+                      {profileForm.signature ? "Change Signature" : "Upload Signature"}
+                      <input className="sr-only" type="file" accept="image/*" onChange={(event) => handleProfileImageChange("signature", event)} />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="surface-card p-5 space-y-1.5">
@@ -156,8 +270,8 @@ export default function Settings() {
                 </div>
 
                 <div className="flex justify-end pt-1">
-                  <button className="btn-primary active:scale-[0.97]">
-                    Save Changes
+                  <button onClick={handleSaveProfile} className="btn-primary active:scale-[0.97]" disabled={isSavingProfile}>
+                    {isSavingProfile ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </>
