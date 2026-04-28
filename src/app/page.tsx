@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AnimatedNumber } from "@/components/animated-number";
 import { formatCurrency, getInvoiceTotal, getInvoiceTotals } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -56,15 +57,15 @@ export default function Home() {
 
             <div className="relative z-10">
               <h2 className="text-4xl lg:text-5xl font-semibold text-[var(--featured-text)] mb-2 font-display">
-                {formatCurrency(totals.paidAmount, currency)}
+                <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
               </h2>
               <div className="flex items-center gap-3">
                 <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-md">
                   <span className="material-symbols-outlined text-[14px]">receipt_long</span>
-                  {totals.paidCount} paid
+                  <AnimatedNumber value={totals.paidCount} /> paid
                 </span>
                 <span className="text-[12px] text-[var(--featured-text)]/35 font-medium">
-                  {invoices.length > 0 ? `${invoices.length} total invoices` : "No invoices yet"}
+                  {invoices.length > 0 ? <><AnimatedNumber value={invoices.length} /> total invoices</> : "No invoices yet"}
                 </span>
               </div>
             </div>
@@ -79,8 +80,8 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.pendingAmount, currency)}</h3>
-              <p className="text-[11px] text-[var(--muted)] font-medium">{totals.unpaidCount} invoices awaiting</p>
+              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(totals.pendingAmount, currency)} /></h3>
+              <p className="text-[11px] text-[var(--muted)] font-medium"><AnimatedNumber value={totals.unpaidCount} /> invoices awaiting</p>
             </div>
           </div>
 
@@ -93,8 +94,8 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(totals.overdueAmount, currency)}</h3>
-              <p className="text-[11px] text-[var(--accent)] font-medium">{totals.overdueCount} invoices overdue</p>
+              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(totals.overdueAmount, currency)} /></h3>
+              <p className="text-[11px] text-[var(--accent)] font-medium"><AnimatedNumber value={totals.overdueCount} /> invoices overdue</p>
             </div>
           </div>
 
@@ -104,7 +105,7 @@ export default function Home() {
               <div>
                 <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-1">Payment Health</p>
                 <p className="text-[12px] text-[var(--muted)]">
-                  {invoices.length > 0 ? `${collectionRate}% of invoices are paid` : "Create an invoice to start tracking"}
+                  {invoices.length > 0 ? <><AnimatedNumber value={`${collectionRate}%`} /> of invoices are paid</> : "Create an invoice to start tracking"}
                 </p>
               </div>
               <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
@@ -113,15 +114,15 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-lg border border-[var(--card-border)] p-3">
-                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.paidCount}</p>
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.paidCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--positive)] tracking-wide uppercase">Paid</p>
               </div>
               <div className="rounded-lg border border-[var(--card-border)] p-3">
-                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.unpaidCount}</p>
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.unpaidCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">Unpaid</p>
               </div>
               <div className="rounded-lg border border-[var(--card-border)] p-3">
-                <p className="text-lg font-semibold text-[var(--foreground)] font-display">{totals.overdueCount}</p>
+                <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.overdueCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--accent)] tracking-wide uppercase">Overdue</p>
               </div>
             </div>
@@ -150,7 +151,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(inv), currency)}</p>
+                      <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} /></p>
                       <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">{inv.date}</p>
                     </div>
                     <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase ${inv.statusColor}`}>

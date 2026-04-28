@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { AnimatedNumber } from "@/components/animated-number";
 import { formatCurrency, getInvoiceTotal, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -159,19 +160,19 @@ export default function Clients() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
             <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display">{formatCurrency(totalRevenue, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={formatCurrency(totalRevenue, currency)} /></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Regular Clients</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{clients.length} <span className="text-[12px] font-normal text-[var(--positive)]">saved</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={clients.length} /> <span className="text-[12px] font-normal text-[var(--positive)]">saved</span></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Invoices</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{invoices.length} <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Avg / Client</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} /></p>
           </div>
         </div>
 
@@ -224,19 +225,19 @@ export default function Clients() {
 
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                         <div>
-                          <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(client.totalBilled, currency)}</p>
+                          <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(client.totalBilled, currency)} /></p>
                           <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Total Billed</p>
                         </div>
                         <div className="w-px h-7 bg-[var(--card-border)]" />
                         <div>
-                          <p className="text-base font-semibold text-[var(--foreground)] font-display">{client.invoices.length}</p>
+                          <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={client.invoices.length} /></p>
                           <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Invoices</p>
                         </div>
                         <div className="w-px h-7 bg-[var(--card-border)]" />
                         <div className="flex flex-wrap gap-1.5">
-                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]">{breakdown.paid} paid</span>}
-                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50">{breakdown.unpaid} unpaid</span>}
-                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]">{breakdown.overdue} overdue</span>}
+                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]"><AnimatedNumber value={breakdown.paid} /> paid</span>}
+                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
+                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
                         </div>
                       </div>
                     </div>
@@ -278,7 +279,7 @@ export default function Clients() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <p className="text-[13px] font-semibold text-[var(--foreground)] font-display">{formatCurrency(getInvoiceTotal(invoice), currency)}</p>
+                          <p className="text-[13px] font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
                           <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase ${invoice.statusColor}`}>
                             {invoice.status}
                           </span>

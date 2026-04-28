@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AnimatedNumber } from "@/components/animated-number";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
@@ -34,6 +35,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useModePalettes();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationBadgeOpen, setIsNotificationBadgeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [showCreateProfileForm, setShowCreateProfileForm] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileDraft>(EMPTY_PROFILE_FORM);
@@ -57,6 +59,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       setShowCreateProfileForm(true);
     }
   }, [isFirstRun]);
+
+  useEffect(() => {
+    const badgeTimer = window.setTimeout(() => setIsNotificationBadgeOpen(true), 120);
+
+    return () => window.clearTimeout(badgeTimer);
+  }, []);
 
   function closeSidebarOnMobile() {
     if (window.matchMedia("(max-width: 1023px)").matches) {
@@ -168,7 +176,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
           <button className="icon-button active:scale-95 hidden sm:inline-flex relative" aria-label="Notifications">
             <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="absolute top-1 right-1.5 size-1.5 rounded-full bg-[var(--accent)]" />
+            <span className="t-badge" data-open={isNotificationBadgeOpen ? "true" : "false"} aria-hidden="true">
+              <span className="t-badge-dot" />
+            </span>
           </button>
           <button
             onClick={() => {
@@ -267,7 +277,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   {isFirstRun ? "Create your first profile" : "Manage profiles"}
                 </h2>
                 <p className="mt-1 text-[12px] text-[var(--muted)]">
-                  {profiles.length}/5 profiles saved locally in the User data folder.
+                  <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
                 </p>
               </div>
               {!isFirstRun && (

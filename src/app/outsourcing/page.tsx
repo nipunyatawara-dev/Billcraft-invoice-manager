@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedNumber } from "@/components/animated-number";
 import {
   formatCurrency,
   getInvoiceItemsTotal,
@@ -318,19 +319,19 @@ export default function Outsourcing() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
             <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Payables</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display">{formatCurrency(totals.totalAmount, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Paid</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(totals.paidAmount, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Pending</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(totals.pendingAmount, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(totals.pendingAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Overdue</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(totals.overdueAmount, currency)}</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(totals.overdueAmount, currency)} /></p>
           </div>
         </div>
 
@@ -383,7 +384,7 @@ export default function Outsourcing() {
                   </p>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="text-lg font-semibold text-[var(--foreground)] font-display">{formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)}</p>
+                  <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)} /></p>
                   <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-md tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
@@ -402,7 +403,7 @@ export default function Outsourcing() {
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
-                <p className="text-base font-semibold text-[var(--foreground)] font-display">{formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)}</p>
+                <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)} /></p>
               </div>
             </button>
           ))}
@@ -610,7 +611,7 @@ export default function Outsourcing() {
                   </div>
                   <div className="flex items-center justify-between gap-3 px-4 py-4 bg-[var(--foreground)]/[0.03]">
                     <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Total Payable</span>
-                    <span className="text-2xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(invoiceTotal, currency)}</span>
+                    <span className="text-2xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(invoiceTotal, currency)} /></span>
                   </div>
                 </div>
 
@@ -685,13 +686,13 @@ export default function Outsourcing() {
                     {(selectedInvoice.items || []).map((item) => (
                       <div key={item.id} className="grid grid-cols-[1fr_70px_110px] gap-3 border-t border-[var(--card-border)] px-4 py-3 text-[13px]">
                         <span className="font-medium text-[var(--foreground)]">{item.description}</span>
-                        <span className="text-right text-[var(--muted)]">{item.quantity}</span>
-                        <span className="text-right font-semibold text-[var(--foreground)]">{formatCurrency(item.quantity * item.price, currency)}</span>
+                        <span className="text-right text-[var(--muted)]"><AnimatedNumber value={item.quantity} /></span>
+                        <span className="text-right font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(item.quantity * item.price, currency)} /></span>
                       </div>
                     ))}
                     <div className="flex items-center justify-between border-t border-[var(--card-border)] px-4 py-4">
                       <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Total Payable</span>
-                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display">{formatCurrency(getOutsourcingInvoiceTotal(selectedInvoice), currency)}</span>
+                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getOutsourcingInvoiceTotal(selectedInvoice), currency)} /></span>
                     </div>
                   </div>
                 </div>

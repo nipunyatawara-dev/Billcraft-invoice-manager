@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedNumber } from "@/components/animated-number";
 import { formatCurrency, getClientsFromInvoices, getInvoiceTotal, getInvoiceTotals, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -160,7 +161,7 @@ export default function Analytics() {
               <div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
                 <p className="text-[12px] font-medium text-[var(--muted)]">
-                  {filteredInvoices.length > 0 ? `${formatCurrency(revenueChartTotal, currency)} in ${activeRangeLabel.toLowerCase()}` : `No invoice data for ${activeRangeLabel.toLowerCase()}`}
+                  {filteredInvoices.length > 0 ? <><AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} /> in {activeRangeLabel.toLowerCase()}</> : `No invoice data for ${activeRangeLabel.toLowerCase()}`}
                 </p>
               </div>
               <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
@@ -183,7 +184,7 @@ export default function Analytics() {
                         style={{ height: `${barHeight}%` }}
                       >
                         <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">
-                          {formatCurrency(day.total, currency)}
+                          <AnimatedNumber value={formatCurrency(day.total, currency)} />
                         </span>
                       </div>
                     );
@@ -235,11 +236,11 @@ export default function Analytics() {
                        />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                       <span className="text-2xl font-semibold text-[var(--featured-text)] font-display">{paidRatio}%</span>
+                       <span className="text-2xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={`${paidRatio}%`} /></span>
                     </div>
                  </div>
                  <p className="text-[var(--featured-text)]/50 text-[12px] font-medium text-center">
-                  {filteredInvoices.length > 0 ? `${paidRatio}% of ${activeRangeLabel.toLowerCase()} invoices are marked paid.` : `No invoices in ${activeRangeLabel.toLowerCase()}.`}
+                  {filteredInvoices.length > 0 ? <><AnimatedNumber value={`${paidRatio}%`} /> of {activeRangeLabel.toLowerCase()} invoices are marked paid.</> : `No invoices in ${activeRangeLabel.toLowerCase()}.`}
                  </p>
              </div>
           </div>
@@ -255,9 +256,9 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageInvoice, currency)}</h3>
+                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(averageInvoice, currency)} /></h3>
                  <p className="text-[11px] text-[var(--muted)] font-medium">
-                   {filteredInvoices.length > 0 ? `Based on ${filteredInvoices.length} invoices` : `No invoices in ${activeRangeLabel.toLowerCase()}`}
+                   {filteredInvoices.length > 0 ? <>Based on <AnimatedNumber value={filteredInvoices.length} /> invoices</> : `No invoices in ${activeRangeLabel.toLowerCase()}`}
                  </p>
               </div>
            </div>
@@ -271,9 +272,9 @@ export default function Analytics() {
                  </div>
               </div>
               <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{formatCurrency(averageClientValue, currency)}</h3>
+                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(averageClientValue, currency)} /></h3>
                  <p className="text-[11px] text-[var(--muted)] font-medium">
-                  {clients.length > 0 ? `Across ${clients.length} clients` : "No client totals yet"}
+                  {clients.length > 0 ? <>Across <AnimatedNumber value={clients.length} /> clients</> : "No client totals yet"}
                  </p>
               </div>
            </div>
@@ -293,7 +294,7 @@ export default function Analytics() {
                    <p className="text-[11px] text-[var(--muted)] font-medium">Highest billed client by invoice total</p>
                  </div>
                  <div className="text-right">
-                    <p className="text-base font-semibold text-[var(--foreground)]">{formatCurrency(topClient?.totalBilled || 0, currency)}</p>
+                    <p className="text-base font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} /></p>
                     <p className="text-[10px] font-semibold text-[var(--muted)]">Total</p>
                  </div>
               </div>
