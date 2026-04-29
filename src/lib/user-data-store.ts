@@ -584,3 +584,37 @@ export function getAssetFilePath(profileId: string, fileName: string) {
 
   return resolvedAssetPath;
 }
+
+export async function deleteProfile(profileId: string) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+  if (!existingProfile) return;
+
+  const nextProfiles = index.profiles.filter((profile) => profile.id !== profileId);
+  await writeProfileIndex({ profiles: nextProfiles });
+
+  try {
+    await fs.rm(getProfileDir(profileId), { recursive: true, force: true });
+  } catch (error) {
+    // ignore
+  }
+}
+
+export async function deleteAllProfiles() {
+  await writeProfileIndex({ profiles: [] });
+  
+  try {
+    const items = await fs.readdir(USER_DATA_DIR);
+    for (const item of items) {
+      if (item !== "profiles.json") {
+        const itemPath = path.join(USER_DATA_DIR, item);
+        const stat = await fs.stat(itemPath);
+        if (stat.isDirectory()) {
+          await fs.rm(itemPath, { recursive: true, force: true });
+        }
+      }
+    }
+  } catch (error) {
+    // ignore
+  }
+}

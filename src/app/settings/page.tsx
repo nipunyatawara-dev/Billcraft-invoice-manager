@@ -15,7 +15,7 @@ export default function Settings() {
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
   const { toastPosition, setToastPosition } = useToastPosition();
-  const { activeProfile, updateProfile } = useUserData();
+  const { activeProfile, updateProfile, deleteProfile, deleteAllProfiles } = useUserData();
   const [invoiceReminders, setInvoiceReminders] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
   const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "security">("profile");
@@ -556,12 +556,39 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="surface-card p-5 border-[var(--accent)]/15">
-                  <h3 className="text-[13px] font-semibold text-[var(--accent)] mb-0.5">Danger Zone</h3>
-                  <p className="text-[11px] text-[var(--muted)] mb-3">Permanently delete your account and all associated data</p>
-                  <button className="px-3 py-1.5 border border-[var(--accent)]/20 rounded-lg text-[11px] font-semibold text-[var(--accent)]/70 hover:bg-[var(--accent)]/10 transition-smooth">
-                    Delete Account
-                  </button>
+                <div className="surface-card p-5 border-red-500/30 bg-red-500/[0.02]">
+                  <h3 className="text-[13px] font-semibold text-red-500 mb-0.5">Danger Zone</h3>
+                  <p className="text-[11px] text-red-500/70 mb-4">Permanently delete profile data. This action cannot be undone.</p>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to delete the current profile?")) {
+                          await notifyPromise(deleteProfile(), {
+                            loading: { title: "Deleting profile...", description: "Please wait." },
+                            success: { title: "Profile deleted", description: "The current profile has been removed." },
+                            error: (e) => ({ title: "Delete failed", description: getToastErrorMessage(e, "Unable to delete profile.") })
+                          });
+                        }
+                      }}
+                      className="px-3 py-1.5 border border-red-500/30 rounded-lg text-[11px] font-semibold text-red-500 hover:bg-red-500/10 transition-smooth"
+                    >
+                      Delete current profile
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to delete ALL profiles?")) {
+                          await notifyPromise(deleteAllProfiles(), {
+                            loading: { title: "Deleting all profiles...", description: "Please wait." },
+                            success: { title: "Profiles deleted", description: "All profiles have been removed." },
+                            error: (e) => ({ title: "Delete failed", description: getToastErrorMessage(e, "Unable to delete profiles.") })
+                          });
+                        }
+                      }}
+                      className="px-3 py-1.5 border border-transparent rounded-lg text-[11px] font-semibold text-white bg-red-500 hover:bg-red-600 transition-smooth"
+                    >
+                      Delete all profiles
+                    </button>
+                  </div>
                 </div>
               </>
             )}

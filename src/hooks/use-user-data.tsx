@@ -104,6 +104,8 @@ type UserDataContextValue = LocalDataSnapshot & {
   createProfile: (profile: ProfileDraft) => Promise<void>;
   updateProfile: (profile: ProfileDraft) => Promise<void>;
   switchProfile: (profileId: string) => Promise<void>;
+  deleteProfile: () => Promise<void>;
+  deleteAllProfiles: () => Promise<void>;
   saveClient: (originalClientId: string | null, client: ClientDraft) => Promise<Client | null>;
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
@@ -306,6 +308,29 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     writeActiveProfileId(profileId);
     await fetchSnapshot(profileId);
   }, [fetchSnapshot]);
+
+  const deleteProfile = useCallback(async () => {
+    if (!snapshot.activeProfileId) return;
+    setError(null);
+    try {
+      await postAction({ action: "deleteProfile", profileId: snapshot.activeProfileId });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to delete profile.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const deleteAllProfiles = useCallback(async () => {
+    setError(null);
+    try {
+      await postAction({ action: "deleteAllProfiles" });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to delete all profiles.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction]);
 
   const saveClient = useCallback(async (originalClientId: string | null, client: ClientDraft) => {
     if (!snapshot.activeProfileId) {
@@ -524,6 +549,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     createProfile,
     updateProfile,
     switchProfile,
+    deleteProfile,
+    deleteAllProfiles,
     saveClient,
     saveInvoice,
     saveVendor,
@@ -544,6 +571,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveVendor,
     snapshot,
     switchProfile,
+    deleteProfile,
+    deleteAllProfiles,
     updateProfile,
   ]);
 
