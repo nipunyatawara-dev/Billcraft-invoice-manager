@@ -295,7 +295,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            <div className="px-3 pb-4 pt-2 border-t border-[var(--card-border)] space-y-0.5 bg-transparent shrink-0">
+            <div className="px-3 pb-4 pt-2 space-y-0.5 bg-transparent shrink-0">
               {BOTTOM_NAV.map((item) => {
                 const isActive = pathname === item.href;
                 return (

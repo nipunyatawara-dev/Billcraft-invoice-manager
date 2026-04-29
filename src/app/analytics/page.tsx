@@ -303,7 +303,7 @@ export default function Analytics() {
 
       </main>
 
-      <footer className="mt-auto border-t border-[var(--card-border)] p-5 text-center">
+      <footer className="mt-auto p-5 text-center">
         <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
       </footer>
     </>
