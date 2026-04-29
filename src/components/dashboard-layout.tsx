@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/animated-number";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -102,7 +103,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   async function handleCreateProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!profileForm.name.trim() || !profileForm.profession.trim() || profileSaving) {
+    if (profileSaving) {
+      return;
+    }
+
+    if (!profileForm.name.trim() || !profileForm.profession.trim()) {
+      notify.warning({
+        title: "Profile details required",
+        description: "Add your name and profession to create a profile.",
+      });
       return;
     }
 
@@ -110,7 +119,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setProfileMessage("");
 
     try {
-      await createProfile(profileForm);
+      await notifyPromise(createProfile(profileForm), {
+        loading: {
+          title: "Creating profile...",
+          description: "Preparing your local invoice workspace.",
+        },
+        success: {
+          title: "Profile created",
+          description: `${profileForm.name.trim()} is ready for invoices.`,
+        },
+        error: (error) => ({
+          title: "Profile creation failed",
+          description: getToastErrorMessage(error, "Unable to create this profile."),
+        }),
+      });
       setProfileForm(EMPTY_PROFILE_FORM);
       setShowCreateProfileForm(false);
       setIsProfileModalOpen(false);
@@ -131,13 +153,53 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setProfileMessage("");
 
     try {
-      await switchProfile(profileId);
+      const nextProfile = profiles.find((profile) => profile.id === profileId);
+
+      await notifyPromise(switchProfile(profileId), {
+        loading: {
+          title: "Switching profile...",
+          description: "Loading this profile's local billing data.",
+        },
+        success: {
+          title: "Profile switched",
+          description: nextProfile ? `Now working as ${nextProfile.name}.` : "Your selected profile is active.",
+        },
+        error: (error) => ({
+          title: "Profile switch failed",
+          description: getToastErrorMessage(error, "Unable to switch profiles."),
+        }),
+      });
       setIsProfileModalOpen(false);
     } catch (switchError) {
       setProfileMessage(switchError instanceof Error ? switchError.message : "Unable to switch profile.");
     } finally {
       setProfileSaving(false);
     }
+  }
+
+  function handleNotificationsClick() {
+    setIsNotificationBadgeOpen(false);
+
+    if (error) {
+      notify.error({
+        title: "Data sync issue",
+        description: error,
+      });
+      return;
+    }
+
+    if (!activeProfile) {
+      notify.info({
+        title: "Profile setup needed",
+        description: "Create a profile to start saving invoices and clients.",
+      });
+      return;
+    }
+
+    notify.info({
+      title: "All caught up",
+      description: "No new billing notifications right now.",
+    });
   }
 
   return (
@@ -174,7 +236,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <button className="icon-button active:scale-95 hidden sm:inline-flex relative" aria-label="Notifications">
+          <button onClick={handleNotificationsClick} className="icon-button active:scale-95 hidden sm:inline-flex relative" aria-label="Notifications">
             <span className="material-symbols-outlined text-[20px]">notifications</span>
             <span className="t-badge" data-open={isNotificationBadgeOpen ? "true" : "false"} aria-hidden="true">
               <span className="t-badge-dot" />

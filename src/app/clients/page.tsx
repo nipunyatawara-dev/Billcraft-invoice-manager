@@ -5,6 +5,7 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { formatCurrency, getInvoiceTotal, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -113,13 +114,39 @@ export default function Clients() {
     event.preventDefault();
 
     if (!form.name.trim() || isSaving) {
+      if (!isSaving) {
+        notify.warning({
+          title: "Client name required",
+          description: "Add a name before saving this client.",
+        });
+      }
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const savedClient = await saveClient(editingClientId, form);
+      const isEditing = Boolean(editingClientId);
+      const savedClient = await notifyPromise(saveClient(editingClientId, form).then((client) => {
+        if (!client) {
+          throw new Error("Create a profile before saving clients.");
+        }
+
+        return client;
+      }), {
+        loading: {
+          title: isEditing ? "Updating client..." : "Adding client...",
+          description: "Saving client details locally.",
+        },
+        success: (client) => ({
+          title: isEditing ? "Client updated" : "Client added",
+          description: `${client.name} is ready for future invoices.`,
+        }),
+        error: (error) => ({
+          title: isEditing ? "Client update failed" : "Client save failed",
+          description: getToastErrorMessage(error, "Unable to save this client."),
+        }),
+      });
 
       if (savedClient) {
         setSelectedClientId(savedClient.id);

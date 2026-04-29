@@ -3,6 +3,7 @@
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useTheme } from "next-themes";
 import { ChangeEvent, useEffect, useState } from "react";
 
@@ -78,6 +79,33 @@ export default function Settings() {
     setTheme(themeMode);
     document.documentElement.classList.toggle("dark", themeMode === "dark");
     document.documentElement.classList.toggle("light", themeMode === "light");
+    notify.info({
+      title: `${themeMode === "dark" ? "Dark" : "Light"} mode on`,
+      description: "Your appearance preview has been updated.",
+    });
+  }
+
+  function selectPalette(mode: ThemeMode, paletteId: ColorPaletteId, paletteLabel: string) {
+    if (mode === "light") {
+      setLightPalette(paletteId);
+    } else {
+      setDarkPalette(paletteId);
+    }
+
+    notify.success({
+      title: `${mode === "light" ? "Light" : "Dark"} palette updated`,
+      description: `${paletteLabel} will be used in ${mode} mode.`,
+    });
+  }
+
+  function togglePreference(label: string, currentValue: boolean, toggle: (nextValue: boolean) => void) {
+    const nextValue = !currentValue;
+
+    toggle(nextValue);
+    notify.info({
+      title: `${label} ${nextValue ? "enabled" : "disabled"}`,
+      description: nextValue ? "This notification preference is now active." : "This notification preference is now off.",
+    });
   }
 
   function handleProfileImageChange(field: "profilePic" | "signature", event: ChangeEvent<HTMLInputElement>) {
@@ -97,14 +125,35 @@ export default function Settings() {
   }
 
   async function handleSaveProfile() {
-    if (!profileForm.name.trim() || !profileForm.profession.trim() || isSavingProfile) {
+    if (isSavingProfile) {
+      return;
+    }
+
+    if (!profileForm.name.trim() || !profileForm.profession.trim()) {
+      notify.warning({
+        title: "Profile details required",
+        description: "Add your name and profession before saving.",
+      });
       return;
     }
 
     setIsSavingProfile(true);
 
     try {
-      await updateProfile(profileForm);
+      await notifyPromise(updateProfile(profileForm), {
+        loading: {
+          title: "Saving profile...",
+          description: "Updating the identity used on invoices.",
+        },
+        success: {
+          title: "Profile saved",
+          description: "New invoice previews will use your latest details.",
+        },
+        error: (error) => ({
+          title: "Profile save failed",
+          description: getToastErrorMessage(error, "Unable to update this profile."),
+        }),
+      });
     } finally {
       setIsSavingProfile(false);
     }
@@ -254,7 +303,15 @@ export default function Settings() {
                   <select
                     id="currency"
                     value={currency}
-                    onChange={(event) => setCurrency(event.target.value as CurrencyCode)}
+                    onChange={(event) => {
+                      const nextCurrency = event.target.value as CurrencyCode;
+
+                      setCurrency(nextCurrency);
+                      notify.info({
+                        title: "Currency updated",
+                        description: `New invoice totals will use ${nextCurrency}.`,
+                      });
+                    }}
                     className="field-control px-3 py-2 text-base font-semibold font-display"
                   >
                     {CURRENCIES.map((option) => (
@@ -343,7 +400,7 @@ export default function Settings() {
                               type="button"
                               role="radio"
                               aria-checked={isSelected}
-                              onClick={() => setting.setPalette(palette.id)}
+                              onClick={() => selectPalette(setting.mode, palette.id, palette.label)}
                               className={`rounded-lg border bg-[var(--background)]/35 p-3 text-left transition-smooth hover:border-[var(--accent)]/50 ${
                                 isSelected
                                   ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
@@ -404,7 +461,7 @@ export default function Settings() {
                       type="button"
                       role="switch"
                       aria-checked={item.state}
-                      onClick={() => item.toggle(!item.state)}
+                      onClick={() => togglePreference(item.label, item.state, item.toggle)}
                       className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${item.state ? 'bg-[var(--action)]' : 'bg-[var(--foreground)]/12'}`}
                     >
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--action-text)] shadow ring-0 transition duration-200 ease-in-out mt-1 ${item.state ? 'translate-x-5 ml-0' : 'translate-x-1'}`} />

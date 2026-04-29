@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ToastViewport } from "@/components/toast-viewport";
 import { UserDataProvider } from "@/hooks/use-user-data";
 import "./globals.css";
 import "./palette.css";
@@ -47,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -69,6 +70,7 @@ export default function RootLayout({
         >
           <UserDataProvider>
             <DashboardLayout>{children}</DashboardLayout>
+            <ToastViewport />
           </UserDataProvider>
         </ThemeProvider>
       </body>

@@ -64,6 +64,14 @@ html.dark {
 }
 
 :root {
+  --sileo-width: min(350px, calc(100vw - 2rem));
+  --sileo-height: 40px;
+  --sileo-state-success: oklch(0.66 0.18 145);
+  --sileo-state-loading: oklch(0.62 0.05 260);
+  --sileo-state-error: oklch(0.62 0.23 25);
+  --sileo-state-warning: oklch(0.78 0.17 82);
+  --sileo-state-info: oklch(0.62 0.18 247);
+  --sileo-state-action: oklch(0.58 0.2 285);
   --badge-slide-dur: 260ms;
   --badge-pop-dur: 500ms;
   --badge-pop-close-dur: 180ms;
@@ -404,6 +412,25 @@ html.dark {
     border-radius: 0.75rem;
     background: var(--background);
     box-shadow: 0 24px 70px rgba(10, 16, 13, 0.24);
+  }
+
+  [data-sileo-viewport] {
+    z-index: 180 !important;
+  }
+
+  .billcraft-toast-description {
+    color: color-mix(in srgb, var(--foreground) 58%, transparent) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+  }
+
+  .billcraft-toast-badge {
+    background-color: color-mix(in srgb, currentColor 14%, transparent) !important;
+  }
+
+  .billcraft-toast-button {
+    border-radius: 0.5rem !important;
+    font-weight: 700 !important;
   }
 
   .brand-lockup {

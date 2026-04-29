@@ -14,6 +14,7 @@ import {
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
@@ -258,19 +259,40 @@ export default function Invoices() {
     const normalizedItems = form.items.filter((item) => item.description.trim() || item.quantity > 0 || item.price > 0);
     const clientName = form.client.trim();
 
-    if (!clientName || normalizedItems.length === 0 || isSaving) {
+    if (isSaving) {
+      return;
+    }
+
+    if (!clientName) {
+      notify.warning({
+        title: "Client required",
+        description: "Add a client name before saving this invoice.",
+      });
+      return;
+    }
+
+    if (normalizedItems.length === 0) {
+      notify.warning({
+        title: "Add work items",
+        description: "Include at least one billable item before saving.",
+      });
       return;
     }
 
     if (form.clientMode === "new" && !saveClientMode && !form.saveClientMode) {
       setNeedsClientSaveChoice(true);
+      notify.info({
+        title: "Save this client?",
+        description: "Choose whether this client should be reusable or one-time only.",
+      });
       return;
     }
 
     setIsSaving(true);
 
     try {
-      await saveInvoice({
+      const isEditing = modalMode === "edit";
+      await notifyPromise(saveInvoice({
         id: modalMode === "edit" ? selectedInvoice?.id : undefined,
         clientId: form.clientMode === "saved" ? form.clientId : undefined,
         client: clientName,
@@ -286,6 +308,25 @@ export default function Invoices() {
         templateName: selectedTemplate.name,
         items: normalizedItems,
         saveClientMode: form.clientMode === "new" ? saveClientMode || form.saveClientMode || "onetime" : "onetime",
+      }).then((savedInvoice) => {
+        if (!savedInvoice) {
+          throw new Error("Create a profile before saving invoices.");
+        }
+
+        return savedInvoice;
+      }), {
+        loading: {
+          title: isEditing ? "Updating invoice..." : "Creating invoice...",
+          description: "Saving your local billing record.",
+        },
+        success: (savedInvoice) => ({
+          title: isEditing ? "Invoice updated" : "Invoice created",
+          description: `${savedInvoice.id} for ${savedInvoice.client} is saved.`,
+        }),
+        error: (error) => ({
+          title: isEditing ? "Invoice update failed" : "Invoice creation failed",
+          description: getToastErrorMessage(error, "Unable to save this invoice."),
+        }),
       });
 
       setModalMode(null);
@@ -300,6 +341,21 @@ export default function Invoices() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void submitInvoice();
+  }
+
+  function handleExportInvoice(invoice: Invoice) {
+    try {
+      exportInvoice(invoice);
+      notify.success({
+        title: "Download started",
+        description: `${invoice.id} was exported as a text file.`,
+      });
+    } catch (error) {
+      notify.error({
+        title: "Download failed",
+        description: getToastErrorMessage(error, "Unable to export this invoice."),
+      });
+    }
   }
 
   return (
@@ -398,7 +454,7 @@ export default function Invoices() {
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); exportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
                   <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
@@ -725,7 +781,7 @@ export default function Invoices() {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => exportInvoice(selectedInvoice)} className="btn-secondary">
+                  <button onClick={() => handleExportInvoice(selectedInvoice)} className="btn-secondary">
                     Download
                   </button>
                   <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary active:scale-[0.97]">

@@ -13,6 +13,7 @@ import {
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useOutsourcing } from "@/hooks/use-outsourcing";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
@@ -256,19 +257,40 @@ export default function Outsourcing() {
     const normalizedItems = form.items.filter((item) => item.description.trim() || item.quantity > 0 || item.price > 0);
     const vendorName = form.vendor.trim();
 
-    if (!vendorName || normalizedItems.length === 0 || isSaving) {
+    if (isSaving) {
+      return;
+    }
+
+    if (!vendorName) {
+      notify.warning({
+        title: "Vendor required",
+        description: "Add a vendor name before saving this payable.",
+      });
+      return;
+    }
+
+    if (normalizedItems.length === 0) {
+      notify.warning({
+        title: "Add payable items",
+        description: "Include at least one item before saving.",
+      });
       return;
     }
 
     if (form.vendorMode === "new" && !saveVendorMode && !form.saveVendorMode) {
       setNeedsVendorSaveChoice(true);
+      notify.info({
+        title: "Save this vendor?",
+        description: "Choose whether this vendor should be reusable or one-time only.",
+      });
       return;
     }
 
     setIsSaving(true);
 
     try {
-      await saveOutsourcingInvoice({
+      const isEditing = modalMode === "edit";
+      await notifyPromise(saveOutsourcingInvoice({
         id: modalMode === "edit" ? selectedInvoice?.id : undefined,
         vendorId: form.vendorMode === "saved" ? form.vendorId : undefined,
         vendor: vendorName,
@@ -284,6 +306,25 @@ export default function Outsourcing() {
         templateName: selectedTemplate.name,
         items: normalizedItems,
         saveVendorMode: form.vendorMode === "new" ? saveVendorMode || form.saveVendorMode || "onetime" : "onetime",
+      }).then((savedInvoice) => {
+        if (!savedInvoice) {
+          throw new Error("Create a profile before saving payables.");
+        }
+
+        return savedInvoice;
+      }), {
+        loading: {
+          title: isEditing ? "Updating payable..." : "Creating payable...",
+          description: "Saving your outsourcing record.",
+        },
+        success: (savedInvoice) => ({
+          title: isEditing ? "Payable updated" : "Payable created",
+          description: `${savedInvoice.id} for ${savedInvoice.vendor} is saved.`,
+        }),
+        error: (error) => ({
+          title: isEditing ? "Payable update failed" : "Payable creation failed",
+          description: getToastErrorMessage(error, "Unable to save this payable."),
+        }),
       });
 
       setModalMode(null);
@@ -298,6 +339,21 @@ export default function Outsourcing() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void submitOutsourcingInvoice();
+  }
+
+  function handleExportOutsourcingInvoice(invoice: OutsourcingInvoice) {
+    try {
+      exportOutsourcingInvoice(invoice);
+      notify.success({
+        title: "Download started",
+        description: `${invoice.id} was exported as a text file.`,
+      });
+    } catch (error) {
+      notify.error({
+        title: "Download failed",
+        description: getToastErrorMessage(error, "Unable to export this payable."),
+      });
+    }
   }
 
   return (
@@ -394,7 +450,7 @@ export default function Outsourcing() {
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); exportOutsourcingInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportOutsourcingInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
                   <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
@@ -698,7 +754,7 @@ export default function Outsourcing() {
                 </div>
 
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => exportOutsourcingInvoice(selectedInvoice)} className="btn-secondary">
+                  <button onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary">
                     Download
                   </button>
                   <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary active:scale-[0.97]">
