@@ -416,20 +416,35 @@ html.dark {
 
   [data-sileo-viewport] {
     z-index: 180 !important;
+    --sileo-state-success: var(--featured-text);
+    --sileo-state-loading: var(--featured-text);
+    --sileo-state-error: var(--featured-text);
+    --sileo-state-warning: var(--featured-text);
+    --sileo-state-info: var(--featured-text);
+    --sileo-state-action: var(--featured-text);
+  }
+
+  .billcraft-toast-title {
+    color: var(--featured-text) !important;
+    font-weight: 700 !important;
+    text-transform: none !important;
   }
 
   .billcraft-toast-description {
-    color: color-mix(in srgb, var(--foreground) 58%, transparent) !important;
+    color: color-mix(in srgb, var(--featured-text) 72%, transparent) !important;
     font-size: 0.8125rem !important;
     font-weight: 500 !important;
   }
 
   .billcraft-toast-badge {
-    background-color: color-mix(in srgb, currentColor 14%, transparent) !important;
+    color: var(--featured-text) !important;
+    background-color: color-mix(in srgb, var(--featured-text) 14%, transparent) !important;
   }
 
   .billcraft-toast-button {
     border-radius: 0.5rem !important;
+    color: var(--featured-text) !important;
+    background-color: color-mix(in srgb, var(--featured-text) 12%, transparent) !important;
     font-weight: 700 !important;
   }
 
