@@ -1,5 +1,6 @@
 "use client";
 
+import { useToastPosition } from "@/hooks/use-toast-position";
 import { Toaster } from "sileo";
 
 const toastStyles = {
@@ -10,10 +11,12 @@ const toastStyles = {
 };
 
 export function ToastViewport() {
+  const { toastPosition } = useToastPosition();
+
   return (
     <Toaster
-      position="top-right"
-      offset={{ top: 72, right: 16 }}
+      position={toastPosition}
+      offset={{ top: 72, right: 16, bottom: 16, left: 16 }}
       options={{
         fill: "var(--featured)",
         roundness: 12,

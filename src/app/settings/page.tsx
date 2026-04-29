@@ -2,6 +2,7 @@
 
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
+import { TOAST_POSITIONS, type ToastPosition, useToastPosition } from "@/hooks/use-toast-position";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useTheme } from "next-themes";
@@ -13,6 +14,7 @@ export default function Settings() {
   const { currency, setCurrency } = useCurrency();
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
+  const { toastPosition, setToastPosition } = useToastPosition();
   const { activeProfile, updateProfile } = useUserData();
   const [invoiceReminders, setInvoiceReminders] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
@@ -95,6 +97,15 @@ export default function Settings() {
     notify.success({
       title: `${mode === "light" ? "Light" : "Dark"} palette updated`,
       description: `${paletteLabel} will be used in ${mode} mode.`,
+    });
+  }
+
+  function selectToastPosition(position: ToastPosition, label: string) {
+    setToastPosition(position);
+    notify.info({
+      title: "Toast position updated",
+      description: `Notifications will appear at ${label.toLowerCase()}.`,
+      position,
     });
   }
 
@@ -400,7 +411,7 @@ export default function Settings() {
                               type="button"
                               role="radio"
                               aria-checked={isSelected}
-                              onClick={() => selectPalette(setting.mode, palette.id, palette.label)}
+                              onClick={() => selectPalette(setting.mode, palette.id, palette.name)}
                               className={`rounded-lg border bg-[var(--background)]/35 p-3 text-left transition-smooth hover:border-[var(--accent)]/50 ${
                                 isSelected
                                   ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
@@ -408,7 +419,10 @@ export default function Settings() {
                               }`}
                             >
                               <div className="mb-3 flex items-center justify-between gap-2">
-                                <span className="text-[12px] font-semibold text-[var(--foreground)]">{palette.label}</span>
+                                <span>
+                                  <span className="block text-[12px] font-semibold text-[var(--foreground)]">{palette.name}</span>
+                                  <span className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">{palette.label}</span>
+                                </span>
                                 <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center ${
                                   isSelected
                                     ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)]"
@@ -447,27 +461,59 @@ export default function Settings() {
 
             {/* Notifications Tab */}
             {activeTab === "notifications" && (
-              <div className="surface-card overflow-hidden">
-                {[
-                  { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices", state: invoiceReminders, toggle: setInvoiceReminders },
-                  { label: "Auto Backup", desc: "Automatically back up your invoice data weekly", state: autoBackup, toggle: setAutoBackup },
-                ].map((item, i, arr) => (
-                  <div key={item.label} className={`flex items-center justify-between p-5 ${i < arr.length - 1 ? 'border-b border-[var(--card-border)]' : ''}`}>
-                    <div>
-                      <h3 className="text-[13px] font-semibold text-[var(--foreground)]">{item.label}</h3>
-                      <p className="text-[11px] text-[var(--muted)] mt-0.5">{item.desc}</p>
-                    </div>
-                    <button 
-                      type="button"
-                      role="switch"
-                      aria-checked={item.state}
-                      onClick={() => togglePreference(item.label, item.state, item.toggle)}
-                      className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${item.state ? 'bg-[var(--action)]' : 'bg-[var(--foreground)]/12'}`}
-                    >
-                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--action-text)] shadow ring-0 transition duration-200 ease-in-out mt-1 ${item.state ? 'translate-x-5 ml-0' : 'translate-x-1'}`} />
-                    </button>
+              <div className="space-y-3">
+                <div className="surface-card p-5">
+                  <div className="mb-4">
+                    <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Toast Position</h3>
+                    <p className="text-[11px] text-[var(--muted)] mt-0.5">Choose where app notifications appear.</p>
                   </div>
-                ))}
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Toast position">
+                    {TOAST_POSITIONS.map((position) => {
+                      const isSelected = toastPosition === position.id;
+
+                      return (
+                        <button
+                          key={position.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          onClick={() => selectToastPosition(position.id, position.label)}
+                          className={`flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 text-[12px] font-semibold transition-smooth ${
+                            isSelected
+                              ? "border-[var(--accent)] bg-[var(--action)] text-[var(--action-text)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
+                              : "border-[var(--card-border)] text-[var(--muted)] hover:border-[var(--accent)]/50 hover:text-[var(--foreground)]"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">{position.icon}</span>
+                          {position.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="surface-card overflow-hidden">
+                  {[
+                    { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices", state: invoiceReminders, toggle: setInvoiceReminders },
+                    { label: "Auto Backup", desc: "Automatically back up your invoice data weekly", state: autoBackup, toggle: setAutoBackup },
+                  ].map((item, i, arr) => (
+                    <div key={item.label} className={`flex items-center justify-between p-5 ${i < arr.length - 1 ? 'border-b border-[var(--card-border)]' : ''}`}>
+                      <div>
+                        <h3 className="text-[13px] font-semibold text-[var(--foreground)]">{item.label}</h3>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">{item.desc}</p>
+                      </div>
+                      <button 
+                        type="button"
+                        role="switch"
+                        aria-checked={item.state}
+                        onClick={() => togglePreference(item.label, item.state, item.toggle)}
+                        className={`relative inline-flex h-6 w-10 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${item.state ? 'bg-[var(--action)]' : 'bg-[var(--foreground)]/12'}`}
+                      >
+                        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[var(--action-text)] shadow ring-0 transition duration-200 ease-in-out mt-1 ${item.state ? 'translate-x-5 ml-0' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

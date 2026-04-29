@@ -6,26 +6,31 @@ export const COLOR_PALETTES = [
   {
     id: "palette-1",
     label: "Palette 1",
+    name: "Violet Frost",
     colors: ["#FFDBFD", "#C9BEFF", "#8494FF", "#6367FF"],
   },
   {
     id: "palette-2",
     label: "Palette 2",
+    name: "Blush Dusk",
     colors: ["#FDE2F3", "#E5BEEC", "#917FB3", "#2A2F4F"],
   },
   {
     id: "palette-3",
     label: "Palette 3",
+    name: "Amber Night",
     colors: ["#FFC85C", "#FF653F", "#452E5A", "#1E104E"],
   },
   {
     id: "palette-4",
     label: "Palette 4",
+    name: "Warm Clay",
     colors: ["#FCDEC0", "#E5B299", "#B4846C", "#7D5A50"],
   },
   {
     id: "palette-5",
     label: "Palette 5",
+    name: "Sage Grove",
     colors: ["#E5D9B6", "#A4BE7B", "#5F8D4E", "#285430"],
   },
 ] as const;
