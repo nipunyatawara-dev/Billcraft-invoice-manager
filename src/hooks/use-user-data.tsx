@@ -14,6 +14,7 @@ import {
   type UserProfile,
   type Vendor,
 } from "@/data/invoices";
+import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -27,6 +28,7 @@ type LocalDataSnapshot = {
   invoices: Invoice[];
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
+  todoTasks: TodoTask[];
   userDataPath: string;
 };
 
@@ -110,6 +112,7 @@ type UserDataContextValue = LocalDataSnapshot & {
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
   saveOutsourcingInvoice: (invoice: OutsourcingInvoiceDraft) => Promise<OutsourcingInvoice | null>;
+  saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
   exportInvoice: (invoice: Invoice) => void;
   exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => void;
   refresh: () => Promise<void>;
@@ -123,6 +126,7 @@ const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   invoices: [],
   vendors: [],
   outsourcingInvoices: [],
+  todoTasks: [],
   userDataPath: "",
 };
 
@@ -199,6 +203,7 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
       avatar: invoice.avatar || createAvatar(invoice.vendor),
       items: invoice.items || [],
     })),
+    todoTasks: snapshot.todoTasks || [],
   };
 }
 
@@ -476,6 +481,21 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     return nextSnapshot.outsourcingInvoices.find((currentInvoice) => currentInvoice.id === invoice.id) || invoice;
   }, [currency, postAction, snapshot.activeProfileId, snapshot.outsourcingInvoices]);
 
+  const saveTodoTasks = useCallback(async (tasks: TodoTask[]) => {
+    if (!snapshot.activeProfileId) {
+      return [];
+    }
+
+    setError(null);
+    const nextSnapshot = await postAction({
+      action: "saveTodoTasks",
+      profileId: snapshot.activeProfileId,
+      tasks,
+    });
+
+    return nextSnapshot.todoTasks;
+  }, [postAction, snapshot.activeProfileId]);
+
   const exportInvoice = useCallback((invoice: Invoice) => {
     const profile = snapshot.activeProfile;
     const lineItems = (invoice.items || []).map((item) => (
@@ -555,6 +575,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveInvoice,
     saveVendor,
     saveOutsourcingInvoice,
+    saveTodoTasks,
     exportInvoice,
     exportOutsourcingInvoice,
     refresh,
@@ -568,6 +589,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveClient,
     saveInvoice,
     saveOutsourcingInvoice,
+    saveTodoTasks,
     saveVendor,
     snapshot,
     switchProfile,

@@ -5,6 +5,7 @@ import {
   saveClient,
   saveInvoice,
   saveOutsourcingInvoice,
+  saveTodoTasks,
   saveVendor,
   updateProfile,
   deleteProfile,
@@ -22,6 +23,7 @@ type UserDataAction =
   | ({ action: "saveInvoice" } & SaveInvoicePayload)
   | { action: "saveVendor"; profileId: string; originalVendorId: string | null; vendor: Parameters<typeof saveVendor>[2] }
   | ({ action: "saveOutsourcingInvoice" } & SaveOutsourcingInvoicePayload)
+  | { action: "saveTodoTasks"; profileId: string; tasks: Parameters<typeof saveTodoTasks>[1] }
   | { action: "deleteProfile"; profileId: string }
   | { action: "deleteAllProfiles" };
 
@@ -74,6 +76,11 @@ export async function POST(request: NextRequest) {
     if (body.action === "saveOutsourcingInvoice") {
       const invoice = await saveOutsourcingInvoice(body);
       activeProfileId = body.profileId || invoice.vendorId || null;
+    }
+
+    if (body.action === "saveTodoTasks") {
+      await saveTodoTasks(body.profileId, body.tasks);
+      activeProfileId = body.profileId;
     }
 
     if (body.action === "deleteProfile") {

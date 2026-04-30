@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/animated-number";
+import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
@@ -14,8 +15,12 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "dashboard" },
   { href: "/invoices", label: "Invoices", icon: "receipt_long" },
   { href: "/clients", label: "Clients", icon: "group" },
-  { href: "/outsourcing", label: "Outsourcing", icon: "engineering" },
   { href: "/analytics", label: "Analytics", icon: "bar_chart" },
+];
+
+const WORK_NAV_ITEMS = [
+  { href: "/outsourcing", label: "Outsourcing", icon: "engineering" },
+  { href: "/todo", label: "To-Do", icon: "view_kanban" },
 ];
 
 const BOTTOM_NAV = [
@@ -293,6 +298,26 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </Link>
                 );
               })}
+              <div className="mt-3 border-t border-[var(--card-border)]/70 pt-3 space-y-0.5">
+                {WORK_NAV_ITEMS.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeSidebarOnMobile}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                        isActive
+                          ? 'bg-[var(--action)]/12 text-[var(--action)]'
+                          : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
+                      }`}
+                    >
+                      <span className={`material-symbols-outlined text-[18px] ${isActive ? 'text-[var(--action)]' : ''}`} style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}>{item.icon}</span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
 
             <div className="px-3 pb-4 pt-2 space-y-0.5 bg-transparent shrink-0">
@@ -320,7 +345,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 bg-transparent">
-          {children}
+          {loading ? <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} /> : children}
         </div>
       </div>
 

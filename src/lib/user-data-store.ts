@@ -10,6 +10,7 @@ import {
   type UserProfile,
   type Vendor,
 } from "@/data/invoices";
+import { createDefaultTodoTasks, TODO_PRIORITIES, TODO_STAGES, type TodoTask } from "@/data/todos";
 
 const USER_DATA_DIR = path.join(process.cwd(), "User data");
 const PROFILE_INDEX_PATH = path.join(USER_DATA_DIR, "profiles.json");
@@ -59,6 +60,7 @@ export type LocalDataSnapshot = {
   invoices: Invoice[];
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
+  todoTasks: TodoTask[];
   userDataPath: string;
 };
 
@@ -96,7 +98,7 @@ function getProfileDir(profileId: string) {
   return path.join(USER_DATA_DIR, profileId);
 }
 
-function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json") {
+function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json") {
   return path.join(getProfileDir(profileId), fileName);
 }
 
@@ -270,6 +272,29 @@ function hydrateOutsourcingInvoice(invoice: OutsourcingInvoice): OutsourcingInvo
   };
 }
 
+function hydrateTodoTask(task: TodoTask, index: number): TodoTask {
+  const stageIds = new Set(TODO_STAGES.map((stage) => stage.id));
+  const priorities = new Set<string>(TODO_PRIORITIES);
+  const now = new Date().toISOString();
+  const title = task.title?.trim() || "Untitled task";
+
+  return {
+    ...task,
+    id: task.id || uniqueEntityId("todo"),
+    title,
+    description: task.description?.trim() || undefined,
+    client: task.client?.trim() || undefined,
+    dueDate: task.dueDate || undefined,
+    estimate: task.estimate?.trim() || undefined,
+    stage: stageIds.has(task.stage) ? task.stage : "backlog",
+    priority: priorities.has(task.priority) ? task.priority : "Medium",
+    tags: Array.isArray(task.tags) ? task.tags.map((tag) => tag.trim()).filter(Boolean).slice(0, 4) : [],
+    order: Number.isFinite(task.order) ? task.order : index,
+    createdAt: task.createdAt || now,
+    updatedAt: task.updatedAt || now,
+  };
+}
+
 async function readClients(profileId: string) {
   const clients = await readJson<Client[]>(getProfileDataPath(profileId, "clients.json"), []);
   return clients.map(hydrateClient);
@@ -306,6 +331,30 @@ async function writeOutsourcingInvoices(profileId: string, invoices: Outsourcing
   await writeJson(getProfileDataPath(profileId, "outsourcing-invoices.json"), invoices.map(hydrateOutsourcingInvoice));
 }
 
+async function readTodoTasks(profileId: string) {
+  const todoPath = getProfileDataPath(profileId, "todo-tasks.json");
+
+  try {
+    const contents = await fs.readFile(todoPath, "utf8");
+    const tasks = JSON.parse(contents) as TodoTask[];
+    return tasks.map(hydrateTodoTask).sort((a, b) => a.order - b.order);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      const defaultTasks = createDefaultTodoTasks();
+      await writeTodoTasks(profileId, defaultTasks);
+      return defaultTasks;
+    }
+
+    throw error;
+  }
+}
+
+async function writeTodoTasks(profileId: string, tasks: TodoTask[]) {
+  const normalizedTasks = tasks.map(hydrateTodoTask).sort((a, b) => a.order - b.order);
+
+  await writeJson(getProfileDataPath(profileId, "todo-tasks.json"), normalizedTasks);
+}
+
 async function saveProfileFile(profile: UserProfile) {
   await writeJson(getProfileDataPath(profile.id, "profile.json"), profile);
 }
@@ -332,6 +381,7 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
       invoices: [],
       vendors: [],
       outsourcingInvoices: [],
+      todoTasks: [],
       userDataPath: USER_DATA_DIR,
     };
   }
@@ -346,6 +396,7 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
     invoices: await readInvoices(activeProfileId),
     vendors: await readVendors(activeProfileId),
     outsourcingInvoices: await readOutsourcingInvoices(activeProfileId),
+    todoTasks: await readTodoTasks(activeProfileId),
     userDataPath: USER_DATA_DIR,
   };
 }
@@ -373,6 +424,7 @@ export async function createProfile(draft: ProfileDraft) {
   await writeInvoices(profileId, []);
   await writeVendors(profileId, []);
   await writeOutsourcingInvoices(profileId, []);
+  await writeTodoTasks(profileId, createDefaultTodoTasks());
 
   return profile;
 }
@@ -568,6 +620,20 @@ export async function saveOutsourcingInvoice({ profileId, invoice, vendorSaveMod
   await writeOutsourcingInvoices(profileId, nextInvoices);
 
   return hydratedInvoice;
+}
+
+export async function saveTodoTasks(profileId: string, tasks: TodoTask[]) {
+  await ensureProfileDir(profileId);
+
+  const normalizedTasks = tasks.map((task, index) => hydrateTodoTask({
+    ...task,
+    order: Number.isFinite(task.order) ? task.order : index,
+    updatedAt: new Date().toISOString(),
+  }, index));
+
+  await writeTodoTasks(profileId, normalizedTasks);
+
+  return normalizedTasks;
 }
 
 export function getAssetFilePath(profileId: string, fileName: string) {

@@ -15,9 +15,9 @@ html[data-light-palette="palette-1"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
   --positive: var(--palette-4);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html[data-light-palette="palette-2"] {
@@ -36,9 +36,9 @@ html[data-light-palette="palette-2"] {
   --action-hover: color-mix(in srgb, var(--palette-4) 78%, var(--palette-3));
   --action-text: var(--palette-1);
   --positive: var(--palette-3);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: color-mix(in srgb, var(--palette-2) 72%, var(--palette-1));
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html[data-light-palette="palette-3"] {
@@ -57,9 +57,9 @@ html[data-light-palette="palette-3"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
   --positive: var(--palette-3);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: color-mix(in srgb, var(--palette-1) 84%, var(--palette-2));
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html[data-light-palette="palette-4"] {
@@ -78,9 +78,9 @@ html[data-light-palette="palette-4"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
   --positive: var(--palette-4);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html[data-light-palette="palette-5"] {
@@ -99,9 +99,9 @@ html[data-light-palette="palette-5"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
   --positive: var(--palette-4);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html.dark[data-dark-palette="palette-1"] {
@@ -120,9 +120,9 @@ html.dark[data-dark-palette="palette-1"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-4);
   --positive: var(--palette-2);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html.dark,
@@ -142,9 +142,9 @@ html.dark[data-dark-palette="palette-2"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-4);
   --positive: color-mix(in srgb, var(--palette-2) 80%, var(--palette-1));
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: color-mix(in srgb, var(--palette-2) 78%, var(--palette-3));
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html.dark[data-dark-palette="palette-3"] {
@@ -163,9 +163,9 @@ html.dark[data-dark-palette="palette-3"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-1);
   --positive: var(--palette-1);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: color-mix(in srgb, var(--palette-1) 72%, var(--palette-2));
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html.dark[data-dark-palette="palette-4"] {
@@ -184,9 +184,9 @@ html.dark[data-dark-palette="palette-4"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-4);
   --positive: var(--palette-2);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
 
 html.dark[data-dark-palette="palette-5"] {
@@ -205,7 +205,7 @@ html.dark[data-dark-palette="palette-5"] {
   --action-hover: var(--palette-3);
   --action-text: var(--palette-4);
   --positive: var(--palette-2);
-  --featured: var(--palette-4);
-  --featured-text: var(--palette-1);
-  --featured-muted: var(--palette-2);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
 }
