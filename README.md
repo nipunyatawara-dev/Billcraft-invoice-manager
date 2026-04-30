@@ -12,9 +12,9 @@
   <img src="https://img.shields.io/badge/local--first-JSON%20data-c4a7e7?style=for-the-badge" alt="Local-first JSON data" />
 </p>
 
-### Premium invoice management for independent professionals and small teams.
+### Premium invoice management for freelancers and growing small businesses.
 
-BillCraft is a polished, local-first invoicing dashboard for creating invoices, managing clients, tracking outsourced work, reviewing revenue analytics, and keeping billing tasks organized from one workspace.
+BillCraft is a polished, local-first invoicing dashboard built mainly for freelancers and small new and upcoming businesses that need one workspace for invoices, clients, outsourced work, revenue analytics, and billing tasks.
 
 It is built with **Next.js App Router**, **React**, **TypeScript**, **Tailwind CSS**, and a lightweight local JSON data layer.
 
@@ -22,7 +22,7 @@ It is built with **Next.js App Router**, **React**, **TypeScript**, **Tailwind C
 
 ## What is BillCraft?
 
-BillCraft helps freelancers, consultants, and small studios run the everyday billing loop without jumping between spreadsheets, notes, and separate invoice trackers.
+BillCraft helps freelancers, consultants, and early-stage small businesses run the everyday billing loop without jumping between spreadsheets, notes, and separate invoice trackers.
 
 The app keeps each user's workspace in local profile folders, so invoices, clients, vendors, assets, and tasks stay on the machine by default. From the dashboard you can see paid revenue, pending totals, overdue invoices, recent clients, and payment health at a glance.
 
@@ -52,6 +52,14 @@ Review revenue flow, paid ratio, average invoice value, average client value, an
 
 <p align="center">
   <img src="./public/screenshots/analytics.png" width="700" alt="BillCraft analytics screenshot">
+</p>
+
+## Theme customization
+
+Switch between light and dark modes, choose separate palettes for each mode, and keep the workspace visually aligned with the way you like to work.
+
+<p align="center">
+  <img src="./public/screenshots/theme-customization.png" width="700" alt="BillCraft theme customization screenshot">
 </p>
 
 ## Kanban-style billing tasks
@@ -204,4 +212,3 @@ User data/
 ```
 
 This directory is intentionally ignored by git so real client, invoice, and profile details do not get committed.
-
