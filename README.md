@@ -160,8 +160,8 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 ## Run locally
 
 ```bash
-git clone https://github.com/NippaGG/invoice-manager.git
-cd invoice-manager
+git clone https://github.com/NippaGG/Billcraft-invoice-manager.git
+cd Billcraft-invoice-manager
 npm install
 npm run dev
 ```

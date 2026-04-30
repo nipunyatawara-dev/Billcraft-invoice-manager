@@ -4,6 +4,8 @@ import {
   createAvatar,
   getInvoiceItemsTotal,
   getStatusColor,
+  normalizeAnalyticsPreferences,
+  type AnalyticsPreferences,
   type Client,
   type Invoice,
   type OutsourcingInvoice,
@@ -211,6 +213,9 @@ async function normalizeProfileAssets(profileId: string, draft: ProfileDraft, ex
     businessName: draft.businessName?.trim() || undefined,
     profilePic: await saveDataUrlAsset(profileId, "profile-picture", draft.profilePic || existingProfile?.profilePic),
     signature: await saveDataUrlAsset(profileId, "signature", draft.signature || existingProfile?.signature),
+    analyticsPreferences: existingProfile?.analyticsPreferences
+      ? normalizeAnalyticsPreferences(existingProfile.analyticsPreferences)
+      : undefined,
     createdAt: existingProfile?.createdAt || now,
     updatedAt: now,
   };
@@ -448,6 +453,32 @@ export async function updateProfile(profileId: string, draft: ProfileDraft) {
   await saveProfileFile(profile);
 
   return profile;
+}
+
+export async function saveAnalyticsPreferences(profileId: string, preferences: AnalyticsPreferences) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  const now = new Date().toISOString();
+  const analyticsPreferences = normalizeAnalyticsPreferences({
+    ...preferences,
+    updatedAt: preferences.updatedAt || now,
+  });
+  const profile: UserProfile = {
+    ...existingProfile,
+    analyticsPreferences,
+    updatedAt: now,
+  };
+  const nextProfiles = index.profiles.map((currentProfile) => currentProfile.id === profileId ? profile : currentProfile);
+
+  await writeProfileIndex({ profiles: nextProfiles });
+  await saveProfileFile(profile);
+
+  return analyticsPreferences;
 }
 
 export async function saveClient(profileId: string, originalClientId: string | null, draft: ClientDraft) {

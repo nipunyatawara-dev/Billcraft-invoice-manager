@@ -6,6 +6,7 @@ import {
   formatDisplayDate,
   getInvoiceItemsTotal,
   getStatusColor,
+  type AnalyticsPreferences,
   type Client,
   type Invoice,
   type InvoiceItem,
@@ -112,6 +113,7 @@ type UserDataContextValue = LocalDataSnapshot & {
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
   saveOutsourcingInvoice: (invoice: OutsourcingInvoiceDraft) => Promise<OutsourcingInvoice | null>;
+  saveAnalyticsPreferences: (preferences: AnalyticsPreferences) => Promise<AnalyticsPreferences | null>;
   saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
   exportInvoice: (invoice: Invoice) => void;
   exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => void;
@@ -496,6 +498,21 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     return nextSnapshot.todoTasks;
   }, [postAction, snapshot.activeProfileId]);
 
+  const saveAnalyticsPreferences = useCallback(async (preferences: AnalyticsPreferences) => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    setError(null);
+    const nextSnapshot = await postAction({
+      action: "saveAnalyticsPreferences",
+      profileId: snapshot.activeProfileId,
+      preferences,
+    });
+
+    return nextSnapshot.activeProfile?.analyticsPreferences || preferences;
+  }, [postAction, snapshot.activeProfileId]);
+
   const exportInvoice = useCallback((invoice: Invoice) => {
     const profile = snapshot.activeProfile;
     const lineItems = (invoice.items || []).map((item) => (
@@ -575,6 +592,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveInvoice,
     saveVendor,
     saveOutsourcingInvoice,
+    saveAnalyticsPreferences,
     saveTodoTasks,
     exportInvoice,
     exportOutsourcingInvoice,
@@ -589,6 +607,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveClient,
     saveInvoice,
     saveOutsourcingInvoice,
+    saveAnalyticsPreferences,
     saveTodoTasks,
     saveVendor,
     snapshot,

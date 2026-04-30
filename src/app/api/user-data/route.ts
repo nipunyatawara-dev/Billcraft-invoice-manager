@@ -4,6 +4,7 @@ import {
   loadLocalDataSnapshot,
   saveClient,
   saveInvoice,
+  saveAnalyticsPreferences,
   saveOutsourcingInvoice,
   saveTodoTasks,
   saveVendor,
@@ -21,6 +22,7 @@ type UserDataAction =
   | { action: "updateProfile"; profileId: string; profile: Parameters<typeof updateProfile>[1] }
   | { action: "saveClient"; profileId: string; originalClientId: string | null; client: Parameters<typeof saveClient>[2] }
   | ({ action: "saveInvoice" } & SaveInvoicePayload)
+  | { action: "saveAnalyticsPreferences"; profileId: string; preferences: Parameters<typeof saveAnalyticsPreferences>[1] }
   | { action: "saveVendor"; profileId: string; originalVendorId: string | null; vendor: Parameters<typeof saveVendor>[2] }
   | ({ action: "saveOutsourcingInvoice" } & SaveOutsourcingInvoicePayload)
   | { action: "saveTodoTasks"; profileId: string; tasks: Parameters<typeof saveTodoTasks>[1] }
@@ -66,6 +68,11 @@ export async function POST(request: NextRequest) {
     if (body.action === "saveInvoice") {
       const invoice = await saveInvoice(body);
       activeProfileId = body.profileId || invoice.clientId || null;
+    }
+
+    if (body.action === "saveAnalyticsPreferences") {
+      await saveAnalyticsPreferences(body.profileId, body.preferences);
+      activeProfileId = body.profileId;
     }
 
     if (body.action === "saveVendor") {

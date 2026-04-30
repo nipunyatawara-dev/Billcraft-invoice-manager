@@ -31,6 +31,27 @@ export interface InvoiceItem {
   price: number;
 }
 
+export const ANALYTICS_WIDGET_IDS = [
+  "revenue-flow",
+  "paid-ratio",
+  "avg-invoice",
+  "avg-ltv",
+  "top-client",
+  "revenue-trend",
+  "status-mix",
+  "top-clients",
+  "invoice-aging",
+  "collection-gauge",
+] as const;
+
+export type AnalyticsWidgetId = (typeof ANALYTICS_WIDGET_IDS)[number];
+
+export interface AnalyticsPreferences {
+  visibleWidgetIds: AnalyticsWidgetId[];
+  widgetOrder: AnalyticsWidgetId[];
+  updatedAt: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -40,8 +61,54 @@ export interface UserProfile {
   businessName?: string;
   profilePic?: string;
   signature?: string;
+  analyticsPreferences?: AnalyticsPreferences;
   createdAt: string;
   updatedAt: string;
+}
+
+export const DEFAULT_ANALYTICS_WIDGET_ORDER: AnalyticsWidgetId[] = [...ANALYTICS_WIDGET_IDS];
+
+export const DEFAULT_VISIBLE_ANALYTICS_WIDGET_IDS: AnalyticsWidgetId[] = [
+  "revenue-flow",
+  "paid-ratio",
+  "avg-invoice",
+  "top-client",
+  "revenue-trend",
+  "status-mix",
+];
+
+export const DEFAULT_ANALYTICS_PREFERENCES: AnalyticsPreferences = {
+  visibleWidgetIds: [...DEFAULT_VISIBLE_ANALYTICS_WIDGET_IDS],
+  widgetOrder: [...DEFAULT_ANALYTICS_WIDGET_ORDER],
+  updatedAt: "",
+};
+
+const ANALYTICS_WIDGET_ID_SET = new Set<AnalyticsWidgetId>(ANALYTICS_WIDGET_IDS);
+
+export function isAnalyticsWidgetId(value: unknown): value is AnalyticsWidgetId {
+  return typeof value === "string" && ANALYTICS_WIDGET_ID_SET.has(value as AnalyticsWidgetId);
+}
+
+function getValidAnalyticsWidgetIds(value: unknown) {
+  return Array.isArray(value) ? value.filter(isAnalyticsWidgetId) : [];
+}
+
+export function normalizeAnalyticsPreferences(preferences?: Partial<AnalyticsPreferences> | null): AnalyticsPreferences {
+  const requestedOrder = getValidAnalyticsWidgetIds(preferences?.widgetOrder);
+  const requestedVisible = getValidAnalyticsWidgetIds(preferences?.visibleWidgetIds);
+  const widgetOrder = [
+    ...requestedOrder,
+    ...DEFAULT_ANALYTICS_WIDGET_ORDER.filter((widgetId) => !requestedOrder.includes(widgetId)),
+  ];
+  const visibleWidgetIds = requestedVisible.length > 0
+    ? requestedVisible.filter((widgetId) => widgetOrder.includes(widgetId))
+    : [...DEFAULT_VISIBLE_ANALYTICS_WIDGET_IDS];
+
+  return {
+    visibleWidgetIds,
+    widgetOrder,
+    updatedAt: typeof preferences?.updatedAt === "string" ? preferences.updatedAt : "",
+  };
 }
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {

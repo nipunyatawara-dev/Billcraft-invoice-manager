@@ -1,19 +1,138 @@
 "use client";
 
 import { AnimatedNumber } from "@/components/animated-number";
-import { formatCurrency, getClientsFromInvoices, getInvoiceTotal, getInvoiceTotals, type Invoice } from "@/data/invoices";
+import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
+import { EvilBarChart } from "@/components/evilcharts/charts/bar-chart";
+import { EvilPieChart } from "@/components/evilcharts/charts/pie-chart";
+import { EvilRadialChart } from "@/components/evilcharts/charts/radial-chart";
+import type { ChartConfig } from "@/components/evilcharts/ui/chart";
+import {
+  DEFAULT_ANALYTICS_PREFERENCES,
+  formatCurrency,
+  getClientsFromInvoices,
+  getInvoiceTotal,
+  getInvoiceTotals,
+  normalizeAnalyticsPreferences,
+  type AnalyticsPreferences,
+  type AnalyticsWidgetId,
+  type Invoice,
+} from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
-import { useState } from "react";
+import { useUserData } from "@/hooks/use-user-data";
+import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
+import { useEffect, useMemo, useState } from "react";
 
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const RANGE_OPTIONS = [
   { id: "month", label: "This Month" },
   { id: "last-quarter", label: "Last Quarter" },
   { id: "year", label: "This Year" },
 ] as const;
 
+const WIDGET_DEFINITIONS: {
+  id: AnalyticsWidgetId;
+  title: string;
+  description: string;
+  icon: string;
+}[] = [
+  { id: "revenue-flow", title: "Revenue Flow", description: "BillCraft bar view for range revenue.", icon: "monitoring" },
+  { id: "paid-ratio", title: "Paid Ratio", description: "Circular paid invoice share.", icon: "pie_chart" },
+  { id: "avg-invoice", title: "Average Invoice", description: "Mean invoice value for selected range.", icon: "request_quote" },
+  { id: "avg-ltv", title: "Average LTV", description: "Average billed value per client.", icon: "diamond" },
+  { id: "top-client", title: "Top Client", description: "Highest billed client summary.", icon: "star" },
+  { id: "revenue-trend", title: "Revenue Trend", description: "Evil area chart for paid and open revenue.", icon: "area_chart" },
+  { id: "status-mix", title: "Status Mix", description: "Evil donut chart for invoice status totals.", icon: "donut_large" },
+  { id: "top-clients", title: "Top Clients", description: "Evil horizontal bars for top billed clients.", icon: "leaderboard" },
+  { id: "invoice-aging", title: "Invoice Aging", description: "Evil bars for open invoices by due age.", icon: "event_busy" },
+  { id: "collection-gauge", title: "Collection Gauge", description: "Evil radial chart for paid vs open.", icon: "speed" },
+];
+
+const WIDGET_DEFINITION_MAP = new Map(WIDGET_DEFINITIONS.map((widget) => [widget.id, widget]));
+
+const REVENUE_TREND_CONFIG = {
+  paid: {
+    label: "Paid",
+    colors: { light: ["#16a34a", "#22c55e"], dark: ["#22c55e", "#86efac"] },
+  },
+  open: {
+    label: "Open",
+    colors: { light: ["#2563eb", "#06b6d4"], dark: ["#60a5fa", "#22d3ee"] },
+  },
+} satisfies ChartConfig;
+
+const STATUS_MIX_CONFIG = {
+  paid: {
+    label: "Paid",
+    colors: { light: ["#16a34a"], dark: ["#22c55e"] },
+  },
+  unpaid: {
+    label: "Unpaid",
+    colors: { light: ["#64748b"], dark: ["#94a3b8"] },
+  },
+  overdue: {
+    label: "Overdue",
+    colors: { light: ["#dc2626"], dark: ["#f87171"] },
+  },
+} satisfies ChartConfig;
+
+const TOP_CLIENTS_CONFIG = {
+  billed: {
+    label: "Billed",
+    colors: { light: ["#2563eb", "#06b6d4"], dark: ["#60a5fa", "#22d3ee"] },
+  },
+} satisfies ChartConfig;
+
+const INVOICE_AGING_CONFIG = {
+  amount: {
+    label: "Open Amount",
+    colors: { light: ["#f59e0b", "#dc2626"], dark: ["#fbbf24", "#f87171"] },
+  },
+} satisfies ChartConfig;
+
+const COLLECTION_GAUGE_CONFIG = {
+  paid: {
+    label: "Paid",
+    colors: { light: ["#16a34a"], dark: ["#22c55e"] },
+  },
+  open: {
+    label: "Open",
+    colors: { light: ["#64748b"], dark: ["#94a3b8"] },
+  },
+} satisfies ChartConfig;
+
 type AnalyticsRange = (typeof RANGE_OPTIONS)[number]["id"];
+
+type RevenuePoint = {
+  key: string;
+  label: string;
+  total: number;
+  paid: number;
+  open: number;
+};
+
+type StatusPoint = {
+  status: "paid" | "unpaid" | "overdue";
+  amount: number;
+  invoices: number;
+};
+
+type TopClientPoint = {
+  client: string;
+  billed: number;
+};
+
+type AgingPoint = {
+  bucket: string;
+  amount: number;
+  invoices: number;
+};
+
+type GaugePoint = {
+  type: "paid" | "open";
+  value: number;
+};
 
 function getDayKey(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -72,7 +191,7 @@ function filterInvoicesByDate(invoices: Invoice[], range: AnalyticsRange) {
   });
 }
 
-function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange) {
+function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange): RevenuePoint[] {
   const { start, end } = getDateRange(range);
   const bucketCount = 7;
   const rangeLength = Math.max(end.getTime() - start.getTime(), 1);
@@ -84,6 +203,8 @@ function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange) {
       key: getDayKey(date),
       label: DATE_LABEL_FORMATTER.format(date),
       total: 0,
+      paid: 0,
+      open: 0,
     };
   });
 
@@ -95,214 +216,897 @@ function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange) {
     }
 
     const bucketIndex = Math.min(Math.floor((parsedDate.getTime() - start.getTime()) / bucketLength), bucketCount - 1);
-    buckets[bucketIndex].total += getInvoiceTotal(invoice);
+    const total = getInvoiceTotal(invoice);
+    buckets[bucketIndex].total += total;
+
+    if (invoice.status === "Paid") {
+      buckets[bucketIndex].paid += total;
+    } else {
+      buckets[bucketIndex].open += total;
+    }
   });
 
   return buckets;
 }
 
-export default function Analytics() {
-  const { invoices } = useInvoices();
-  const { currency } = useCurrency();
-  const [activeRange, setActiveRange] = useState<AnalyticsRange>("month");
-  const filteredInvoices = filterInvoicesByDate(invoices, activeRange);
-  const activeRangeLabel = RANGE_OPTIONS.find((option) => option.id === activeRange)?.label || "This Month";
-  const totals = getInvoiceTotals(filteredInvoices);
-  const clients = getClientsFromInvoices(filteredInvoices);
-  const revenueChartData = getRevenueChartData(filteredInvoices, activeRange);
+function getStatusChartData(totals: ReturnType<typeof getInvoiceTotals>): StatusPoint[] {
+  return [
+    { status: "paid", amount: totals.paidAmount, invoices: totals.paidCount },
+    { status: "unpaid", amount: totals.pendingAmount, invoices: totals.unpaidCount },
+    { status: "overdue", amount: totals.overdueAmount, invoices: totals.overdueCount },
+  ];
+}
+
+function getTopClientsChartData(clients: ReturnType<typeof getClientsFromInvoices>): TopClientPoint[] {
+  return [...clients]
+    .sort((a, b) => b.totalBilled - a.totalBilled)
+    .slice(0, 5)
+    .map((client) => ({
+      client: client.name,
+      billed: client.totalBilled,
+    }));
+}
+
+function getInvoiceAgingChartData(invoices: Invoice[]): AgingPoint[] {
+  const today = startOfDay(new Date());
+  const buckets: AgingPoint[] = [
+    { bucket: "Not due", amount: 0, invoices: 0 },
+    { bucket: "0-7 days", amount: 0, invoices: 0 },
+    { bucket: "8-30 days", amount: 0, invoices: 0 },
+    { bucket: "31+ days", amount: 0, invoices: 0 },
+    { bucket: "No due date", amount: 0, invoices: 0 },
+  ];
+
+  invoices
+    .filter((invoice) => invoice.status !== "Paid")
+    .forEach((invoice) => {
+      const dueDate = invoice.dueDate ? startOfDay(new Date(invoice.dueDate)) : null;
+      const total = getInvoiceTotal(invoice);
+      let bucketIndex = 4;
+
+      if (dueDate && !Number.isNaN(dueDate.getTime())) {
+        const overdueDays = Math.floor((today.getTime() - dueDate.getTime()) / DAY_IN_MS);
+        bucketIndex = overdueDays < 0 ? 0 : overdueDays <= 7 ? 1 : overdueDays <= 30 ? 2 : 3;
+      }
+
+      buckets[bucketIndex].amount += total;
+      buckets[bucketIndex].invoices += 1;
+    });
+
+  return buckets;
+}
+
+function getCollectionGaugeData(totals: ReturnType<typeof getInvoiceTotals>): GaugePoint[] {
+  const totalAmount = totals.paidAmount + totals.pendingAmount + totals.overdueAmount;
+  const paidPercent = totalAmount > 0 ? Math.round((totals.paidAmount / totalAmount) * 100) : 0;
+
+  return [
+    { type: "paid", value: paidPercent },
+    { type: "open", value: Math.max(100 - paidPercent, 0) },
+  ];
+}
+
+function formatCompactCurrency(value: number, currency: string) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function truncateTick(value: unknown) {
+  const label = String(value);
+  return label.length > 12 ? `${label.slice(0, 11)}...` : label;
+}
+
+function getSavedAnalyticsPreferences(activePreferences?: AnalyticsPreferences) {
+  return normalizeAnalyticsPreferences(activePreferences || DEFAULT_ANALYTICS_PREFERENCES);
+}
+
+function EmptyChartState({ icon, title, description }: { icon: string; title: string; description: string }) {
+  return (
+    <div className="flex min-h-[190px] flex-1 flex-col items-center justify-center text-center">
+      <span className="material-symbols-outlined mb-3 text-[38px] text-[var(--foreground)]/10">{icon}</span>
+      <p className="text-[13px] font-semibold text-[var(--foreground)]">{title}</p>
+      <p className="mt-1 max-w-[240px] text-[11px] font-medium text-[var(--muted)]">{description}</p>
+    </div>
+  );
+}
+
+function ChartWidgetShell({
+  children,
+  className = "md:col-span-2",
+  description,
+  icon,
+  title,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  description: React.ReactNode;
+  icon: string;
+  title: string;
+}) {
+  return (
+    <div className={`surface-card flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 ${className}`}>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-[15px] font-semibold text-[var(--foreground)]">{title}</h3>
+          <p className="mt-0.5 text-[11px] font-medium text-[var(--muted)]">{description}</p>
+        </div>
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04]">
+          <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function RevenueFlowWidget({
+  activeRangeLabel,
+  currency,
+  filteredInvoices,
+  revenueChartData,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  filteredInvoices: Invoice[];
+  revenueChartData: RevenuePoint[];
+}) {
   const revenueChartMax = Math.max(...revenueChartData.map((day) => day.total), 0);
   const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
+
+  return (
+    <div className="surface-card group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h3 className="mb-0.5 text-lg font-semibold text-[var(--foreground)]">Revenue Flow</h3>
+          <p className="text-[12px] font-medium text-[var(--muted)]">
+            {filteredInvoices.length > 0 ? (
+              <>
+                <AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} /> in {activeRangeLabel.toLowerCase()}
+              </>
+            ) : (
+              `No invoice data for ${activeRangeLabel.toLowerCase()}`
+            )}
+          </p>
+        </div>
+        <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--accent)]/10">
+          <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
+        </div>
+      </div>
+
+      {filteredInvoices.length > 0 ? (
+        <>
+          <div className="mt-3 flex flex-1 items-end gap-1.5 border-t border-[var(--card-border)] pt-4">
+            {revenueChartData.map((day) => {
+              const barHeight = revenueChartMax > 0 ? Math.max((day.total / revenueChartMax) * 90, 4) : 4;
+
+              return (
+                <div
+                  key={day.key}
+                  className={`group/bar relative flex-1 cursor-pointer rounded-t-lg transition-all ${
+                    day.total > 0 ? "bg-[var(--accent)]/35 hover:bg-[var(--accent)]/45" : "bg-[var(--foreground)]/[0.06]"
+                  }`}
+                  style={{ height: `${barHeight}%` }}
+                >
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-[var(--accent)] opacity-0 transition-opacity group-hover/bar:opacity-100">
+                    <AnimatedNumber value={formatCurrency(day.total, currency)} />
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2.5 flex justify-between px-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--foreground)]/25">
+            {revenueChartData.map((day) => <span key={day.key}>{day.label}</span>)}
+          </div>
+        </>
+      ) : (
+        <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-[var(--card-border)] pt-4 text-center">
+          <span className="material-symbols-outlined mb-3 text-[42px] text-[var(--foreground)]/10">monitoring</span>
+          <p className="text-[13px] font-semibold text-[var(--foreground)]">No revenue to chart</p>
+          <p className="mt-1 text-[11px] text-[var(--muted)]">Invoices in {activeRangeLabel.toLowerCase()} will appear here.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaidRatioWidget({
+  activeRangeLabel,
+  filteredInvoices,
+  paidRatio,
+}: {
+  activeRangeLabel: string;
+  filteredInvoices: Invoice[];
+  paidRatio: number;
+}) {
+  return (
+    <div className="surface-featured group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.03] to-transparent" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[var(--accent)]/10 blur-3xl transition-all duration-700 group-hover:bg-[var(--accent)]/15" />
+
+      <div className="relative z-10 mb-3 flex items-center justify-between">
+        <p className="text-[13px] font-medium tracking-wide text-[var(--featured-text)]/50">Paid Ratio</p>
+        <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--featured-text)]/10">
+          <span className="material-symbols-outlined text-[18px] text-[var(--featured-text)]/60">pie_chart</span>
+        </div>
+      </div>
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+        <div className="relative mb-3 size-32">
+          <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+            <path
+              className="text-[var(--featured-text)]/10"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+            />
+            <path
+              className="text-[var(--accent)]"
+              strokeDasharray={`${paidRatio}, 100`}
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="3"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-display text-2xl font-semibold text-[var(--featured-text)]">
+              <AnimatedNumber value={`${paidRatio}%`} />
+            </span>
+          </div>
+        </div>
+        <p className="text-center text-[12px] font-medium text-[var(--featured-text)]/50">
+          {filteredInvoices.length > 0 ? (
+            <>
+              <AnimatedNumber value={`${paidRatio}%`} /> of {activeRangeLabel.toLowerCase()} invoices are marked paid.
+            </>
+          ) : (
+            `No invoices in ${activeRangeLabel.toLowerCase()}.`
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function MetricWidget({
+  caption,
+  icon,
+  title,
+  value,
+}: {
+  caption: React.ReactNode;
+  icon: string;
+  title: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="surface-card group flex min-h-[140px] flex-col justify-between p-5 transition-smooth hover:border-[var(--foreground)]/12 lg:p-6">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{title}</p>
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04] transition-transform group-hover:scale-105">
+          <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
+        </div>
+      </div>
+      <div>
+        <h3 className="font-display mb-0.5 text-xl font-semibold text-[var(--foreground)] lg:text-2xl">{value}</h3>
+        <p className="text-[11px] font-medium text-[var(--muted)]">{caption}</p>
+      </div>
+    </div>
+  );
+}
+
+function TopClientWidget({
+  currency,
+  topClient,
+}: {
+  currency: string;
+  topClient?: ReturnType<typeof getClientsFromInvoices>[number];
+}) {
+  return (
+    <div className="surface-card group relative flex min-h-[140px] flex-col justify-between overflow-hidden p-5 transition-smooth hover:border-[var(--foreground)]/12 md:col-span-2 lg:col-span-2 lg:p-6">
+      <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-24 bg-gradient-to-l from-[var(--accent)]/[0.04] to-transparent" />
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Top Client</p>
+        <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--accent)]/10 transition-transform group-hover:scale-105">
+          <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">star</span>
+        </div>
+      </div>
+      <div className="relative z-10 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="font-display mb-0.5 truncate text-lg font-semibold text-[var(--foreground)] lg:text-xl">{topClient?.name || "No client yet"}</h3>
+          <p className="text-[11px] font-medium text-[var(--muted)]">Highest billed client by invoice total</p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-base font-semibold text-[var(--foreground)]">
+            <AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} />
+          </p>
+          <p className="text-[10px] font-semibold text-[var(--muted)]">Total</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RevenueTrendWidget({
+  activeRangeLabel,
+  currency,
+  data,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  data: RevenuePoint[];
+}) {
+  const hasData = data.some((point) => point.total > 0);
+
+  return (
+    <ChartWidgetShell
+      className="md:col-span-2 lg:col-span-2"
+      description={`Paid and open invoice totals in ${activeRangeLabel.toLowerCase()}`}
+      icon="area_chart"
+      title="Revenue Trend"
+    >
+      {hasData ? (
+        <EvilAreaChart
+          className="h-[240px] min-h-[240px]"
+          data={data}
+          chartConfig={REVENUE_TREND_CONFIG}
+          xDataKey="label"
+          stackType="stacked"
+          curveType="monotone"
+          areaVariant="gradient"
+          strokeVariant="solid"
+          activeDotVariant="border"
+          tooltipRoundness="md"
+          tooltipVariant="frosted-glass"
+          xAxisProps={{ tickMargin: 8 }}
+          yAxisProps={{ tickFormatter: (value) => formatCompactCurrency(Number(value), currency) }}
+        />
+      ) : (
+        <EmptyChartState icon="area_chart" title="No trend data" description="Create invoices in this range to fill the revenue trend." />
+      )}
+    </ChartWidgetShell>
+  );
+}
+
+function StatusMixWidget({
+  activeRangeLabel,
+  currency,
+  data,
+  totals,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  data: StatusPoint[];
+  totals: ReturnType<typeof getInvoiceTotals>;
+}) {
+  const hasData = data.some((point) => point.amount > 0);
+
+  return (
+    <ChartWidgetShell
+      className="md:col-span-1 lg:col-span-2"
+      description={`Invoice status totals in ${activeRangeLabel.toLowerCase()}`}
+      icon="donut_large"
+      title="Status Mix"
+    >
+      {hasData ? (
+        <>
+          <EvilPieChart
+            className="h-[220px] min-h-[220px]"
+            data={data}
+            dataKey="amount"
+            nameKey="status"
+            chartConfig={STATUS_MIX_CONFIG}
+            innerRadius={58}
+            outerRadius="82%"
+            paddingAngle={3}
+            cornerRadius={8}
+            glowingSectors={["paid"]}
+            tooltipRoundness="md"
+            tooltipVariant="frosted-glass"
+            legendVariant="circle"
+          />
+          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--card-border)] pt-3">
+            <StatusMiniStat label="Paid" value={formatCurrency(totals.paidAmount, currency)} />
+            <StatusMiniStat label="Unpaid" value={formatCurrency(totals.pendingAmount, currency)} />
+            <StatusMiniStat label="Overdue" value={formatCurrency(totals.overdueAmount, currency)} />
+          </div>
+        </>
+      ) : (
+        <EmptyChartState icon="donut_large" title="No status mix" description="Invoice totals will appear once this range has data." />
+      )}
+    </ChartWidgetShell>
+  );
+}
+
+function StatusMiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-[12px] font-semibold text-[var(--foreground)]">{value}</p>
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--muted)]">{label}</p>
+    </div>
+  );
+}
+
+function TopClientsChartWidget({
+  activeRangeLabel,
+  currency,
+  data,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  data: TopClientPoint[];
+}) {
+  const hasData = data.some((point) => point.billed > 0);
+
+  return (
+    <ChartWidgetShell
+      className="md:col-span-2 lg:col-span-2"
+      description={`Top billed clients in ${activeRangeLabel.toLowerCase()}`}
+      icon="leaderboard"
+      title="Top Clients"
+    >
+      {hasData ? (
+        <EvilBarChart
+          className="h-[250px] min-h-[250px]"
+          data={data}
+          chartConfig={TOP_CLIENTS_CONFIG}
+          xDataKey="client"
+          layout="horizontal"
+          barVariant="gradient"
+          barRadius={6}
+          enableHoverHighlight
+          hideLegend
+          tooltipRoundness="md"
+          tooltipVariant="frosted-glass"
+          xAxisProps={{ tickFormatter: (value) => formatCompactCurrency(Number(value), currency) }}
+          yAxisProps={{ tickFormatter: truncateTick, width: 92 }}
+        />
+      ) : (
+        <EmptyChartState icon="leaderboard" title="No client ranking" description="Client totals will appear after invoices are created." />
+      )}
+    </ChartWidgetShell>
+  );
+}
+
+function InvoiceAgingWidget({
+  activeRangeLabel,
+  currency,
+  data,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  data: AgingPoint[];
+}) {
+  const hasData = data.some((point) => point.amount > 0);
+
+  return (
+    <ChartWidgetShell
+      className="md:col-span-2 lg:col-span-2"
+      description={`Open invoice age in ${activeRangeLabel.toLowerCase()}`}
+      icon="event_busy"
+      title="Invoice Aging"
+    >
+      {hasData ? (
+        <EvilBarChart
+          className="h-[250px] min-h-[250px]"
+          data={data}
+          chartConfig={INVOICE_AGING_CONFIG}
+          xDataKey="bucket"
+          barVariant="hatched"
+          barRadius={6}
+          enableHoverHighlight
+          hideLegend
+          tooltipRoundness="md"
+          tooltipVariant="frosted-glass"
+          xAxisProps={{ tickMargin: 8 }}
+          yAxisProps={{ tickFormatter: (value) => formatCompactCurrency(Number(value), currency) }}
+        />
+      ) : (
+        <EmptyChartState icon="event_busy" title="No open aging" description="Unpaid and overdue invoices will appear here." />
+      )}
+    </ChartWidgetShell>
+  );
+}
+
+function CollectionGaugeWidget({
+  activeRangeLabel,
+  collectionRate,
+  data,
+}: {
+  activeRangeLabel: string;
+  collectionRate: number;
+  data: GaugePoint[];
+}) {
+  const hasData = data.some((point) => point.value > 0);
+
+  return (
+    <ChartWidgetShell
+      className="md:col-span-1 lg:col-span-2"
+      description={`Paid versus open amount in ${activeRangeLabel.toLowerCase()}`}
+      icon="speed"
+      title="Collection Gauge"
+    >
+      {hasData ? (
+        <>
+          <EvilRadialChart
+            className="h-[220px] min-h-[220px]"
+            data={data}
+            dataKey="value"
+            nameKey="type"
+            chartConfig={COLLECTION_GAUGE_CONFIG}
+            variant="semi"
+            innerRadius="34%"
+            outerRadius="100%"
+            barSize={16}
+            cornerRadius={10}
+            glowingBars={["paid"]}
+            tooltipRoundness="md"
+            tooltipVariant="frosted-glass"
+            legendVariant="rounded-square"
+          />
+          <div className="mt-2 text-center">
+            <p className="font-display text-3xl font-semibold text-[var(--foreground)]">
+              <AnimatedNumber value={`${collectionRate}%`} />
+            </p>
+            <p className="mt-1 text-[11px] font-medium text-[var(--muted)]">Collected by value</p>
+          </div>
+        </>
+      ) : (
+        <EmptyChartState icon="speed" title="No collection signal" description="Paid and open invoice totals will fill this gauge." />
+      )}
+    </ChartWidgetShell>
+  );
+}
+
+function CustomizePanel({
+  draftPreferences,
+  isSaving,
+  onMove,
+  onReset,
+  onSave,
+  onToggle,
+}: {
+  draftPreferences: AnalyticsPreferences;
+  isSaving: boolean;
+  onMove: (widgetId: AnalyticsWidgetId, direction: -1 | 1) => void;
+  onReset: () => void;
+  onSave: () => void;
+  onToggle: (widgetId: AnalyticsWidgetId) => void;
+}) {
+  return (
+    <div className="surface-card mb-3 overflow-hidden">
+      <div className="flex flex-col gap-3 border-b border-[var(--card-border)] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-[15px] font-semibold text-[var(--foreground)]">Customize analytics</h2>
+          <p className="mt-0.5 text-[11px] font-medium text-[var(--muted)]">Choose visible widgets and move them into your preferred order.</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={onReset} className="btn-secondary active:scale-[0.97]">
+            Reset
+          </button>
+          <button type="button" onClick={onSave} className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </div>
+      <div className="divide-y divide-[var(--card-border)]">
+        {draftPreferences.widgetOrder.map((widgetId, index) => {
+          const definition = WIDGET_DEFINITION_MAP.get(widgetId);
+          const isVisible = draftPreferences.visibleWidgetIds.includes(widgetId);
+
+          if (!definition) {
+            return null;
+          }
+
+          return (
+            <div key={widgetId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04]">
+                  <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">{definition.icon}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{definition.title}</p>
+                  <p className="text-[11px] font-medium text-[var(--muted)]">{definition.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => onMove(widgetId, -1)}
+                  className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label={`Move ${definition.title} up`}
+                  disabled={index === 0}
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMove(widgetId, 1)}
+                  className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                  aria-label={`Move ${definition.title} down`}
+                  disabled={index === draftPreferences.widgetOrder.length - 1}
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+                </button>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isVisible}
+                  onClick={() => onToggle(widgetId)}
+                  className={`relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
+                    isVisible ? "bg-[var(--action)]" : "bg-[var(--foreground)]/12"
+                  }`}
+                  aria-label={`${isVisible ? "Hide" : "Show"} ${definition.title}`}
+                >
+                  <span className={`pointer-events-none mt-1 inline-block size-4 rounded-full bg-[var(--action-text)] shadow transition duration-200 ease-in-out ${
+                    isVisible ? "translate-x-5" : "translate-x-1"
+                  }`} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function Analytics() {
+  const { invoices } = useInvoices();
+  const { activeProfile, saveAnalyticsPreferences } = useUserData();
+  const { currency } = useCurrency();
+  const [activeRange, setActiveRange] = useState<AnalyticsRange>("month");
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+  const [draftPreferences, setDraftPreferences] = useState<AnalyticsPreferences>(() => getSavedAnalyticsPreferences());
+  const filteredInvoices = useMemo(() => filterInvoicesByDate(invoices, activeRange), [activeRange, invoices]);
+  const activeRangeLabel = RANGE_OPTIONS.find((option) => option.id === activeRange)?.label || "This Month";
+  const totals = useMemo(() => getInvoiceTotals(filteredInvoices), [filteredInvoices]);
+  const clients = useMemo(() => getClientsFromInvoices(filteredInvoices), [filteredInvoices]);
+  const revenueChartData = useMemo(() => getRevenueChartData(invoices, activeRange), [activeRange, invoices]);
+  const statusChartData = useMemo(() => getStatusChartData(totals), [totals]);
+  const topClientsChartData = useMemo(() => getTopClientsChartData(clients), [clients]);
+  const invoiceAgingChartData = useMemo(() => getInvoiceAgingChartData(filteredInvoices), [filteredInvoices]);
+  const collectionGaugeData = useMemo(() => getCollectionGaugeData(totals), [totals]);
   const paidRatio = filteredInvoices.length > 0 ? Math.round((totals.paidCount / filteredInvoices.length) * 100) : 0;
+  const collectionRate = totals.totalAmount > 0 ? Math.round((totals.paidAmount / totals.totalAmount) * 100) : 0;
   const averageInvoice = filteredInvoices.length > 0 ? totals.totalAmount / filteredInvoices.length : 0;
   const averageClientValue = clients.length > 0 ? totals.totalAmount / clients.length : 0;
   const topClient = [...clients].sort((a, b) => b.totalBilled - a.totalBilled)[0];
 
+  useEffect(() => {
+    setDraftPreferences(getSavedAnalyticsPreferences(activeProfile?.analyticsPreferences));
+  }, [activeProfile?.analyticsPreferences, activeProfile?.id]);
+
+  const visibleWidgetIds = draftPreferences.widgetOrder.filter((widgetId) => draftPreferences.visibleWidgetIds.includes(widgetId));
+
+  function moveDraftWidget(widgetId: AnalyticsWidgetId, direction: -1 | 1) {
+    setDraftPreferences((currentPreferences) => {
+      const widgetOrder = [...currentPreferences.widgetOrder];
+      const currentIndex = widgetOrder.indexOf(widgetId);
+      const nextIndex = currentIndex + direction;
+
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= widgetOrder.length) {
+        return currentPreferences;
+      }
+
+      [widgetOrder[currentIndex], widgetOrder[nextIndex]] = [widgetOrder[nextIndex], widgetOrder[currentIndex]];
+
+      return { ...currentPreferences, widgetOrder };
+    });
+  }
+
+  function toggleDraftWidget(widgetId: AnalyticsWidgetId) {
+    setDraftPreferences((currentPreferences) => {
+      const isVisible = currentPreferences.visibleWidgetIds.includes(widgetId);
+
+      if (isVisible && currentPreferences.visibleWidgetIds.length === 1) {
+        notify.warning({
+          title: "Keep one widget visible",
+          description: "Analytics needs at least one chart or metric on the page.",
+        });
+        return currentPreferences;
+      }
+
+      return {
+        ...currentPreferences,
+        visibleWidgetIds: isVisible
+          ? currentPreferences.visibleWidgetIds.filter((currentWidgetId) => currentWidgetId !== widgetId)
+          : [...currentPreferences.visibleWidgetIds, widgetId],
+      };
+    });
+  }
+
+  function resetDraftPreferences() {
+    setDraftPreferences(normalizeAnalyticsPreferences(DEFAULT_ANALYTICS_PREFERENCES));
+    notify.info({
+      title: "Default layout staged",
+      description: "Save to use the default analytics layout for this profile.",
+    });
+  }
+
+  async function handleSavePreferences() {
+    if (!activeProfile) {
+      notify.warning({
+        title: "Create a profile first",
+        description: "Analytics layout preferences are saved to the active profile.",
+      });
+      return;
+    }
+
+    const nextPreferences = normalizeAnalyticsPreferences({
+      ...draftPreferences,
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (nextPreferences.visibleWidgetIds.length === 0) {
+      notify.warning({
+        title: "Keep one widget visible",
+        description: "Turn on at least one analytics widget before saving.",
+      });
+      return;
+    }
+
+    setIsSavingPreferences(true);
+
+    try {
+      await notifyPromise(saveAnalyticsPreferences(nextPreferences), {
+        loading: {
+          title: "Saving analytics layout...",
+          description: "Updating this profile's chart preferences.",
+        },
+        success: {
+          title: "Analytics layout saved",
+          description: "This profile will use your custom chart order.",
+        },
+        error: (error) => ({
+          title: "Layout save failed",
+          description: getToastErrorMessage(error, "Unable to save analytics preferences."),
+        }),
+      });
+      setDraftPreferences(nextPreferences);
+      setIsCustomizeOpen(false);
+    } finally {
+      setIsSavingPreferences(false);
+    }
+  }
+
+  function renderWidget(widgetId: AnalyticsWidgetId) {
+    if (widgetId === "revenue-flow") {
+      return (
+        <RevenueFlowWidget
+          activeRangeLabel={activeRangeLabel}
+          currency={currency}
+          filteredInvoices={filteredInvoices}
+          revenueChartData={revenueChartData}
+        />
+      );
+    }
+
+    if (widgetId === "paid-ratio") {
+      return <PaidRatioWidget activeRangeLabel={activeRangeLabel} filteredInvoices={filteredInvoices} paidRatio={paidRatio} />;
+    }
+
+    if (widgetId === "avg-invoice") {
+      return (
+        <MetricWidget
+          title="Avg. Invoice"
+          icon="request_quote"
+          value={<AnimatedNumber value={formatCurrency(averageInvoice, currency)} />}
+          caption={filteredInvoices.length > 0 ? <>Based on <AnimatedNumber value={filteredInvoices.length} /> invoices</> : `No invoices in ${activeRangeLabel.toLowerCase()}`}
+        />
+      );
+    }
+
+    if (widgetId === "avg-ltv") {
+      return (
+        <MetricWidget
+          title="Avg. LTV"
+          icon="diamond"
+          value={<AnimatedNumber value={formatCurrency(averageClientValue, currency)} />}
+          caption={clients.length > 0 ? <>Across <AnimatedNumber value={clients.length} /> clients</> : "No client totals yet"}
+        />
+      );
+    }
+
+    if (widgetId === "top-client") {
+      return <TopClientWidget currency={currency} topClient={topClient} />;
+    }
+
+    if (widgetId === "revenue-trend") {
+      return <RevenueTrendWidget activeRangeLabel={activeRangeLabel} currency={currency} data={revenueChartData} />;
+    }
+
+    if (widgetId === "status-mix") {
+      return <StatusMixWidget activeRangeLabel={activeRangeLabel} currency={currency} data={statusChartData} totals={totals} />;
+    }
+
+    if (widgetId === "top-clients") {
+      return <TopClientsChartWidget activeRangeLabel={activeRangeLabel} currency={currency} data={topClientsChartData} />;
+    }
+
+    if (widgetId === "invoice-aging") {
+      return <InvoiceAgingWidget activeRangeLabel={activeRangeLabel} currency={currency} data={invoiceAgingChartData} />;
+    }
+
+    if (widgetId === "collection-gauge") {
+      return <CollectionGaugeWidget activeRangeLabel={activeRangeLabel} collectionRate={collectionRate} data={collectionGaugeData} />;
+    }
+
+    return null;
+  }
+
   return (
-    <>
-      <main className="app-main flex-1">
-        
-        {/* Header */}
-        <div className="page-heading">
-          <div>
-            <p className="section-eyebrow">Overview</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              Analytics
-            </h1>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-             <div className="bg-[var(--foreground)]/[0.03] p-0.5 rounded-lg flex border border-[var(--card-border)] w-full md:w-auto overflow-x-auto">
-                {RANGE_OPTIONS.map((option) => {
-                  const isActive = activeRange === option.id;
+    <main className="app-main flex-1">
+      <div className="page-heading">
+        <div>
+          <p className="section-eyebrow">Overview</p>
+          <h1 className="text-3xl font-semibold leading-[1.1] text-[var(--foreground)] lg:text-[40px]">
+            Analytics
+          </h1>
+        </div>
+        <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
+          <button
+            type="button"
+            onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
+            className={`btn-secondary active:scale-[0.97] ${isCustomizeOpen ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)]" : ""}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">tune</span>
+            Customize
+          </button>
+          <div className="flex w-full overflow-x-auto rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-0.5 md:w-auto">
+            {RANGE_OPTIONS.map((option) => {
+              const isActive = activeRange === option.id;
 
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => setActiveRange(option.id)}
-                      className={`px-3 py-1 rounded-md text-[12px] font-medium transition-smooth whitespace-nowrap ${
-                        isActive
-                          ? "bg-[var(--action)] text-[var(--action-text)]"
-                          : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-             </div>
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => setActiveRange(option.id)}
+                  className={`whitespace-nowrap rounded-md px-3 py-1 text-[12px] font-medium transition-smooth ${
+                    isActive
+                      ? "bg-[var(--action)] text-[var(--action-text)]"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 auto-rows-auto mb-3">
-          
-          {/* Main Chart Area */}
-          <div className="md:col-span-2 surface-card p-6 lg:p-7 flex flex-col justify-between min-h-[320px] relative overflow-hidden group">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-lg font-semibold text-[var(--foreground)] mb-0.5">Revenue Flow</h3>
-                <p className="text-[12px] font-medium text-[var(--muted)]">
-                  {filteredInvoices.length > 0 ? <><AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} /> in {activeRangeLabel.toLowerCase()}</> : `No invoice data for ${activeRangeLabel.toLowerCase()}`}
-                </p>
-              </div>
-              <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-                 <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
-              </div>
+      {isCustomizeOpen && (
+        <CustomizePanel
+          draftPreferences={draftPreferences}
+          isSaving={isSavingPreferences}
+          onMove={moveDraftWidget}
+          onReset={resetDraftPreferences}
+          onSave={handleSavePreferences}
+          onToggle={toggleDraftWidget}
+        />
+      )}
+
+      {visibleWidgetIds.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {visibleWidgetIds.map((widgetId) => (
+            <div key={widgetId} className={widgetId === "avg-invoice" || widgetId === "avg-ltv" ? "" : "contents"}>
+              {renderWidget(widgetId)}
             </div>
-            
-            {filteredInvoices.length > 0 ? (
-              <>
-                <div className="flex-1 flex items-end gap-1.5 mt-3 pt-4 border-t border-[var(--card-border)]">
-                  {revenueChartData.map((day) => {
-                    const barHeight = revenueChartMax > 0 ? Math.max((day.total / revenueChartMax) * 90, 4) : 4;
-
-                    return (
-                      <div
-                        key={day.key}
-                        className={`flex-1 rounded-t-lg transition-all relative group/bar cursor-pointer ${
-                          day.total > 0 ? "bg-[var(--accent)]/35 hover:bg-[var(--accent)]/45" : "bg-[var(--foreground)]/[0.06]"
-                        }`}
-                        style={{ height: `${barHeight}%` }}
-                      >
-                        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[var(--accent)] opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap">
-                          <AnimatedNumber value={formatCurrency(day.total, currency)} />
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex justify-between mt-2.5 text-[9px] font-semibold text-[var(--foreground)]/25 px-1 uppercase tracking-widest">
-                  {revenueChartData.map((day) => <span key={day.key}>{day.label}</span>)}
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 mt-3 pt-4 border-t border-[var(--card-border)] flex flex-col items-center justify-center text-center">
-                <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3">monitoring</span>
-                <p className="text-[13px] font-semibold text-[var(--foreground)]">No revenue to chart</p>
-                <p className="text-[11px] text-[var(--muted)] mt-1">Invoices in {activeRangeLabel.toLowerCase()} will appear here.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Paid Ratio */}
-          <div className="surface-featured p-6 lg:p-7 flex flex-col justify-between relative overflow-hidden group min-h-[320px]">
-             <div className="absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.03] to-transparent pointer-events-none" />
-             <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none group-hover:bg-[var(--accent)]/15 transition-all duration-700" />
-            
-             <div className="relative z-10 flex items-center justify-between mb-3">
-                <p className="text-[13px] font-medium text-[var(--featured-text)]/50 tracking-wide">Paid Ratio</p>
-                <div className="size-9 rounded-lg bg-[var(--featured-text)]/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--featured-text)]/60">pie_chart</span>
-                </div>
-             </div>
-             <div className="relative z-10 flex-1 flex flex-col justify-center items-center">
-                 {/* Circle Graph */}
-                 <div className="relative size-32 mb-3">
-                    <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                       <path
-                         className="text-[var(--featured-text)]/10"
-                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                         fill="none"
-                         stroke="currentColor"
-                         strokeWidth="3"
-                       />
-                       <path
-                         className="text-[var(--accent)]"
-                         strokeDasharray={`${paidRatio}, 100`}
-                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                         fill="none"
-                         stroke="currentColor"
-                         strokeWidth="3"
-                         strokeLinecap="round"
-                       />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                       <span className="text-2xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={`${paidRatio}%`} /></span>
-                    </div>
-                 </div>
-                 <p className="text-[var(--featured-text)]/50 text-[12px] font-medium text-center">
-                  {filteredInvoices.length > 0 ? <><AnimatedNumber value={`${paidRatio}%`} /> of {activeRangeLabel.toLowerCase()} invoices are marked paid.</> : `No invoices in ${activeRangeLabel.toLowerCase()}.`}
-                 </p>
-             </div>
-          </div>
+          ))}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-auto">
-           {/* Average Invoice Value */}
-           <div className="surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
-              <div className="flex items-center justify-between">
-                 <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Avg. Invoice</p>
-                 <div className="size-8 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center group-hover:scale-105 transition-transform">
-                   <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">request_quote</span>
-                 </div>
-              </div>
-              <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(averageInvoice, currency)} /></h3>
-                 <p className="text-[11px] text-[var(--muted)] font-medium">
-                   {filteredInvoices.length > 0 ? <>Based on <AnimatedNumber value={filteredInvoices.length} /> invoices</> : `No invoices in ${activeRangeLabel.toLowerCase()}`}
-                 </p>
-              </div>
-           </div>
-
-           {/* Client LTV */}
-           <div className="surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] group">
-              <div className="flex items-center justify-between">
-                 <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Avg. LTV</p>
-                 <div className="size-8 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center group-hover:scale-105 transition-transform">
-                   <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">diamond</span>
-                 </div>
-              </div>
-              <div>
-                 <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(averageClientValue, currency)} /></h3>
-                 <p className="text-[11px] text-[var(--muted)] font-medium">
-                  {clients.length > 0 ? <>Across <AnimatedNumber value={clients.length} /> clients</> : "No client totals yet"}
-                 </p>
-              </div>
-           </div>
-
-           {/* Top Client */}
-           <div className="md:col-span-2 surface-card p-5 lg:p-6 flex flex-col justify-between hover:border-[var(--foreground)]/12 transition-smooth min-h-[140px] relative overflow-hidden group">
-              <div className="absolute right-0 bottom-0 top-0 w-24 bg-gradient-to-l from-[var(--accent)]/[0.04] to-transparent pointer-events-none" />
-              <div className="flex items-center justify-between mb-3">
-                 <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Top Client</p>
-                 <div className="size-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center group-hover:scale-105 transition-transform">
-                   <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">star</span>
-                 </div>
-              </div>
-              <div className="flex justify-between items-end relative z-10">
-                 <div>
-                   <h3 className="text-lg lg:text-xl font-semibold text-[var(--foreground)] mb-0.5 font-display">{topClient?.name || "No client yet"}</h3>
-                   <p className="text-[11px] text-[var(--muted)] font-medium">Highest billed client by invoice total</p>
-                 </div>
-                 <div className="text-right">
-                    <p className="text-base font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} /></p>
-                    <p className="text-[10px] font-semibold text-[var(--muted)]">Total</p>
-                 </div>
-              </div>
-           </div>
+      ) : (
+        <div className="surface-card p-10 text-center">
+          <span className="material-symbols-outlined mb-3 block text-[42px] text-[var(--foreground)]/10">analytics</span>
+          <p className="text-[13px] font-semibold text-[var(--foreground)]">No analytics widgets visible</p>
+          <p className="mt-1 text-[11px] font-medium text-[var(--muted)]">Turn one on in Customize to rebuild this page.</p>
         </div>
-
-      </main>
-
-    </>
+      )}
+    </main>
   );
 }
