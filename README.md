@@ -152,41 +152,13 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 ## Run locally
 
 ```bash
-git clone <your-repo-url> invoice-manager
+git clone https://github.com/NippaGG/invoice-manager.git
 cd invoice-manager
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-# Scripts
-
-```bash
-npm run dev
-```
-
-Start the local development server.
-
-```bash
-npm run build
-```
-
-Create a production build.
-
-```bash
-npm run start
-```
-
-Start the production server after building.
-
-```bash
-npm run lint
-```
-
-Run the project lint checks.
 
 ---
 
@@ -233,14 +205,3 @@ User data/
 
 This directory is intentionally ignored by git so real client, invoice, and profile details do not get committed.
 
----
-
-# Screenshots
-
-The screenshots in this README were captured from a sanitized sample workspace, not from private user data.
-
----
-
-# License
-
-No license file has been added yet. Add a license before publishing or distributing the project.

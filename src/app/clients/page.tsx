@@ -429,9 +429,6 @@ export default function Clients() {
         </div>
       )}
 
-      <footer className="mt-auto p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
-      </footer>
     </>
   );
 }
