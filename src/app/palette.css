@@ -1,4 +1,48 @@
 html,
+html[data-light-palette="palette-6"] {
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
+  --background: var(--palette-1);
+  --foreground: var(--palette-4);
+  --card: #ffffff;
+  --card-border: var(--palette-2);
+  --muted: #33373d;
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
+}
+
+html[data-light-palette="palette-7"] {
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: #33373d;
+  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
+  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
+}
+
 html[data-light-palette="palette-1"] {
   --palette-1: #ffdbfd;
   --palette-2: #c9beff;
@@ -126,6 +170,50 @@ html.dark[data-dark-palette="palette-1"] {
 }
 
 html.dark,
+html.dark[data-dark-palette="palette-6"] {
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: #33373d;
+  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
+  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
+  --accent: var(--palette-3);
+  --accent-hover: color-mix(in srgb, var(--palette-3) 84%, var(--palette-1));
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
+}
+
+html.dark[data-dark-palette="palette-7"] {
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
+  --background: var(--palette-4);
+  --foreground: var(--palette-1);
+  --card: #33373d;
+  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
+  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
+  --featured: var(--card);
+  --featured-text: var(--foreground);
+  --featured-muted: var(--muted);
+}
+
 html.dark[data-dark-palette="palette-2"] {
   --palette-1: #fde2f3;
   --palette-2: #e5beec;

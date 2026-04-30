@@ -432,7 +432,11 @@ export default function Settings() {
                                 </span>
                               </div>
 
-                              <div className="grid grid-cols-4 gap-1.5" aria-hidden="true">
+                              <div
+                                className="grid gap-1.5"
+                                style={{ gridTemplateColumns: `repeat(${palette.colors.length}, minmax(0, 1fr))` }}
+                                aria-hidden="true"
+                              >
                                 {palette.colors.map((color) => (
                                   <span
                                     key={color}

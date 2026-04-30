@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-palette-1: #ffdbfd;
-  --color-palette-2: #c9beff;
-  --color-palette-3: #8494ff;
-  --color-palette-4: #6367ff;
+  --color-palette-1: #f9fafa;
+  --color-palette-2: #d3d4d5;
+  --color-palette-3: #347fdb;
+  --color-palette-4: #171a1d;
   
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
@@ -19,21 +19,22 @@
 @variant dark (&:where(.dark, .dark *));
 
 html {
-  --palette-1: #ffdbfd;
-  --palette-2: #c9beff;
-  --palette-3: #8494ff;
-  --palette-4: #6367ff;
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
   --background: var(--palette-1);
   --foreground: var(--palette-4);
-  --card: var(--palette-2);
-  --card-border: var(--palette-3);
-  --muted: var(--palette-4);
-  --accent: var(--palette-4);
-  --accent-hover: var(--palette-3);
-  --action: var(--palette-4);
-  --action-hover: var(--palette-3);
-  --action-text: var(--palette-1);
-  --positive: var(--palette-4);
+  --card: #ffffff;
+  --card-border: var(--palette-2);
+  --muted: #33373d;
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
@@ -43,21 +44,22 @@ html {
 }
 
 html.dark {
-  --palette-1: #fde2f3;
-  --palette-2: #e5beec;
-  --palette-3: #917fb3;
-  --palette-4: #2a2f4f;
+  --palette-1: #f9fafa;
+  --palette-2: #d3d4d5;
+  --palette-3: #347fdb;
+  --palette-4: #171a1d;
+  --palette-5: #236abf;
   --background: var(--palette-4);
   --foreground: var(--palette-1);
-  --card: var(--palette-3);
-  --card-border: var(--palette-2);
-  --muted: var(--palette-2);
-  --accent: var(--palette-2);
-  --accent-hover: var(--palette-3);
-  --action: var(--palette-2);
-  --action-hover: var(--palette-3);
-  --action-text: var(--palette-4);
-  --positive: var(--palette-2);
+  --card: #33373d;
+  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
+  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
+  --accent: var(--palette-3);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-3);
+  --action-hover: var(--palette-5);
+  --action-text: #ffffff;
+  --positive: var(--palette-3);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);

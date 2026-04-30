@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 const paletteBootstrapScript = `
 (() => {
-  const paletteIds = new Set(["palette-1", "palette-2", "palette-3", "palette-4", "palette-5"]);
+  const paletteIds = new Set(["palette-1", "palette-2", "palette-3", "palette-4", "palette-5", "palette-6", "palette-7"]);
   const lightKey = "billcraft.light-palette.v1";
   const darkKey = "billcraft.dark-palette.v1";
   const readPalette = (key, fallback) => {
@@ -37,8 +37,8 @@ const paletteBootstrapScript = `
     }
   };
 
-  document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-1");
-  document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-2");
+  document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-6");
+  document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-7");
 })();
 `;
 

@@ -1,19 +1,54 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { formatCurrency, getInvoiceTotal, getInvoiceTotals } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 
+function getTimeBasedGreeting() {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return "Good Morning";
+  }
+
+  if (hour >= 12 && hour < 17) {
+    return "Good Afternoon";
+  }
+
+  if (hour >= 17 && hour < 22) {
+    return "Good Evening";
+  }
+
+  return "Good Night";
+}
+
 export default function Home() {
   const { invoices } = useInvoices();
   const { currency } = useCurrency();
   const { activeProfile } = useUserData();
+  const [greeting, setGreeting] = useState("Good Morning");
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
   const collectionRate = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
+  const firstName = activeProfile?.name.trim().split(/\s+/)[0];
+
+  useEffect(() => {
+    const syncGreeting = () => setGreeting(getTimeBasedGreeting());
+    const frame = window.requestAnimationFrame(syncGreeting);
+
+    const interval = window.setInterval(() => {
+      syncGreeting();
+    }, 60_000);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(interval);
+    };
+  }, []);
 
   return (
     <>
@@ -24,7 +59,7 @@ export default function Home() {
           <div>
             <p className="section-eyebrow">Dashboard</p>
             <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              Good Morning{activeProfile ? `, ${activeProfile.name}` : ""}
+              {greeting}{firstName ? `, ${firstName}` : ""}
             </h1>
           </div>
           <div className="hidden md:flex gap-2.5">

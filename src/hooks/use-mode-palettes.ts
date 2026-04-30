@@ -4,6 +4,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const COLOR_PALETTES = [
   {
+    id: "palette-6",
+    label: "Default",
+    name: "SaaS Light",
+    colors: ["#F9FAFA", "#D3D4D5", "#347FDB", "#33373D", "#171A1D"],
+  },
+  {
+    id: "palette-7",
+    label: "Default Dark",
+    name: "SaaS Dark",
+    colors: ["#171A1D", "#33373D", "#347FDB", "#236ABF", "#F9FAFA"],
+  },
+  {
     id: "palette-1",
     label: "Palette 1",
     name: "Violet Frost",
@@ -37,8 +49,8 @@ export const COLOR_PALETTES = [
 
 export type ColorPaletteId = (typeof COLOR_PALETTES)[number]["id"];
 
-export const DEFAULT_LIGHT_PALETTE: ColorPaletteId = "palette-1";
-export const DEFAULT_DARK_PALETTE: ColorPaletteId = "palette-2";
+export const DEFAULT_LIGHT_PALETTE: ColorPaletteId = "palette-6";
+export const DEFAULT_DARK_PALETTE: ColorPaletteId = "palette-7";
 export const LIGHT_PALETTE_STORAGE_KEY = "billcraft.light-palette.v1";
 export const DARK_PALETTE_STORAGE_KEY = "billcraft.dark-palette.v1";
 
