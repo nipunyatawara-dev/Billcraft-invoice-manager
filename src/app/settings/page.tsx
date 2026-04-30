@@ -597,7 +597,17 @@ export default function Settings() {
       </main>
 
       <footer className="mt-auto p-5 text-center">
-        <p className="text-[11px] font-medium text-[var(--foreground)]/25">© 2026 BillCraft. All rights reserved.</p>
+        <p className="text-[11px] font-medium text-[var(--foreground)]/25">
+          Made with ❤️ by{" "}
+          <a
+            href="https://shockagg.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--foreground)]/50 hover:text-[var(--action)] transition-smooth"
+          >
+            ShockaGG
+          </a>
+        </p>
       </footer>
     </>
   );
