@@ -9,16 +9,86 @@ import { useTheme } from "next-themes";
 import { ChangeEvent, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
+type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security";
+
+type ExportRow = Record<string, string | number | null | undefined>;
+
+function csvValue(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function toCsv(rows: ExportRow[]) {
+  const columns = [
+    "category",
+    "id",
+    "name",
+    "email",
+    "phone",
+    "company",
+    "date",
+    "dueDate",
+    "status",
+    "total",
+    "priority",
+    "stage",
+    "createdAt",
+    "updatedAt",
+    "details",
+  ];
+
+  return [
+    columns.join(","),
+    ...rows.map((row) => columns.map((column) => csvValue(row[column])).join(",")),
+  ].join("\n");
+}
+
+function downloadFile(fileName: string, contents: string, mimeType: string) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function fileSafeName(value?: string | null) {
+  return value
+    ?.trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "billcraft-data";
+}
 
 export default function Settings() {
   const { currency, setCurrency } = useCurrency();
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
   const { toastPosition, setToastPosition } = useToastPosition();
-  const { activeProfile, updateProfile, deleteProfile, deleteAllProfiles } = useUserData();
+  const {
+    activeProfile,
+    activeProfileId,
+    clients,
+    deleteAllProfiles,
+    deleteProfile,
+    invoices,
+    loading,
+    outsourcingInvoices,
+    profiles,
+    todoTasks,
+    updateProfile,
+    vendors,
+  } = useUserData();
   const [invoiceReminders, setInvoiceReminders] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
-  const [activeTab, setActiveTab] = useState<"profile" | "appearance" | "notifications" | "security">("profile");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [profileForm, setProfileForm] = useState<ProfileDraft>({
     name: "",
     profession: "",
@@ -51,6 +121,7 @@ export default function Settings() {
     { id: "profile" as const, label: "Profile", icon: "person" },
     { id: "appearance" as const, label: "Appearance", icon: "palette" },
     { id: "notifications" as const, label: "Notifications", icon: "notifications" },
+    { id: "data" as const, label: "Your Data", icon: "database" },
     { id: "security" as const, label: "Security", icon: "shield" },
   ];
 
@@ -168,6 +239,126 @@ export default function Settings() {
     } finally {
       setIsSavingProfile(false);
     }
+  }
+
+  function getExportSnapshot() {
+    return {
+      exportedAt: new Date().toISOString(),
+      currency,
+      activeProfileId,
+      activeProfile,
+      profiles,
+      clients,
+      invoices,
+      vendors,
+      outsourcingInvoices,
+      todoTasks,
+    };
+  }
+
+  function handleDownloadJson() {
+    const snapshot = getExportSnapshot();
+
+    downloadFile(
+      `${fileSafeName(activeProfile?.businessName || activeProfile?.name)}-${new Date().toISOString().slice(0, 10)}.json`,
+      `${JSON.stringify(snapshot, null, 2)}\n`,
+      "application/json;charset=utf-8",
+    );
+
+    notify.success({
+      title: "Data exported",
+      description: "JSON file is ready in your downloads.",
+    });
+  }
+
+  function handleDownloadCsv() {
+    const rows: ExportRow[] = [
+      ...profiles.map((profile) => ({
+        category: "profile",
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        company: profile.businessName,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
+        details: profile.profession,
+      })),
+      ...clients.map((client) => ({
+        category: "client",
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        company: client.company,
+        createdAt: client.createdAt,
+        updatedAt: client.updatedAt,
+        details: client.notes || client.address,
+      })),
+      ...invoices.map((invoice) => ({
+        category: "invoice",
+        id: invoice.id,
+        name: invoice.client,
+        email: invoice.email,
+        phone: invoice.phone,
+        company: invoice.company,
+        date: invoice.date,
+        dueDate: invoice.dueDate,
+        status: invoice.status,
+        total: invoice.total,
+        createdAt: invoice.createdAt,
+        updatedAt: invoice.updatedAt,
+        details: (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+      })),
+      ...vendors.map((vendor) => ({
+        category: "vendor",
+        id: vendor.id,
+        name: vendor.name,
+        email: vendor.email,
+        phone: vendor.phone,
+        company: vendor.company,
+        createdAt: vendor.createdAt,
+        updatedAt: vendor.updatedAt,
+        details: vendor.notes || vendor.address,
+      })),
+      ...outsourcingInvoices.map((invoice) => ({
+        category: "outsourcing invoice",
+        id: invoice.id,
+        name: invoice.vendor,
+        email: invoice.email,
+        phone: invoice.phone,
+        company: invoice.company,
+        date: invoice.date,
+        dueDate: invoice.dueDate,
+        status: invoice.status,
+        total: invoice.total,
+        createdAt: invoice.createdAt,
+        updatedAt: invoice.updatedAt,
+        details: (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+      })),
+      ...todoTasks.map((task) => ({
+        category: "todo",
+        id: task.id,
+        name: task.title,
+        date: task.dueDate,
+        priority: task.priority,
+        stage: task.stage,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        details: [task.description, task.client, task.estimate, ...(task.tags || [])].filter(Boolean).join("; "),
+      })),
+    ];
+
+    downloadFile(
+      `${fileSafeName(activeProfile?.businessName || activeProfile?.name)}-${new Date().toISOString().slice(0, 10)}.csv`,
+      `${toCsv(rows)}\n`,
+      "text/csv;charset=utf-8",
+    );
+
+    notify.success({
+      title: "Data exported",
+      description: "CSV file is ready in your downloads.",
+    });
   }
 
   return (
@@ -499,7 +690,6 @@ export default function Settings() {
                 <div className="surface-card overflow-hidden">
                   {[
                     { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices", state: invoiceReminders, toggle: setInvoiceReminders },
-                    { label: "Auto Backup", desc: "Automatically back up your invoice data weekly", state: autoBackup, toggle: setAutoBackup },
                   ].map((item, i, arr) => (
                     <div key={item.label} className={`flex items-center justify-between p-5 ${i < arr.length - 1 ? 'border-b border-[var(--card-border)]' : ''}`}>
                       <div>
@@ -519,6 +709,75 @@ export default function Settings() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Your Data Tab */}
+            {activeTab === "data" && (
+              <>
+                <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
+                  <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
+                  <div className="relative z-10 max-w-xl">
+                    <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Your Data</p>
+                    <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1">Download your BillCraft data</h2>
+                    <p className="text-[12px] text-[var(--featured-text)]/50">Export profiles, clients, invoices, vendors, outsourcing invoices, and to-do tasks.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                  {[
+                    { label: "Profiles", value: profiles.length },
+                    { label: "Clients", value: clients.length },
+                    { label: "Invoices", value: invoices.length },
+                    { label: "Vendors", value: vendors.length },
+                    { label: "Tasks", value: todoTasks.length },
+                  ].map((item) => (
+                    <div key={item.label} className="surface-card p-4">
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">{item.label}</p>
+                      <p className="mt-2 text-2xl font-semibold text-[var(--foreground)] font-display">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="surface-card p-5">
+                    <div className="mb-5 flex items-start gap-3">
+                      <span className="material-symbols-outlined mt-0.5 text-[22px] text-[var(--action)]">data_object</span>
+                      <div>
+                        <h3 className="text-[14px] font-semibold text-[var(--foreground)]">JSON Export</h3>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Complete snapshot with nested invoice items and profile metadata.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownloadJson}
+                      disabled={loading}
+                      className="btn-primary w-full justify-center active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">download</span>
+                      Download JSON
+                    </button>
+                  </div>
+
+                  <div className="surface-card p-5">
+                    <div className="mb-5 flex items-start gap-3">
+                      <span className="material-symbols-outlined mt-0.5 text-[22px] text-[var(--action)]">table</span>
+                      <div>
+                        <h3 className="text-[14px] font-semibold text-[var(--foreground)]">CSV Export</h3>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Spreadsheet-friendly rows grouped by data category.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownloadCsv}
+                      disabled={loading}
+                      className="btn-secondary w-full justify-center active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">download</span>
+                      Download CSV
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Security Tab */}
