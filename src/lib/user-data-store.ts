@@ -1,5 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import {
   createAvatar,
   getInvoiceItemsTotal,
@@ -17,6 +19,9 @@ import { createDefaultTodoTasks, TODO_PRIORITIES, TODO_STAGES, type TodoTask } f
 const USER_DATA_DIR = path.join(process.cwd(), "User data");
 const PROFILE_INDEX_PATH = path.join(USER_DATA_DIR, "profiles.json");
 const MAX_PROFILES = 5;
+const MIN_PROFILE_PASSWORD_LENGTH = 6;
+const PASSWORD_HASH_LENGTH = 64;
+const scryptAsync = promisify(scryptCallback);
 
 type ProfileIndex = {
   profiles: UserProfile[];
@@ -30,6 +35,15 @@ type ProfileDraft = {
   businessName?: string;
   profilePic?: string;
   signature?: string;
+  password?: string;
+  passwordHint?: string;
+};
+
+type ProfileSecurity = {
+  passwordHash: string;
+  passwordSalt: string;
+  passwordHint?: string;
+  passwordChangedAt: string;
 };
 
 type ClientDraft = {
@@ -80,6 +94,16 @@ export type SaveOutsourcingInvoicePayload = {
   vendor?: VendorDraft;
 };
 
+export type ProfilePasswordDraft = {
+  currentPassword?: string;
+  password: string;
+};
+
+export type ProfilePasswordHintDraft = {
+  currentPassword?: string;
+  passwordHint?: string;
+};
+
 function slugify(value: string) {
   return value
     .trim()
@@ -102,6 +126,10 @@ function getProfileDir(profileId: string) {
 
 function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json") {
   return path.join(getProfileDir(profileId), fileName);
+}
+
+function getProfileSecurityPath(profileId: string) {
+  return path.join(getProfileDir(profileId), "security.json");
 }
 
 function getAssetDir(profileId: string) {
@@ -142,6 +170,76 @@ async function readProfileIndex(): Promise<ProfileIndex> {
 async function writeProfileIndex(index: ProfileIndex) {
   await ensureUserDataDir();
   await writeJson(PROFILE_INDEX_PATH, index);
+}
+
+function sanitizePasswordHint(value?: string) {
+  const hint = value?.trim();
+  return hint ? hint.slice(0, 160) : undefined;
+}
+
+function assertValidProfilePassword(password: unknown): asserts password is string {
+  if (typeof password !== "string" || password.length < MIN_PROFILE_PASSWORD_LENGTH) {
+    throw new Error("Profile password must be at least 6 characters.");
+  }
+}
+
+async function derivePasswordHash(password: string, salt: string) {
+  const derivedKey = await scryptAsync(password, salt, PASSWORD_HASH_LENGTH);
+  return (derivedKey as Buffer).toString("hex");
+}
+
+async function createProfileSecurity(password: string, passwordHint?: string): Promise<ProfileSecurity> {
+  assertValidProfilePassword(password);
+
+  const passwordSalt = randomBytes(16).toString("hex");
+
+  return {
+    passwordSalt,
+    passwordHash: await derivePasswordHash(password, passwordSalt),
+    passwordHint: sanitizePasswordHint(passwordHint),
+    passwordChangedAt: new Date().toISOString(),
+  };
+}
+
+async function readProfileSecurity(profileId: string) {
+  return readJson<ProfileSecurity | null>(getProfileSecurityPath(profileId), null);
+}
+
+async function writeProfileSecurity(profileId: string, security: ProfileSecurity) {
+  await writeJson(getProfileSecurityPath(profileId), security);
+}
+
+async function isProfilePasswordMatch(security: ProfileSecurity, password: string) {
+  const suppliedHash = Buffer.from(await derivePasswordHash(password, security.passwordSalt), "hex");
+  const storedHash = Buffer.from(security.passwordHash, "hex");
+
+  if (suppliedHash.length !== storedHash.length) {
+    return false;
+  }
+
+  return timingSafeEqual(suppliedHash, storedHash);
+}
+
+async function getProfileSecurityMetadata(profileId: string) {
+  const security = await readProfileSecurity(profileId);
+  const hasPassword = Boolean(security?.passwordHash && security.passwordSalt);
+
+  return {
+    hasPassword,
+    passwordHint: hasPassword ? security?.passwordHint : undefined,
+    passwordChangedAt: hasPassword ? security?.passwordChangedAt : undefined,
+  };
+}
+
+async function withProfileSecurityMetadata(profile: UserProfile): Promise<UserProfile> {
+  return {
+    ...profile,
+    ...await getProfileSecurityMetadata(profile.id),
+  };
+}
+
+async function withProfilesSecurityMetadata(profiles: UserProfile[]) {
+  return Promise.all(profiles.map(withProfileSecurityMetadata));
 }
 
 function uniqueIdForProfile(name: string, profiles: UserProfile[]) {
@@ -373,7 +471,8 @@ function resolveActiveProfile(profiles: UserProfile[], requestedProfileId?: stri
 }
 
 export async function loadLocalDataSnapshot(requestedProfileId?: string | null): Promise<LocalDataSnapshot> {
-  const { profiles } = await readProfileIndex();
+  const { profiles: storedProfiles } = await readProfileIndex();
+  const profiles = await withProfilesSecurityMetadata(storedProfiles);
   const activeProfileId = resolveActiveProfile(profiles, requestedProfileId);
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId) || null;
 
@@ -411,6 +510,8 @@ export async function createProfile(draft: ProfileDraft) {
     throw new Error("Name and profession are required.");
   }
 
+  assertValidProfilePassword(draft.password);
+
   const index = await readProfileIndex();
 
   if (index.profiles.length >= MAX_PROFILES) {
@@ -425,6 +526,7 @@ export async function createProfile(draft: ProfileDraft) {
 
   await writeProfileIndex({ profiles: nextProfiles });
   await saveProfileFile(profile);
+  await writeProfileSecurity(profileId, await createProfileSecurity(draft.password, draft.passwordHint));
   await writeClients(profileId, []);
   await writeInvoices(profileId, []);
   await writeVendors(profileId, []);
@@ -453,6 +555,104 @@ export async function updateProfile(profileId: string, draft: ProfileDraft) {
   await saveProfileFile(profile);
 
   return profile;
+}
+
+export async function verifyProfilePassword(profileId: string, password: string) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  const security = await readProfileSecurity(profileId);
+
+  if (!security?.passwordHash || !security.passwordSalt) {
+    throw new Error("Password is not set for this profile.");
+  }
+
+  if (!await isProfilePasswordMatch(security, password || "")) {
+    throw new Error("Incorrect password.");
+  }
+
+  return true;
+}
+
+export async function changeProfilePassword(profileId: string, draft: ProfilePasswordDraft) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  const existingSecurity = await readProfileSecurity(profileId);
+
+  if (existingSecurity?.passwordHash && !await isProfilePasswordMatch(existingSecurity, draft.currentPassword || "")) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  const security = await createProfileSecurity(draft.password, existingSecurity?.passwordHint);
+
+  await writeProfileSecurity(profileId, security);
+
+  const updatedProfile: UserProfile = {
+    ...existingProfile,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writeProfileIndex({
+    profiles: index.profiles.map((profile) => profile.id === profileId ? updatedProfile : profile),
+  });
+  await saveProfileFile(updatedProfile);
+
+  return {
+    hasPassword: true,
+    passwordHint: security.passwordHint,
+    passwordChangedAt: security.passwordChangedAt,
+  };
+}
+
+export async function updateProfilePasswordHint(profileId: string, draft: ProfilePasswordHintDraft) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  const existingSecurity = await readProfileSecurity(profileId);
+
+  if (!existingSecurity?.passwordHash || !existingSecurity.passwordSalt) {
+    throw new Error("Password is not set for this profile.");
+  }
+
+  if (!await isProfilePasswordMatch(existingSecurity, draft.currentPassword || "")) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  const security: ProfileSecurity = {
+    ...existingSecurity,
+    passwordHint: sanitizePasswordHint(draft.passwordHint),
+  };
+
+  await writeProfileSecurity(profileId, security);
+
+  const updatedProfile: UserProfile = {
+    ...existingProfile,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await writeProfileIndex({
+    profiles: index.profiles.map((profile) => profile.id === profileId ? updatedProfile : profile),
+  });
+  await saveProfileFile(updatedProfile);
+
+  return {
+    hasPassword: true,
+    passwordHint: security.passwordHint,
+    passwordChangedAt: security.passwordChangedAt,
+  };
 }
 
 export async function saveAnalyticsPreferences(profileId: string, preferences: AnalyticsPreferences) {
@@ -692,7 +892,7 @@ export async function deleteProfile(profileId: string) {
 
   try {
     await fs.rm(getProfileDir(profileId), { recursive: true, force: true });
-  } catch (error) {
+  } catch {
     // ignore
   }
 }
@@ -711,7 +911,7 @@ export async function deleteAllProfiles() {
         }
       }
     }
-  } catch (error) {
+  } catch {
     // ignore
   }
 }

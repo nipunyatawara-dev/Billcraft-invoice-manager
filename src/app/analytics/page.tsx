@@ -27,7 +27,7 @@ const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const RANGE_OPTIONS = [
   { id: "month", label: "This Month" },
-  { id: "last-quarter", label: "Last Quarter" },
+  { id: "quarter", label: "This Quarter" },
   { id: "year", label: "This Year" },
 ] as const;
 
@@ -161,14 +161,13 @@ function getDateRange(range: AnalyticsRange) {
     };
   }
 
-  if (range === "last-quarter") {
+  if (range === "quarter") {
     const currentQuarter = Math.floor(today.getMonth() / 3);
-    const previousQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
-    const year = currentQuarter === 0 ? today.getFullYear() - 1 : today.getFullYear();
-    const start = startOfDay(new Date(year, previousQuarter * 3, 1));
-    const previousQuarterEnd = endOfDay(new Date(year, previousQuarter * 3 + 3, 0));
 
-    return { start, end: previousQuarterEnd };
+    return {
+      start: startOfDay(new Date(today.getFullYear(), currentQuarter * 3, 1)),
+      end,
+    };
   }
 
   return {
@@ -193,14 +192,15 @@ function filterInvoicesByDate(invoices: Invoice[], range: AnalyticsRange) {
 
 function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange): RevenuePoint[] {
   const { start, end } = getDateRange(range);
-  const bucketCount = 7;
+  const rangeDays = Math.max(Math.ceil((end.getTime() - start.getTime()) / DAY_IN_MS), 1);
+  const bucketCount = Math.min(7, rangeDays);
   const rangeLength = Math.max(end.getTime() - start.getTime(), 1);
   const bucketLength = rangeLength / bucketCount;
   const buckets = Array.from({ length: bucketCount }, (_, index) => {
     const date = new Date(start.getTime() + bucketLength * index);
 
     return {
-      key: getDayKey(date),
+      key: `${getDayKey(date)}-${index}`,
       label: DATE_LABEL_FORMATTER.format(date),
       total: 0,
       paid: 0,

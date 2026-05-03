@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  changeProfilePassword,
   createProfile,
   loadLocalDataSnapshot,
   saveClient,
@@ -9,6 +10,8 @@ import {
   saveTodoTasks,
   saveVendor,
   updateProfile,
+  updateProfilePasswordHint,
+  verifyProfilePassword,
   deleteProfile,
   deleteAllProfiles,
   type SaveInvoicePayload,
@@ -20,6 +23,9 @@ export const runtime = "nodejs";
 type UserDataAction =
   | { action: "createProfile"; profile: Parameters<typeof createProfile>[0] }
   | { action: "updateProfile"; profileId: string; profile: Parameters<typeof updateProfile>[1] }
+  | { action: "verifyProfilePassword"; profileId: string; password: string }
+  | { action: "changeProfilePassword"; profileId: string; password: Parameters<typeof changeProfilePassword>[1] }
+  | { action: "updateProfilePasswordHint"; profileId: string; hint: Parameters<typeof updateProfilePasswordHint>[1] }
   | { action: "saveClient"; profileId: string; originalClientId: string | null; client: Parameters<typeof saveClient>[2] }
   | ({ action: "saveInvoice" } & SaveInvoicePayload)
   | { action: "saveAnalyticsPreferences"; profileId: string; preferences: Parameters<typeof saveAnalyticsPreferences>[1] }
@@ -58,6 +64,21 @@ export async function POST(request: NextRequest) {
     if (body.action === "updateProfile") {
       const profile = await updateProfile(body.profileId, body.profile);
       activeProfileId = profile.id;
+    }
+
+    if (body.action === "verifyProfilePassword") {
+      await verifyProfilePassword(body.profileId, body.password);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "changeProfilePassword") {
+      await changeProfilePassword(body.profileId, body.password);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "updateProfilePasswordHint") {
+      await updateProfilePasswordHint(body.profileId, body.hint);
+      activeProfileId = body.profileId;
     }
 
     if (body.action === "saveClient") {

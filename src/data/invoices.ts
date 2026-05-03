@@ -62,6 +62,9 @@ export interface UserProfile {
   profilePic?: string;
   signature?: string;
   analyticsPreferences?: AnalyticsPreferences;
+  hasPassword?: boolean;
+  passwordHint?: string;
+  passwordChangedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

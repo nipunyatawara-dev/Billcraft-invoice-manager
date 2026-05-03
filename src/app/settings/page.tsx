@@ -6,10 +6,11 @@ import { TOAST_POSITIONS, type ToastPosition, useToastPosition } from "@/hooks/u
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useTheme } from "next-themes";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
 type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security";
+type ExportFormat = "json" | "csv";
 
 type ExportRow = Record<string, string | number | null | undefined>;
 
@@ -76,6 +77,7 @@ export default function Settings() {
   const {
     activeProfile,
     activeProfileId,
+    changeProfilePassword,
     clients,
     deleteAllProfiles,
     deleteProfile,
@@ -85,6 +87,8 @@ export default function Settings() {
     profiles,
     todoTasks,
     updateProfile,
+    updateProfilePasswordHint,
+    verifyProfilePassword,
     vendors,
   } = useUserData();
   const [invoiceReminders, setInvoiceReminders] = useState(true);
@@ -98,7 +102,21 @@ export default function Settings() {
     profilePic: "",
     signature: "",
   });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [hintForm, setHintForm] = useState({
+    currentPassword: "",
+    passwordHint: "",
+  });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [isSavingHint, setIsSavingHint] = useState(false);
+  const [exportRequest, setExportRequest] = useState<ExportFormat | null>(null);
+  const [exportPassword, setExportPassword] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const activeTheme = resolvedTheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
@@ -114,6 +132,15 @@ export default function Settings() {
       businessName: activeProfile.businessName || "",
       profilePic: activeProfile.profilePic || "",
       signature: activeProfile.signature || "",
+    });
+    setPasswordForm({
+      currentPassword: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setHintForm({
+      currentPassword: "",
+      passwordHint: activeProfile.passwordHint || "",
     });
   }, [activeProfile]);
 
@@ -241,6 +268,104 @@ export default function Settings() {
     }
   }
 
+  async function handleSavePassword() {
+    if (isSavingPassword || !activeProfileId) {
+      return;
+    }
+
+    if (passwordForm.password.length < 6) {
+      notify.warning({
+        title: "Password too short",
+        description: "Use at least 6 characters. Numbers-only passwords are allowed.",
+      });
+      return;
+    }
+
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      notify.warning({
+        title: "Passwords do not match",
+        description: "Confirm the same new password before saving.",
+      });
+      return;
+    }
+
+    setIsSavingPassword(true);
+
+    try {
+      await notifyPromise(changeProfilePassword({
+        currentPassword: passwordForm.currentPassword,
+        password: passwordForm.password,
+      }), {
+        loading: {
+          title: "Saving password...",
+          description: "Updating this profile password.",
+        },
+        success: {
+          title: "Password saved",
+          description: "This profile will ask for the new password next login.",
+        },
+        error: (error) => ({
+          title: "Password save failed",
+          description: getToastErrorMessage(error, "Unable to change this password."),
+        }),
+      });
+      setPasswordForm((currentForm) => ({
+        ...currentForm,
+        currentPassword: "",
+        password: "",
+        confirmPassword: "",
+      }));
+    } finally {
+      setIsSavingPassword(false);
+    }
+  }
+
+  async function handleSavePasswordHint() {
+    if (isSavingHint || !activeProfileId) {
+      return;
+    }
+
+    setIsSavingHint(true);
+
+    try {
+      await notifyPromise(updateProfilePasswordHint({
+        currentPassword: hintForm.currentPassword,
+        passwordHint: hintForm.passwordHint,
+      }), {
+        loading: {
+          title: "Saving hint...",
+          description: "Updating this profile password hint.",
+        },
+        success: {
+          title: "Hint saved",
+          description: "This hint will show on password prompts.",
+        },
+        error: (error) => ({
+          title: "Hint save failed",
+          description: getToastErrorMessage(error, "Unable to update this hint."),
+        }),
+      });
+      setHintForm((currentForm) => ({
+        ...currentForm,
+        currentPassword: "",
+      }));
+    } finally {
+      setIsSavingHint(false);
+    }
+  }
+
+  function formatPasswordChangedAt(value?: string) {
+    if (!value) {
+      return activeProfile?.hasPassword ? "Last changed date unavailable" : "No password set";
+    }
+
+    return `Last changed ${new Date(value).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })}`;
+  }
+
   function getExportSnapshot() {
     return {
       exportedAt: new Date().toISOString(),
@@ -256,7 +381,7 @@ export default function Settings() {
     };
   }
 
-  function handleDownloadJson() {
+  function downloadJson() {
     const snapshot = getExportSnapshot();
 
     downloadFile(
@@ -271,7 +396,7 @@ export default function Settings() {
     });
   }
 
-  function handleDownloadCsv() {
+  function downloadCsv() {
     const rows: ExportRow[] = [
       ...profiles.map((profile) => ({
         category: "profile",
@@ -359,6 +484,58 @@ export default function Settings() {
       title: "Data exported",
       description: "CSV file is ready in your downloads.",
     });
+  }
+
+  function requestExport(format: ExportFormat) {
+    if (!activeProfile?.hasPassword || !activeProfileId) {
+      if (format === "json") {
+        downloadJson();
+      } else {
+        downloadCsv();
+      }
+      return;
+    }
+
+    setExportRequest(format);
+    setExportPassword("");
+  }
+
+  async function handleConfirmExport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!exportRequest || !activeProfileId || isExporting) {
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      await notifyPromise(verifyProfilePassword(activeProfileId, exportPassword), {
+        loading: {
+          title: "Checking password...",
+          description: "Verifying before export.",
+        },
+        success: {
+          title: "Password accepted",
+          description: "Preparing your download.",
+        },
+        error: (error) => ({
+          title: "Export blocked",
+          description: getToastErrorMessage(error, "Incorrect password."),
+        }),
+      });
+
+      if (exportRequest === "json") {
+        downloadJson();
+      } else {
+        downloadCsv();
+      }
+
+      setExportRequest(null);
+      setExportPassword("");
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   return (
@@ -749,7 +926,7 @@ export default function Settings() {
                     </div>
                     <button
                       type="button"
-                      onClick={handleDownloadJson}
+                      onClick={() => requestExport("json")}
                       disabled={loading}
                       className="btn-primary w-full justify-center active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -768,7 +945,7 @@ export default function Settings() {
                     </div>
                     <button
                       type="button"
-                      onClick={handleDownloadCsv}
+                      onClick={() => requestExport("csv")}
                       disabled={loading}
                       className="btn-secondary w-full justify-center active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -783,39 +960,102 @@ export default function Settings() {
             {/* Security Tab */}
             {activeTab === "security" && (
               <>
-                <div className="surface-card overflow-hidden">
-                  <div className="p-5 border-b border-[var(--card-border)]">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-[13px] font-semibold text-[var(--foreground)]">Password</h3>
-                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Last changed 3 months ago</p>
+                <div className="surface-card p-5">
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Profile Password</h3>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">{formatPasswordChangedAt(activeProfile?.passwordChangedAt)}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-[22px] text-[var(--action)]">lock</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {activeProfile?.hasPassword && (
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="current-password">Current Password</label>
+                        <input
+                          id="current-password"
+                          type="password"
+                          value={passwordForm.currentPassword}
+                          onChange={(event) => setPasswordForm({ ...passwordForm, currentPassword: event.target.value })}
+                          className="field-control px-3 py-2 text-base font-semibold font-display"
+                        />
                       </div>
-                      <button className="btn-secondary text-[11px] min-h-8 px-3 py-1.5">
-                        Change
-                      </button>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="new-password">New Password</label>
+                      <input
+                        id="new-password"
+                        type="password"
+                        minLength={6}
+                        value={passwordForm.password}
+                        onChange={(event) => setPasswordForm({ ...passwordForm, password: event.target.value })}
+                        className="field-control px-3 py-2 text-base font-semibold font-display"
+                      />
+                      <p className="text-[10px] text-[var(--muted)]">Minimum 6 characters. Numbers-only is fine.</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="confirm-new-password">Confirm New Password</label>
+                      <input
+                        id="confirm-new-password"
+                        type="password"
+                        minLength={6}
+                        value={passwordForm.confirmPassword}
+                        onChange={(event) => setPasswordForm({ ...passwordForm, confirmPassword: event.target.value })}
+                        className="field-control px-3 py-2 text-base font-semibold font-display"
+                      />
+                    </div>
+
+                  </div>
+
+                  <div className="mt-5 flex justify-end">
+                    <button onClick={handleSavePassword} className="btn-primary active:scale-[0.97]" disabled={isSavingPassword || !activeProfileId}>
+                      {isSavingPassword ? "Saving..." : activeProfile?.hasPassword ? "Change Password" : "Set Password"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="surface-card p-5">
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Password Hint</h3>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Saved separately from your password.</p>
+                    </div>
+                    <span className="material-symbols-outlined text-[22px] text-[var(--action)]">psychology</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {activeProfile?.hasPassword && (
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="hint-current-password">Current Password</label>
+                        <input
+                          id="hint-current-password"
+                          type="password"
+                          value={hintForm.currentPassword}
+                          onChange={(event) => setHintForm({ ...hintForm, currentPassword: event.target.value })}
+                          className="field-control px-3 py-2 text-base font-semibold font-display"
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="password-hint">Hint</label>
+                      <input
+                        id="password-hint"
+                        type="text"
+                        value={hintForm.passwordHint}
+                        onChange={(event) => setHintForm({ ...hintForm, passwordHint: event.target.value })}
+                        className="field-control px-3 py-2 text-base font-semibold font-display"
+                      />
                     </div>
                   </div>
-                  <div className="p-5 border-b border-[var(--card-border)]">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-[13px] font-semibold text-[var(--foreground)]">Two-Factor Authentication</h3>
-                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Add an extra layer of security to your account</p>
-                      </div>
-                      <button className="btn-primary text-[11px] min-h-8 px-3 py-1.5">
-                        Enable
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-[13px] font-semibold text-[var(--foreground)]">Active Sessions</h3>
-                        <p className="text-[11px] text-[var(--muted)] mt-0.5">2 devices currently signed in</p>
-                      </div>
-                      <button className="btn-secondary text-[11px] min-h-8 px-3 py-1.5">
-                        Manage
-                      </button>
-                    </div>
+
+                  <div className="mt-5 flex justify-end">
+                    <button onClick={handleSavePasswordHint} className="btn-secondary active:scale-[0.97]" disabled={isSavingHint || !activeProfileId}>
+                      {isSavingHint ? "Saving..." : "Save Hint"}
+                    </button>
                   </div>
                 </div>
 
@@ -858,6 +1098,67 @@ export default function Settings() {
           </div>
         </div>
       </main>
+
+      {exportRequest && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Cancel export"
+            className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm"
+            onClick={() => {
+              if (!isExporting) {
+                setExportRequest(null);
+                setExportPassword("");
+              }
+            }}
+          />
+          <form onSubmit={handleConfirmExport} className="modal-surface relative max-w-md p-5 sm:p-6">
+            <div className="mb-5 flex items-start gap-3">
+              <span className="size-10 rounded-lg bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[20px]">lock</span>
+              </span>
+              <div>
+                <p className="section-eyebrow">Export</p>
+                <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
+                  Confirm {exportRequest.toUpperCase()} export
+                </h2>
+                {activeProfile?.passwordHint && (
+                  <p className="mt-1 text-[11px] text-[var(--muted)]">Hint: {activeProfile.passwordHint}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="export-password">Profile Password</label>
+              <input
+                id="export-password"
+                type="password"
+                value={exportPassword}
+                onChange={(event) => setExportPassword(event.target.value)}
+                className="field-control px-3 py-2"
+                autoFocus
+              />
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                className="btn-ghost"
+                disabled={isExporting}
+                onClick={() => {
+                  setExportRequest(null);
+                  setExportPassword("");
+                }}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isExporting}>
+                {isExporting ? "Checking..." : "Export"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <footer className="mt-auto p-5 text-center">
         <p className="text-[11px] font-medium text-[var(--foreground)]/25">

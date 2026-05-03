@@ -41,6 +41,8 @@ export type ProfileDraft = {
   businessName?: string;
   profilePic?: string;
   signature?: string;
+  password?: string;
+  passwordHint?: string;
 };
 
 export type ClientDraft = {
@@ -101,12 +103,28 @@ export type OutsourcingInvoiceDraft = {
   saveVendorMode?: "regular" | "onetime";
 };
 
+export type ProfilePasswordDraft = {
+  currentPassword?: string;
+  password: string;
+};
+
+export type ProfilePasswordHintDraft = {
+  currentPassword?: string;
+  passwordHint?: string;
+};
+
 type UserDataContextValue = LocalDataSnapshot & {
   loading: boolean;
   error: string | null;
+  isProfileLocked: boolean;
   createProfile: (profile: ProfileDraft) => Promise<void>;
   updateProfile: (profile: ProfileDraft) => Promise<void>;
-  switchProfile: (profileId: string) => Promise<void>;
+  switchProfile: (profileId: string, password?: string) => Promise<void>;
+  unlockProfile: (profileId: string, password: string) => Promise<void>;
+  logoutProfile: () => void;
+  verifyProfilePassword: (profileId: string, password: string) => Promise<void>;
+  changeProfilePassword: (password: ProfilePasswordDraft) => Promise<void>;
+  updateProfilePasswordHint: (hint: ProfilePasswordHintDraft) => Promise<void>;
   deleteProfile: () => Promise<void>;
   deleteAllProfiles: () => Promise<void>;
   saveClient: (originalClientId: string | null, client: ClientDraft) => Promise<Client | null>;
@@ -214,6 +232,12 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
   const [snapshot, setSnapshot] = useState<LocalDataSnapshot>(EMPTY_SNAPSHOT);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unlockedProfileId, setUnlockedProfileId] = useState<string | null>(null);
+  const isProfileLocked = Boolean(
+    snapshot.activeProfileId &&
+    snapshot.activeProfile?.hasPassword &&
+    unlockedProfileId !== snapshot.activeProfileId,
+  );
 
   const applySnapshot = useCallback((nextSnapshot: LocalDataSnapshot) => {
     const hydrated = hydrateSnapshot(nextSnapshot);
@@ -287,7 +311,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
   const createProfile = useCallback(async (profile: ProfileDraft) => {
     setError(null);
     try {
-      await postAction({ action: "createProfile", profile });
+      const nextSnapshot = await postAction({ action: "createProfile", profile });
+      setUnlockedProfileId(nextSnapshot.activeProfileId);
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Unable to create profile.";
       setError(message);
@@ -310,11 +335,98 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [postAction, snapshot.activeProfileId]);
 
-  const switchProfile = useCallback(async (profileId: string) => {
+  const switchProfile = useCallback(async (profileId: string, password?: string) => {
     setError(null);
-    writeActiveProfileId(profileId);
-    await fetchSnapshot(profileId);
-  }, [fetchSnapshot]);
+
+    try {
+      const targetProfile = snapshot.profiles.find((profile) => profile.id === profileId);
+
+      if (targetProfile?.hasPassword) {
+        const nextSnapshot = await postAction({ action: "verifyProfilePassword", profileId, password: password || "" });
+        setUnlockedProfileId(nextSnapshot.activeProfileId);
+        return;
+      }
+
+      setUnlockedProfileId(null);
+      writeActiveProfileId(profileId);
+      await fetchSnapshot(profileId);
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to switch profile.";
+      setError(message);
+      throw saveError;
+    }
+  }, [fetchSnapshot, postAction, snapshot.profiles]);
+
+  const unlockProfile = useCallback(async (profileId: string, password: string) => {
+    setError(null);
+
+    try {
+      const nextSnapshot = await postAction({ action: "verifyProfilePassword", profileId, password });
+      setUnlockedProfileId(nextSnapshot.activeProfileId);
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to unlock profile.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction]);
+
+  const logoutProfile = useCallback(() => {
+    setUnlockedProfileId(null);
+  }, []);
+
+  const verifyProfilePassword = useCallback(async (profileId: string, password: string) => {
+    setError(null);
+
+    try {
+      await postAction({ action: "verifyProfilePassword", profileId, password });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to verify password.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction]);
+
+  const changeProfilePassword = useCallback(async (password: ProfilePasswordDraft) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const nextSnapshot = await postAction({
+        action: "changeProfilePassword",
+        profileId: snapshot.activeProfileId,
+        password,
+      });
+      setUnlockedProfileId(nextSnapshot.activeProfileId);
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to change password.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const updateProfilePasswordHint = useCallback(async (hint: ProfilePasswordHintDraft) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const nextSnapshot = await postAction({
+        action: "updateProfilePasswordHint",
+        profileId: snapshot.activeProfileId,
+        hint,
+      });
+      setUnlockedProfileId(nextSnapshot.activeProfileId);
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to update password hint.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
 
   const deleteProfile = useCallback(async () => {
     if (!snapshot.activeProfileId) return;
@@ -583,9 +695,15 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     ...snapshot,
     loading,
     error,
+    isProfileLocked,
     createProfile,
     updateProfile,
     switchProfile,
+    unlockProfile,
+    logoutProfile,
+    verifyProfilePassword,
+    changeProfilePassword,
+    updateProfilePasswordHint,
     deleteProfile,
     deleteAllProfiles,
     saveClient,
@@ -598,11 +716,14 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     exportOutsourcingInvoice,
     refresh,
   }), [
+    changeProfilePassword,
     createProfile,
     error,
     exportInvoice,
     exportOutsourcingInvoice,
+    isProfileLocked,
     loading,
+    logoutProfile,
     refresh,
     saveClient,
     saveInvoice,
@@ -614,7 +735,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     switchProfile,
     deleteProfile,
     deleteAllProfiles,
+    unlockProfile,
     updateProfile,
+    updateProfilePasswordHint,
+    verifyProfilePassword,
   ]);
 
   return (
