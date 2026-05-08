@@ -485,12 +485,39 @@ html.dark {
 
   [data-sileo-viewport] {
     z-index: 180 !important;
+    --billcraft-toast-top-edge: 0.25rem;
+    --billcraft-toast-notification-edge: 0.25rem;
     --sileo-state-success: var(--featured-text);
     --sileo-state-loading: var(--featured-text);
     --sileo-state-error: var(--featured-text);
     --sileo-state-warning: var(--featured-text);
     --sileo-state-info: var(--featured-text);
     --sileo-state-action: var(--featured-text);
+    --sileo-width: min(350px, calc(100vw - 1.5rem));
+  }
+
+  [data-sileo-viewport][data-position^="top"] {
+    top: 0 !important;
+  }
+
+  [data-sileo-viewport][data-position="top-left"] {
+    left: var(--billcraft-toast-top-edge) !important;
+  }
+
+  [data-sileo-viewport][data-position="top-right"] {
+    right: var(--billcraft-toast-notification-edge) !important;
+  }
+
+  [data-sileo-viewport][data-position="top-left"] [data-sileo-toast] {
+    transform-origin: left top !important;
+  }
+
+  [data-sileo-viewport][data-position="top-center"] [data-sileo-toast] {
+    transform-origin: center top !important;
+  }
+
+  [data-sileo-viewport][data-position="top-right"] [data-sileo-toast] {
+    transform-origin: right top !important;
   }
 
   .billcraft-toast-title {
@@ -558,6 +585,13 @@ html.dark {
 
     .page-heading {
       margin-bottom: 2.25rem;
+    }
+  }
+
+  @media (min-width: 640px) {
+    [data-sileo-viewport] {
+      --billcraft-toast-top-edge: 0.5rem;
+      --billcraft-toast-notification-edge: 3.25rem;
     }
   }
 

@@ -16,7 +16,7 @@ export function ToastViewport() {
   return (
     <Toaster
       position={toastPosition}
-      offset={{ top: 72, right: 16, bottom: 16, left: 16 }}
+      offset={{ right: 16, bottom: 16, left: 16 }}
       options={{
         fill: "var(--featured)",
         roundness: 12,
