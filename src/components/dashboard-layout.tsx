@@ -323,6 +323,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const passwordPromptProfile = profiles.find((profile) => profile.id === (pendingSwitchProfileId || (isProfileLocked ? activeProfileId : null)));
   const isPasswordPromptForLogin = Boolean(passwordPromptProfile && passwordPromptProfile.id === activeProfileId && isProfileLocked);
+  const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -358,11 +359,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {activeProfile?.hasPassword && !isProfileLocked && (
-            <button onClick={handleLogout} className="icon-button active:scale-95" aria-label="Log out">
-              <span className="material-symbols-outlined text-[20px]">logout</span>
-            </button>
-          )}
           <button onClick={handleNotificationsClick} className="icon-button active:scale-95 hidden sm:inline-flex relative" aria-label="Notifications">
             <span className="material-symbols-outlined text-[20px]">notifications</span>
             <span className="t-badge" data-open={isNotificationBadgeOpen ? "true" : "false"} aria-hidden="true">
@@ -574,16 +570,28 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </p>
             )}
 
-            {!isFirstRun && !showCreateProfileForm && !isProfileLocked && profiles.length < 5 && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateProfileForm(true)}
-                  className="btn-primary active:scale-[0.97]"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                  Create New Profile
-                </button>
+            {!isFirstRun && !showCreateProfileForm && !isProfileLocked && (canLogoutActiveProfile || profiles.length < 5) && (
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+                {canLogoutActiveProfile && (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="btn-secondary active:scale-[0.97]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">logout</span>
+                    Log Out
+                  </button>
+                )}
+                {profiles.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateProfileForm(true)}
+                    className="btn-primary active:scale-[0.97]"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    Create New Profile
+                  </button>
+                )}
               </div>
             )}
 
