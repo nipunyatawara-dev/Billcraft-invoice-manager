@@ -77,10 +77,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           
           {/* Revenue — Featured Card (spans 2 cols, 2 rows) */}
-          <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden group min-h-[280px]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.04] to-transparent pointer-events-none" />
-            <div className="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-[var(--featured-text)]/[0.04] blur-3xl pointer-events-none group-hover:bg-[var(--featured-text)]/[0.06] transition-all duration-700" />
-            
+          <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-1">
                 <div className="size-7 rounded-lg bg-[var(--featured-text)]/10 flex items-center justify-center">

@@ -326,9 +326,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="app-shell flex flex-col min-h-screen">
       {/* Header */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[var(--card-border)] bg-[var(--background)]/92 px-4 backdrop-blur-xl sm:px-5 sticky top-0 z-50">
+      <header className="app-header flex h-16 shrink-0 items-center justify-between border-b px-4 backdrop-blur-xl sm:px-5 sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -396,7 +396,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside 
-          className={`bg-[var(--background)] flex flex-col fixed lg:sticky top-16 h-[calc(100vh-64px)] z-40 shrink-0 left-0 transition-all duration-300 ease-in-out overflow-hidden border-[var(--card-border)] ${
+          className={`app-sidebar flex flex-col fixed lg:sticky top-16 h-[calc(100vh-64px)] z-40 shrink-0 left-0 transition-all duration-300 ease-in-out overflow-hidden border-[var(--card-border)] ${
             isSidebarOpen ? "w-[240px] translate-x-0 border-r" : "w-[240px] lg:w-0 -translate-x-full lg:translate-x-0 border-r-0"
           }`}
         >

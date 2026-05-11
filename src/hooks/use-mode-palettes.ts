@@ -5,15 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 export const COLOR_PALETTES = [
   {
     id: "palette-6",
-    label: "Default",
-    name: "SaaS Light",
-    colors: ["#F9FAFA", "#D3D4D5", "#347FDB", "#33373D", "#171A1D"],
+    label: "Default Light",
+    name: "Default Light",
+    colors: ["#FFFFFF", "#F7F7F7", "#E2E2E2", "#111111", "#7A7A7A", "#A9D5FF", "#12B886", "#FF3B55"],
   },
   {
     id: "palette-7",
     label: "Default Dark",
-    name: "SaaS Dark",
-    colors: ["#171A1D", "#33373D", "#347FDB", "#236ABF", "#F9FAFA"],
+    name: "Default Dark",
+    colors: ["#080808", "#111111", "#181818", "#2B2B2B", "#F5F5F5", "#9A9A9A", "#00C48C", "#FF3B55"],
   },
   {
     id: "palette-1",

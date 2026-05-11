@@ -580,7 +580,6 @@ export default function Settings() {
             {activeTab === "profile" && (
               <>
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative z-10">
                     <div className="size-16 rounded-lg bg-[var(--featured-text)]/10 border border-[var(--featured-text)]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
                       {profileForm.profilePic ? (
@@ -713,7 +712,6 @@ export default function Settings() {
             {activeTab === "appearance" && (
               <>
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
                   <div className="relative z-10 max-w-xl">
                     <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Theme Palettes</p>
                     <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1">Choose palettes for each mode</h2>
@@ -892,7 +890,6 @@ export default function Settings() {
             {activeTab === "data" && (
               <>
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="absolute -right-12 -bottom-12 w-40 h-40 rounded-full bg-[var(--accent)]/10 blur-3xl pointer-events-none" />
                   <div className="relative z-10 max-w-xl">
                     <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Your Data</p>
                     <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1">Download your BillCraft data</h2>

@@ -54,51 +54,51 @@ const WIDGET_DEFINITION_MAP = new Map(WIDGET_DEFINITIONS.map((widget) => [widget
 const REVENUE_TREND_CONFIG = {
   paid: {
     label: "Paid",
-    colors: { light: ["#16a34a", "#22c55e"], dark: ["#22c55e", "#86efac"] },
+    colors: { light: ["var(--positive)"], dark: ["var(--positive)"] },
   },
   open: {
     label: "Open",
-    colors: { light: ["#2563eb", "#06b6d4"], dark: ["#60a5fa", "#22d3ee"] },
+    colors: { light: ["var(--chart-soft)", "var(--chart-strong)"], dark: ["var(--chart-soft)", "var(--chart-strong)"] },
   },
 } satisfies ChartConfig;
 
 const STATUS_MIX_CONFIG = {
   paid: {
     label: "Paid",
-    colors: { light: ["#16a34a"], dark: ["#22c55e"] },
+    colors: { light: ["var(--positive)"], dark: ["var(--positive)"] },
   },
   unpaid: {
     label: "Unpaid",
-    colors: { light: ["#64748b"], dark: ["#94a3b8"] },
+    colors: { light: ["var(--muted)"], dark: ["var(--muted)"] },
   },
   overdue: {
     label: "Overdue",
-    colors: { light: ["#dc2626"], dark: ["#f87171"] },
+    colors: { light: ["var(--negative)"], dark: ["var(--negative)"] },
   },
 } satisfies ChartConfig;
 
 const TOP_CLIENTS_CONFIG = {
   billed: {
     label: "Billed",
-    colors: { light: ["#2563eb", "#06b6d4"], dark: ["#60a5fa", "#22d3ee"] },
+    colors: { light: ["var(--chart-soft)", "var(--chart-strong)"], dark: ["var(--chart-soft)", "var(--chart-strong)"] },
   },
 } satisfies ChartConfig;
 
 const INVOICE_AGING_CONFIG = {
   amount: {
     label: "Open Amount",
-    colors: { light: ["#f59e0b", "#dc2626"], dark: ["#fbbf24", "#f87171"] },
+    colors: { light: ["var(--muted)", "var(--negative)"], dark: ["var(--muted)", "var(--negative)"] },
   },
 } satisfies ChartConfig;
 
 const COLLECTION_GAUGE_CONFIG = {
   paid: {
     label: "Paid",
-    colors: { light: ["#16a34a"], dark: ["#22c55e"] },
+    colors: { light: ["var(--positive)"], dark: ["var(--positive)"] },
   },
   open: {
     label: "Open",
-    colors: { light: ["#64748b"], dark: ["#94a3b8"] },
+    colors: { light: ["var(--muted)"], dark: ["var(--muted)"] },
   },
 } satisfies ChartConfig;
 
@@ -423,10 +423,7 @@ function PaidRatioWidget({
   paidRatio: number;
 }) {
   return (
-    <div className="surface-featured group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--featured-text)]/[0.03] to-transparent" />
-      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[var(--accent)]/10 blur-3xl transition-all duration-700 group-hover:bg-[var(--accent)]/15" />
-
+    <div className="surface-featured relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
       <div className="relative z-10 mb-3 flex items-center justify-between">
         <p className="text-[13px] font-medium tracking-wide text-[var(--featured-text)]/50">Paid Ratio</p>
         <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--featured-text)]/10">

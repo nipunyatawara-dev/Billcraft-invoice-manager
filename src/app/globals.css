@@ -5,10 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-palette-1: #f9fafa;
-  --color-palette-2: #d3d4d5;
-  --color-palette-3: #347fdb;
-  --color-palette-4: #171a1d;
+  --color-palette-1: #ffffff;
+  --color-palette-2: #f7f7f7;
+  --color-palette-3: #e2e2e2;
+  --color-palette-4: #111111;
+  --color-palette-5: #7a7a7a;
+  --color-palette-6: #a9d5ff;
+  --color-palette-7: #12b886;
+  --color-palette-8: #ff3b55;
 
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
@@ -23,61 +27,82 @@
 @variant dark (&:where(.dark, .dark *));
 
 html {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-1);
+  --palette-1: #ffffff;
+  --palette-2: #f7f7f7;
+  --palette-3: #e2e2e2;
+  --palette-4: #111111;
+  --palette-5: #7a7a7a;
+  --palette-6: #a9d5ff;
+  --palette-7: #12b886;
+  --palette-8: #ff3b55;
+  --background: var(--palette-2);
   --foreground: var(--palette-4);
-  --card: #ffffff;
-  --card-border: var(--palette-2);
-  --muted: #33373d;
-  --accent: var(--palette-3);
-  --accent-hover: var(--palette-5);
-  --action: var(--palette-3);
+  --card: var(--palette-1);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-5);
+  --accent: var(--palette-7);
+  --accent-hover: var(--palette-4);
+  --action: var(--palette-4);
   --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-7);
+  --negative: var(--palette-8);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-1);
+  --chrome-border: var(--palette-3);
+  --sidebar-bg: var(--palette-1);
+  --field: var(--palette-1);
+  --chart-soft: var(--palette-6);
+  --chart-strong: var(--palette-6);
   --theme-wipe-x: 50vw;
   --theme-wipe-y: 50vh;
   --theme-wipe-radius: 0px;
 }
 
 html.dark {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-4);
-  --foreground: var(--palette-1);
-  --card: #33373d;
-  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
-  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
-  --accent: var(--palette-3);
+  --palette-1: #080808;
+  --palette-2: #111111;
+  --palette-3: #181818;
+  --palette-4: #2b2b2b;
+  --palette-5: #f5f5f5;
+  --palette-6: #9a9a9a;
+  --palette-7: #6b6b6b;
+  --palette-8: #00c48c;
+  --palette-9: #ff3b55;
+  --background: var(--palette-1);
+  --foreground: var(--palette-5);
+  --card: var(--palette-2);
+  --card-border: var(--palette-4);
+  --muted: var(--palette-6);
+  --accent: var(--palette-8);
   --accent-hover: var(--palette-5);
-  --action: var(--palette-3);
-  --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+  --action: var(--palette-5);
+  --action-hover: var(--palette-6);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-8);
+  --negative: var(--palette-9);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-2);
+  --chrome-border: var(--palette-4);
+  --sidebar-bg: var(--palette-2);
+  --field: var(--palette-3);
+  --chart-soft: var(--palette-7);
+  --chart-strong: var(--palette-5);
 }
 
 :root {
   --sileo-width: min(350px, calc(100vw - 2rem));
   --sileo-height: 40px;
-  --sileo-state-success: oklch(0.66 0.18 145);
-  --sileo-state-loading: oklch(0.62 0.05 260);
-  --sileo-state-error: oklch(0.62 0.23 25);
-  --sileo-state-warning: oklch(0.78 0.17 82);
-  --sileo-state-info: oklch(0.62 0.18 247);
-  --sileo-state-action: oklch(0.58 0.2 285);
+  --sileo-state-success: var(--positive);
+  --sileo-state-loading: var(--muted);
+  --sileo-state-error: var(--negative);
+  --sileo-state-warning: var(--accent);
+  --sileo-state-info: var(--chart-strong);
+  --sileo-state-action: var(--action);
   --badge-slide-dur: 260ms;
   --badge-pop-dur: 500ms;
   --badge-pop-close-dur: 180ms;
@@ -105,15 +130,15 @@ html.dark {
   --secondary-foreground: var(--foreground);
   --muted-foreground: var(--muted);
   --accent-foreground: var(--foreground);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: var(--negative);
   --border: var(--card-border);
   --input: var(--card-border);
   --ring: var(--accent);
   --chart-1: var(--accent);
-  --chart-2: color-mix(in srgb, var(--accent) 72%, #16a34a);
+  --chart-2: var(--positive);
   --chart-3: color-mix(in srgb, var(--foreground) 54%, transparent);
-  --chart-4: #d97706;
-  --chart-5: #dc2626;
+  --chart-4: var(--chart-soft);
+  --chart-5: var(--negative);
   --radius: var(--radius-default);
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -298,6 +323,22 @@ html.dark {
     padding: 1.25rem;
   }
 
+  .app-shell {
+    min-height: 100vh;
+    background: var(--background);
+  }
+
+  .app-header {
+    border-color: var(--chrome-border, var(--card-border));
+    background: color-mix(in srgb, var(--chrome, var(--background)) 94%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--foreground) 3%, transparent);
+  }
+
+  .app-sidebar {
+    border-color: var(--chrome-border, var(--card-border));
+    background: var(--sidebar-bg, var(--background));
+  }
+
   .page-heading {
     display: flex;
     align-items: flex-end;
@@ -319,7 +360,13 @@ html.dark {
     background: var(--card);
     border: 1px solid var(--card-border);
     border-radius: 0.5rem;
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--palette-4) 8%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 3%, transparent),
+      0 1px 2px color-mix(in srgb, var(--foreground) 4%, transparent);
+  }
+
+  .surface-featured {
+    background: var(--featured);
   }
 
   .skeleton-block {
@@ -368,6 +415,7 @@ html.dark {
   .btn-primary {
     background: var(--action);
     color: var(--action-text);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--action-text) 12%, transparent);
   }
 
   .btn-primary:hover {
@@ -376,7 +424,8 @@ html.dark {
 
   .btn-secondary {
     border: 1px solid var(--card-border);
-    color: var(--muted);
+    background: var(--card);
+    color: var(--foreground);
   }
 
   .btn-secondary:hover,
@@ -392,6 +441,8 @@ html.dark {
   .icon-button {
     width: 2.25rem;
     height: 2.25rem;
+    border: 1px solid var(--card-border);
+    background: var(--card);
     color: color-mix(in srgb, var(--foreground) 50%, transparent);
   }
 
@@ -458,7 +509,7 @@ html.dark {
     width: 100%;
     border: 1px solid var(--card-border);
     border-radius: 0.5rem;
-    background: transparent;
+    background: var(--field, var(--card));
     color: var(--foreground);
     font-size: 0.875rem;
     font-weight: 500;
@@ -480,7 +531,7 @@ html.dark {
     border: 1px solid var(--card-border);
     border-radius: 0.75rem;
     background: var(--background);
-    box-shadow: 0 24px 70px rgba(10, 16, 13, 0.24);
+    box-shadow: 0 24px 70px color-mix(in srgb, #080808 24%, transparent);
   }
 
   [data-sileo-viewport] {

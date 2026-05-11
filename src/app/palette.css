@@ -1,46 +1,67 @@
 html,
 html[data-light-palette="palette-6"] {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-1);
+  --palette-1: #ffffff;
+  --palette-2: #f7f7f7;
+  --palette-3: #e2e2e2;
+  --palette-4: #111111;
+  --palette-5: #7a7a7a;
+  --palette-6: #a9d5ff;
+  --palette-7: #12b886;
+  --palette-8: #ff3b55;
+  --background: var(--palette-2);
   --foreground: var(--palette-4);
-  --card: #ffffff;
-  --card-border: var(--palette-2);
-  --muted: #33373d;
-  --accent: var(--palette-3);
-  --accent-hover: var(--palette-5);
-  --action: var(--palette-3);
+  --card: var(--palette-1);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-5);
+  --accent: var(--palette-7);
+  --accent-hover: var(--palette-4);
+  --action: var(--palette-4);
   --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-7);
+  --negative: var(--palette-8);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-1);
+  --chrome-border: var(--palette-3);
+  --sidebar-bg: var(--palette-1);
+  --field: var(--palette-1);
+  --chart-soft: var(--palette-6);
+  --chart-strong: var(--palette-6);
 }
 
 html[data-light-palette="palette-7"] {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-4);
-  --foreground: var(--palette-1);
-  --card: #33373d;
-  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
-  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
-  --accent: var(--palette-3);
+  --palette-1: #080808;
+  --palette-2: #111111;
+  --palette-3: #181818;
+  --palette-4: #2b2b2b;
+  --palette-5: #f5f5f5;
+  --palette-6: #9a9a9a;
+  --palette-7: #6b6b6b;
+  --palette-8: #00c48c;
+  --palette-9: #ff3b55;
+  --background: var(--palette-1);
+  --foreground: var(--palette-5);
+  --card: var(--palette-2);
+  --card-border: var(--palette-4);
+  --muted: var(--palette-6);
+  --accent: var(--palette-8);
   --accent-hover: var(--palette-5);
-  --action: var(--palette-3);
-  --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+  --action: var(--palette-5);
+  --action-hover: var(--palette-6);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-8);
+  --negative: var(--palette-9);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-2);
+  --chrome-border: var(--palette-4);
+  --sidebar-bg: var(--palette-2);
+  --field: var(--palette-3);
+  --chart-soft: var(--palette-7);
+  --chart-strong: var(--palette-5);
 }
 
 html[data-light-palette="palette-1"] {
@@ -170,48 +191,69 @@ html.dark[data-dark-palette="palette-1"] {
 }
 
 html.dark,
-html.dark[data-dark-palette="palette-6"] {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-4);
-  --foreground: var(--palette-1);
-  --card: #33373d;
-  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
-  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
-  --accent: var(--palette-3);
-  --accent-hover: color-mix(in srgb, var(--palette-3) 84%, var(--palette-1));
-  --action: var(--palette-3);
-  --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+html.dark[data-dark-palette="palette-7"] {
+  --palette-1: #080808;
+  --palette-2: #111111;
+  --palette-3: #181818;
+  --palette-4: #2b2b2b;
+  --palette-5: #f5f5f5;
+  --palette-6: #9a9a9a;
+  --palette-7: #6b6b6b;
+  --palette-8: #00c48c;
+  --palette-9: #ff3b55;
+  --background: var(--palette-1);
+  --foreground: var(--palette-5);
+  --card: var(--palette-2);
+  --card-border: var(--palette-4);
+  --muted: var(--palette-6);
+  --accent: var(--palette-8);
+  --accent-hover: var(--palette-5);
+  --action: var(--palette-5);
+  --action-hover: var(--palette-6);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-8);
+  --negative: var(--palette-9);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-2);
+  --chrome-border: var(--palette-4);
+  --sidebar-bg: var(--palette-2);
+  --field: var(--palette-3);
+  --chart-soft: var(--palette-7);
+  --chart-strong: var(--palette-5);
 }
 
-html.dark[data-dark-palette="palette-7"] {
-  --palette-1: #f9fafa;
-  --palette-2: #d3d4d5;
-  --palette-3: #347fdb;
-  --palette-4: #171a1d;
-  --palette-5: #236abf;
-  --background: var(--palette-4);
-  --foreground: var(--palette-1);
-  --card: #33373d;
-  --card-border: color-mix(in srgb, var(--palette-2) 34%, transparent);
-  --muted: color-mix(in srgb, var(--palette-2) 86%, transparent);
-  --accent: var(--palette-3);
-  --accent-hover: var(--palette-5);
-  --action: var(--palette-3);
+html.dark[data-dark-palette="palette-6"] {
+  --palette-1: #ffffff;
+  --palette-2: #f7f7f7;
+  --palette-3: #e2e2e2;
+  --palette-4: #111111;
+  --palette-5: #7a7a7a;
+  --palette-6: #a9d5ff;
+  --palette-7: #12b886;
+  --palette-8: #ff3b55;
+  --background: var(--palette-2);
+  --foreground: var(--palette-4);
+  --card: var(--palette-1);
+  --card-border: var(--palette-3);
+  --muted: var(--palette-5);
+  --accent: var(--palette-7);
+  --accent-hover: var(--palette-4);
+  --action: var(--palette-4);
   --action-hover: var(--palette-5);
-  --action-text: #ffffff;
-  --positive: var(--palette-3);
+  --action-text: var(--palette-1);
+  --positive: var(--palette-7);
+  --negative: var(--palette-8);
   --featured: var(--card);
   --featured-text: var(--foreground);
   --featured-muted: var(--muted);
+  --chrome: var(--palette-1);
+  --chrome-border: var(--palette-3);
+  --sidebar-bg: var(--palette-1);
+  --field: var(--palette-1);
+  --chart-soft: var(--palette-6);
+  --chart-strong: var(--palette-6);
 }
 
 html.dark[data-dark-palette="palette-2"] {

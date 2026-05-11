@@ -251,8 +251,13 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     const response = await fetch(`/api/user-data${searchParams}`, { cache: "no-store" });
 
     if (!response.ok) {
-      const body = await response.json().catch(() => null) as { error?: string } | null;
-      throw new Error(body?.error || "Unable to load local user data.");
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      const body = isJson ? await response.json().catch(() => null) as { error?: string } | null : null;
+      const fallback = response.status === 404
+        ? "Local data route is unavailable. Restart the dev server and try again."
+        : "Unable to load local user data.";
+
+      throw new Error(body?.error || fallback);
     }
 
     return applySnapshot(await response.json() as LocalDataSnapshot);
@@ -266,8 +271,13 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!response.ok) {
-      const result = await response.json().catch(() => null) as { error?: string } | null;
-      throw new Error(result?.error || "Unable to save local user data.");
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      const result = isJson ? await response.json().catch(() => null) as { error?: string } | null : null;
+      const fallback = response.status === 404
+        ? "Local data route is unavailable. Restart the dev server and try again."
+        : "Unable to save local user data.";
+
+      throw new Error(result?.error || fallback);
     }
 
     return applySnapshot(await response.json() as LocalDataSnapshot);
