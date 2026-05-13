@@ -657,6 +657,141 @@ html.dark {
       margin-bottom: 1.5rem;
     }
   }
+
+  /* Trash zone — modern pill button */
+  .trash-zone-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 2.25rem;
+    padding: 0 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--negative);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    animation: trash-zone-enter 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: background-color 200ms, color 200ms, transform 200ms, box-shadow 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .trash-zone-btn:hover {
+    background: color-mix(in srgb, var(--negative) 14%, transparent);
+    transform: scale(1.05);
+  }
+
+  .trash-zone-btn:active {
+    transform: scale(0.95);
+  }
+
+  .trash-zone-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Active drag — expand into a wider, taller drop target */
+  .trash-zone-btn--dragging {
+    height: 2.75rem;
+    padding: 0 1.5rem;
+    background: color-mix(in srgb, var(--negative) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--negative) 20%, transparent);
+  }
+
+  /* Drag hover — soft glow when a card is above */
+  .trash-zone-btn--drag-hover {
+    background: color-mix(in srgb, var(--negative) 20%, transparent);
+    border-color: color-mix(in srgb, var(--negative) 50%, transparent);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--negative) 20%, transparent),
+      0 0 24px color-mix(in srgb, var(--negative) 16%, transparent);
+    transform: scale(1.08);
+  }
+
+  /* Selection mode — filled accent */
+  .trash-zone-btn--has-selection {
+    background: color-mix(in srgb, var(--negative) 12%, transparent);
+  }
+
+  /* Undo pill — matches trash zone aesthetic */
+  .undo-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 2.25rem;
+    padding: 0 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--foreground);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    overflow: hidden;
+    animation: trash-zone-enter 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: background-color 200ms, color 200ms, transform 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .undo-btn:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+    transform: scale(1.05);
+  }
+
+  .undo-btn:active {
+    transform: scale(0.95);
+  }
+
+  .undo-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* Countdown progress bar along the bottom */
+  .undo-btn::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--accent);
+    border-radius: 0 0 0.5rem 0.5rem;
+    transform-origin: left;
+    animation: undo-countdown 6s linear forwards;
+  }
+}
+
+@keyframes undo-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes trash-zone-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
 }
 
 @theme inline {

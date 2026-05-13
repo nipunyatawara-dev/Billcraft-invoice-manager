@@ -4,7 +4,7 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, FormEvent } from "react";
 
 type TaskForm = {
@@ -22,6 +22,13 @@ type DragTarget = {
   stage: TodoStageId;
   beforeTaskId: string | null;
 } | null;
+
+type UndoSnapshot = {
+  tasks: TodoTask[];
+  label: string;
+};
+
+const UNDO_TIMEOUT_MS = 6000;
 
 const EMPTY_FORM: TaskForm = {
   title: "",
@@ -141,10 +148,78 @@ export default function TodoPage() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [isTrashHovered, setIsTrashHovered] = useState(false);
+  const [undoSnapshot, setUndoSnapshot] = useState<UndoSnapshot | null>(null);
+  const didDragRef = useRef(false);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setTasks(normalizeStageOrder(todoTasks));
   }, [todoTasks]);
+
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) {
+        clearTimeout(undoTimerRef.current);
+      }
+    };
+  }, []);
+
+  function stashUndo(previousTasks: TodoTask[], label: string) {
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+    }
+
+    setUndoSnapshot({ tasks: previousTasks, label });
+    undoTimerRef.current = setTimeout(() => {
+      setUndoSnapshot(null);
+      undoTimerRef.current = null;
+    }, UNDO_TIMEOUT_MS);
+  }
+
+  function clearUndo() {
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+
+    setUndoSnapshot(null);
+  }
+
+  async function handleUndo() {
+    if (!undoSnapshot || isSaving) {
+      return;
+    }
+
+    const restoredTasks = undoSnapshot.tasks;
+    const previousTasks = tasks;
+
+    clearUndo();
+    setIsSaving(true);
+    setTasks(restoredTasks);
+
+    try {
+      await notifyPromise(saveTodoTasks(restoredTasks), {
+        loading: {
+          title: "Restoring...",
+          description: "Bringing back your tasks.",
+        },
+        success: {
+          title: "Restored",
+          description: "Your board was restored.",
+        },
+        error: (error) => ({
+          title: "Restore failed",
+          description: getToastErrorMessage(error, "Unable to undo."),
+        }),
+      });
+    } catch {
+      setTasks(previousTasks);
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   const stats = useMemo(() => {
     const today = new Date(todayInputValue());
@@ -367,6 +442,7 @@ export default function TodoPage() {
           description: getToastErrorMessage(error, "Unable to delete this task."),
         }),
       });
+      stashUndo(previousTasks, task.title);
       closeModal();
     } catch {
       setTasks(previousTasks);
@@ -374,6 +450,86 @@ export default function TodoPage() {
       setIsSaving(false);
     }
   }
+
+  async function deleteTasks(taskIds: string[]) {
+    if (taskIds.length === 0 || isSaving) {
+      return;
+    }
+
+    const idsToDelete = new Set(taskIds);
+    const deletedTasks = tasks.filter((task) => idsToDelete.has(task.id));
+
+    if (deletedTasks.length === 0) {
+      return;
+    }
+
+    const previousTasks = tasks;
+    const nextTasks = normalizeStageOrder(tasks.filter((task) => !idsToDelete.has(task.id)));
+
+    setIsSaving(true);
+    setTasks(nextTasks);
+    setSelectedTaskIds(new Set());
+
+    try {
+      const label = deletedTasks.length === 1 ? deletedTasks[0].title : `${deletedTasks.length} tasks`;
+
+      await notifyPromise(saveTodoTasks(nextTasks), {
+        loading: {
+          title: "Deleting...",
+          description: `Removing ${label} from the board.`,
+        },
+        success: {
+          title: "Deleted",
+          description: `${label} removed.`,
+        },
+        error: (error) => ({
+          title: "Delete failed",
+          description: getToastErrorMessage(error, "Unable to delete."),
+        }),
+      });
+      stashUndo(previousTasks, label);
+    } catch {
+      setTasks(previousTasks);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function toggleSelectTask(taskId: string) {
+    setSelectedTaskIds((prev) => {
+      const next = new Set(prev);
+
+      if (next.has(taskId)) {
+        next.delete(taskId);
+      } else {
+        next.add(taskId);
+      }
+
+      return next;
+    });
+  }
+
+  function handleTrashDrop(event: DragEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const draggedTaskId = event.dataTransfer.getData("text/plain") || draggingTaskId;
+
+    if (draggedTaskId) {
+      void deleteTasks([draggedTaskId]);
+    }
+
+    setDraggingTaskId(null);
+    setDragTarget(null);
+    setIsTrashHovered(false);
+  }
+
+  function handleTrashClick() {
+    if (selectedTaskIds.size > 0) {
+      void deleteTasks(Array.from(selectedTaskIds));
+    }
+  }
+
+  const showTrashZone = draggingTaskId !== null || selectedTaskIds.size > 0;
 
   return (
     <>
@@ -385,10 +541,51 @@ export default function TodoPage() {
               To-Do
             </h1>
           </div>
-          <button onClick={() => openCreateModal()} className="btn-primary active:scale-[0.97]">
-            <span className="material-symbols-outlined text-[16px]">add_task</span>
-            Add Task
-          </button>
+          <div className="flex items-center gap-2">
+            {undoSnapshot && !draggingTaskId && (
+              <button
+                onClick={() => void handleUndo()}
+                disabled={isSaving}
+                className="undo-btn"
+                aria-label={`Undo delete of ${undoSnapshot.label}`}
+                title={`Undo — restore ${undoSnapshot.label}`}
+              >
+                <span className="material-symbols-outlined text-[16px]">undo</span>
+                <span className="text-[12px] font-semibold">Undo</span>
+              </button>
+            )}
+            {showTrashZone && (
+              <button
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setIsTrashHovered(true);
+                }}
+                onDragLeave={() => setIsTrashHovered(false)}
+                onDrop={handleTrashDrop}
+                onClick={handleTrashClick}
+                disabled={isSaving}
+                className={`trash-zone-btn ${
+                  draggingTaskId ? "trash-zone-btn--dragging" : ""
+                } ${
+                  isTrashHovered && draggingTaskId ? "trash-zone-btn--drag-hover" : ""
+                } ${selectedTaskIds.size > 0 && !draggingTaskId ? "trash-zone-btn--has-selection" : ""}`}
+                aria-label={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
+                title={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
+              >
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+                {draggingTaskId ? (
+                  <span className="text-[12px] font-semibold tracking-wide">Drop to delete</span>
+                ) : selectedTaskIds.size > 0 ? (
+                  <span className="text-[13px] font-semibold">{selectedTaskIds.size}</span>
+                ) : null}
+              </button>
+            )}
+            <button onClick={() => openCreateModal()} className="btn-primary active:scale-[0.97]">
+              <span className="material-symbols-outlined text-[16px]">add_task</span>
+              Add Task
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -459,21 +656,36 @@ export default function TodoPage() {
                     stageTasks.map((task) => {
                       const isDragging = draggingTaskId === task.id;
                       const isBeforeTarget = dragTarget?.stage === stage.id && dragTarget.beforeTaskId === task.id;
+                      const isSelected = selectedTaskIds.has(task.id);
 
                       return (
                         <div key={task.id} className="relative">
                           {isBeforeTarget && <div className="absolute -top-1 left-0 right-0 h-0.5 rounded-full bg-[var(--accent)]" />}
                           <div
                             draggable
-                            onDragStart={(event) => handleDragStart(event, task.id)}
+                            onDragStart={(event) => {
+                              didDragRef.current = true;
+                              handleDragStart(event, task.id);
+                            }}
                             onDragOver={(event) => handleTaskDragOver(event, stage.id, task.id)}
                             onDrop={(event) => handleTaskDrop(event, stage.id, task.id)}
                             onDragEnd={() => {
                               setDraggingTaskId(null);
                               setDragTarget(null);
+                              setIsTrashHovered(false);
+                              setTimeout(() => { didDragRef.current = false; }, 0);
                             }}
-                            className={`rounded-lg border border-[var(--card-border)] bg-[var(--background)]/45 p-3 cursor-grab active:cursor-grabbing transition-smooth hover:border-[var(--foreground)]/15 hover:-translate-y-0.5 ${
-                              isDragging ? "opacity-50 scale-[0.98]" : ""
+                            onClick={() => {
+                              if (!didDragRef.current) {
+                                toggleSelectTask(task.id);
+                              }
+                            }}
+                            className={`rounded-lg border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
+                              isDragging ? "opacity-50 scale-[0.98] border-[var(--card-border)]" : ""
+                            } ${
+                              isSelected
+                                ? "border-[var(--accent)] bg-[var(--accent)]/[0.04] ring-1 ring-[var(--accent)]/30"
+                                : "border-[var(--card-border)] bg-[var(--background)]/45 hover:border-[var(--foreground)]/15"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
