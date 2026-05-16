@@ -560,7 +560,7 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-smooth whitespace-nowrap ${
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-smooth whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'bg-[var(--action)]/12 text-[var(--action)]'
                       : 'text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]'
@@ -581,7 +581,7 @@ export default function Settings() {
               <>
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative z-10">
-                    <div className="size-16 rounded-lg bg-[var(--featured-text)]/10 border border-[var(--featured-text)]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
+                    <div className="size-16 rounded-xl bg-[var(--featured-text)]/10 border border-[var(--featured-text)]/10 flex items-center justify-center shrink-0 overflow-hidden relative group">
                       {profileForm.profilePic ? (
                         <img className="h-full w-full object-cover" alt={profileForm.name || "Profile"} src={profileForm.profilePic} />
                       ) : (
@@ -658,7 +658,7 @@ export default function Settings() {
 
                 <div className="surface-card p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="h-16 w-32 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                    <div className="h-16 w-32 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                       {profileForm.signature ? (
                         <img className="h-full w-full object-contain" alt="Signature" src={profileForm.signature} />
                       ) : (
@@ -725,7 +725,7 @@ export default function Settings() {
                       <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Current Mode</h3>
                       <p className="text-[11px] text-[var(--muted)] mt-0.5">Switch modes to preview the saved light or dark palette.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1" role="radiogroup" aria-label="Theme mode">
+                    <div className="grid grid-cols-2 gap-1 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1" role="radiogroup" aria-label="Theme mode">
                       {[
                         { id: "light" as const, label: "Light", icon: "light_mode" },
                         { id: "dark" as const, label: "Dark", icon: "dark_mode" },
@@ -739,7 +739,7 @@ export default function Settings() {
                             role="radio"
                             aria-checked={isSelected}
                             onClick={() => selectThemeMode(themeMode.id)}
-                            className={`flex min-h-9 items-center justify-center gap-1.5 rounded-md px-3 text-[12px] font-semibold transition-smooth ${
+                            className={`flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
                               isSelected
                                 ? "bg-[var(--action)] text-[var(--action-text)]"
                                 : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]"
@@ -762,7 +762,7 @@ export default function Settings() {
                           <h3 className="text-[14px] font-semibold text-[var(--foreground)]">{setting.title}</h3>
                           <p className="text-[11px] text-[var(--muted)] mt-0.5">{setting.description}</p>
                         </div>
-                        <span className="rounded-md border border-[var(--card-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
+                        <span className="rounded-full border border-[var(--card-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
                           {setting.mode}
                         </span>
                       </div>
@@ -778,7 +778,7 @@ export default function Settings() {
                               role="radio"
                               aria-checked={isSelected}
                               onClick={() => selectPalette(setting.mode, palette.id, palette.name)}
-                              className={`rounded-lg border bg-[var(--background)]/35 p-3 text-left transition-smooth hover:border-[var(--accent)]/50 ${
+                              className={`rounded-xl border bg-[var(--background)]/35 p-3 text-left transition-smooth hover:border-[var(--accent)]/50 ${
                                 isSelected
                                   ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
                                   : "border-[var(--card-border)]"
@@ -806,7 +806,7 @@ export default function Settings() {
                                 {palette.colors.map((color) => (
                                   <span
                                     key={color}
-                                    className="h-10 rounded-md border border-[var(--foreground)]/10"
+                                    className="h-10 rounded-xl border border-[var(--foreground)]/10"
                                     style={{ backgroundColor: color }}
                                   />
                                 ))}
@@ -848,7 +848,7 @@ export default function Settings() {
                           role="radio"
                           aria-checked={isSelected}
                           onClick={() => selectToastPosition(position.id, position.label)}
-                          className={`flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 text-[12px] font-semibold transition-smooth ${
+                          className={`flex min-h-10 items-center justify-center gap-2 rounded-full border px-3 text-[12px] font-semibold transition-smooth ${
                             isSelected
                               ? "border-[var(--accent)] bg-[var(--action)] text-[var(--action-text)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
                               : "border-[var(--card-border)] text-[var(--muted)] hover:border-[var(--accent)]/50 hover:text-[var(--foreground)]"
@@ -1070,7 +1070,7 @@ export default function Settings() {
                           });
                         }
                       }}
-                      className="px-3 py-1.5 border border-red-500/30 rounded-lg text-[11px] font-semibold text-red-500 hover:bg-red-500/10 transition-smooth"
+                      className="px-3 py-1.5 border border-red-500/30 rounded-full text-[11px] font-semibold text-red-500 hover:bg-red-500/10 transition-smooth"
                     >
                       Delete current profile
                     </button>
@@ -1084,7 +1084,7 @@ export default function Settings() {
                           });
                         }
                       }}
-                      className="px-3 py-1.5 border border-transparent rounded-lg text-[11px] font-semibold text-white bg-red-500 hover:bg-red-600 transition-smooth"
+                      className="px-3 py-1.5 border border-transparent rounded-full text-[11px] font-semibold text-white bg-red-500 hover:bg-red-600 transition-smooth"
                     >
                       Delete all profiles
                     </button>
@@ -1111,7 +1111,7 @@ export default function Settings() {
           />
           <form onSubmit={handleConfirmExport} className="modal-surface relative max-w-md p-5 sm:p-6">
             <div className="mb-5 flex items-start gap-3">
-              <span className="size-10 rounded-lg bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
+              <span className="size-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[20px]">lock</span>
               </span>
               <div>

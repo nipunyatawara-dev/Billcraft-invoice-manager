@@ -394,22 +394,23 @@ export default function Invoices() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/25 text-[18px]">search</span>
+          <div className="search-field" data-expanded={searchQuery.length > 0}>
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="field-control py-2 pl-9 pr-3 text-[13px]"
               placeholder="Search invoices..."
               type="text"
             />
+            <span className="search-icon-btn">
+              <span className="material-symbols-outlined text-[15px]">search</span>
+            </span>
           </div>
           <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0">
             {STATUS_FILTERS.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-smooth active:scale-[0.95] tracking-wide uppercase ${
+                className={`px-3 py-1.5 text-[11px] font-semibold rounded-full transition-smooth active:scale-[0.95] tracking-wide uppercase ${
                   activeFilter === filter
                     ? "bg-[var(--action)] text-[var(--action-text)]"
                     : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] border border-[var(--card-border)]"
@@ -430,7 +431,7 @@ export default function Invoices() {
               className="surface-card w-full text-left p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
             >
               <div className="flex items-center gap-4">
-                <div className="size-10 rounded-lg border border-[var(--card-border)] overflow-hidden shrink-0">
+                <div className="size-10 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
                   <img className="w-full h-full object-cover" alt={invoice.client} src={invoice.avatar} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -447,17 +448,17 @@ export default function Invoices() {
                   <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
                   <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
                 </div>
-                <span className={`px-2 py-1 text-[10px] font-semibold rounded-md tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
+                <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
                   {invoice.status}
                 </span>
                 <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
+                  <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
+                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                   </span>
                 </div>
@@ -489,7 +490,7 @@ export default function Invoices() {
               <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id}
               </h2>
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>
             </div>
@@ -516,7 +517,7 @@ export default function Invoices() {
                             <span className="block text-[13px] font-semibold text-[var(--foreground)]">{template.name}</span>
                             <span className="block mt-1 text-[11px] text-[var(--muted)]">{template.description}</span>
                           </span>
-                          <span className={`size-7 rounded-lg flex items-center justify-center ${isSelected ? "bg-[var(--action)] text-[var(--action-text)]" : "border border-[var(--card-border)] text-transparent"}`}>
+                          <span className={`size-7 rounded-xl flex items-center justify-center ${isSelected ? "bg-[var(--action)] text-[var(--action-text)]" : "border border-[var(--card-border)] text-transparent"}`}>
                             <span className="material-symbols-outlined text-[16px]">check</span>
                           </span>
                         </span>
@@ -531,12 +532,12 @@ export default function Invoices() {
                       <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Client</p>
                       <p className="text-[11px] text-[var(--muted)] mt-0.5">Select a saved client or enter a one-time client for this invoice.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1">
+                    <div className="grid grid-cols-2 gap-1 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1">
                       <button
                         type="button"
                         onClick={() => setClientMode("saved")}
                         disabled={clientRecords.length === 0}
-                        className={`min-h-8 rounded-md px-3 text-[12px] font-semibold transition-smooth ${
+                        className={`min-h-8 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
                           form.clientMode === "saved"
                             ? "bg-[var(--action)] text-[var(--action-text)]"
                             : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
@@ -547,7 +548,7 @@ export default function Invoices() {
                       <button
                         type="button"
                         onClick={() => setClientMode("new")}
-                        className={`min-h-8 rounded-md px-3 text-[12px] font-semibold transition-smooth ${
+                        className={`min-h-8 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
                           form.clientMode === "new"
                             ? "bg-[var(--action)] text-[var(--action-text)]"
                             : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
@@ -566,11 +567,11 @@ export default function Invoices() {
                           <option key={client.id} value={client.id}>{client.name}</option>
                         ))}
                       </select>
-                      <div className="mt-3 flex items-start gap-3 rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-3">
+                      <div className="mt-3 flex items-start gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-3">
                         {form.avatar ? (
-                          <img className="size-10 rounded-lg object-cover border border-[var(--card-border)]" alt={form.client} src={form.avatar} />
+                          <img className="size-10 rounded-xl object-cover border border-[var(--card-border)]" alt={form.client} src={form.avatar} />
                         ) : (
-                          <span className="size-10 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
+                          <span className="size-10 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center">
                             <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">person</span>
                           </span>
                         )}
@@ -585,7 +586,7 @@ export default function Invoices() {
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="size-12 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                        <div className="size-12 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                           {form.avatar ? (
                             <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
                           ) : (
@@ -666,7 +667,7 @@ export default function Invoices() {
                           <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateItem(index, { price: Number(event.target.value) })} className="field-control px-3 py-2" />
                         </div>
                         <div className="flex md:items-end">
-                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-lg text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">
+                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">
                             <span className="material-symbols-outlined text-[17px]">delete</span>
                           </button>
                         </div>
@@ -680,7 +681,7 @@ export default function Invoices() {
                 </div>
 
                 {needsClientSaveChoice && (
-                  <div className="rounded-lg border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
+                  <div className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
                     <p className="text-[13px] font-semibold text-[var(--foreground)] mb-1">Save this client?</p>
                     <p className="text-[12px] text-[var(--muted)] mb-3">Regular clients are added to the Clients page. One-time clients stay only on this invoice.</p>
                     <div className="flex flex-wrap gap-2">
@@ -709,9 +710,9 @@ export default function Invoices() {
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-[var(--card-border)] pb-5 mb-5">
                     <div className="flex items-center gap-3">
                       {activeProfile?.profilePic ? (
-                        <img className="size-12 rounded-lg object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
+                        <img className="size-12 rounded-xl object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
                       ) : (
-                        <div className="size-12 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
+                        <div className="size-12 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center">
                           <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
                         </div>
                       )}
@@ -730,7 +731,7 @@ export default function Invoices() {
                     <div>
                       <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-2">Bill To</p>
                       <div className="flex items-start gap-3">
-                        <img className="size-10 rounded-lg object-cover border border-[var(--card-border)]" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
+                        <img className="size-10 rounded-xl object-cover border border-[var(--card-border)]" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
                         <div>
                           <p className="text-[14px] font-semibold text-[var(--foreground)]">{selectedInvoice.client}</p>
                           <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.email || "No email added"}</p>
@@ -751,7 +752,7 @@ export default function Invoices() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-lg border border-[var(--card-border)]">
+                  <div className="overflow-hidden rounded-xl border border-[var(--card-border)]">
                     <div className="grid grid-cols-[1fr_70px_110px] gap-3 bg-[var(--foreground)]/[0.04] px-4 py-2 text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">
                       <span>Work</span>
                       <span className="text-right">Qty</span>

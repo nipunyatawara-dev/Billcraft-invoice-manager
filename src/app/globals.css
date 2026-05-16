@@ -17,10 +17,10 @@
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
 
-  --radius-default: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
+  --radius-default: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 }
 
@@ -140,13 +140,13 @@ html.dark {
   --chart-4: var(--chart-soft);
   --chart-5: var(--negative);
   --radius: var(--radius-default);
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
-  --radius-4xl: 2rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2.5rem;
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--action);
@@ -359,10 +359,11 @@ html.dark {
   .surface-featured {
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--foreground) 3%, transparent),
-      0 1px 2px color-mix(in srgb, var(--foreground) 4%, transparent);
+      0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent),
+      0 4px 12px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 8px 24px color-mix(in srgb, var(--foreground) 3%, transparent);
   }
 
   .surface-featured {
@@ -372,7 +373,7 @@ html.dark {
   .skeleton-block {
     display: block;
     overflow: hidden;
-    border-radius: 0.5rem;
+    border-radius: 1rem;
     background:
       linear-gradient(
         90deg,
@@ -395,7 +396,7 @@ html.dark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.5rem;
+    border-radius: 9999px;
     font-weight: 600;
     transition-property: color, background-color, border-color, opacity, transform, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -415,11 +416,19 @@ html.dark {
   .btn-primary {
     background: var(--action);
     color: var(--action-text);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--action-text) 12%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--action-text) 14%, transparent),
+      0 2px 6px color-mix(in srgb, var(--action) 18%, transparent),
+      0 4px 12px color-mix(in srgb, var(--action) 10%, transparent);
   }
 
   .btn-primary:hover {
     background: var(--action-hover);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--action-text) 14%, transparent),
+      0 4px 10px color-mix(in srgb, var(--action) 22%, transparent),
+      0 8px 20px color-mix(in srgb, var(--action) 14%, transparent);
   }
 
   .btn-secondary {
@@ -508,7 +517,7 @@ html.dark {
   .field-control {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     background: var(--field, var(--card));
     color: var(--foreground);
     font-size: 0.875rem;
@@ -522,6 +531,122 @@ html.dark {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
   }
 
+  /* Kree8-style floating search bar */
+  .search-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 4px 14px color-mix(in srgb, var(--foreground) 3%, transparent);
+    transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                width 350ms cubic-bezier(0.4, 0, 0.15, 1);
+    width: 13.5rem;
+    max-width: 100%;
+  }
+
+  .search-field:focus-within,
+  .search-field[data-expanded="true"] {
+    width: 24rem;
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--card-border));
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 4px 14px color-mix(in srgb, var(--foreground) 3%, transparent),
+      0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+
+  .search-field input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--foreground);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    outline: none;
+    padding: 0.5rem 0 0.5rem 1rem;
+  }
+
+  .search-field input::placeholder {
+    color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  }
+
+  .search-field .search-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin: 0.1875rem;
+    margin-left: 0;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
+    color: color-mix(in srgb, var(--foreground) 40%, transparent);
+    flex-shrink: 0;
+    transition: background-color 200ms, color 200ms;
+  }
+
+  .search-field:focus-within .search-icon-btn {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+  }
+
+  /* Clean segmented control — sliding pill */
+  .segment-toolbar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 4px 14px color-mix(in srgb, var(--foreground) 3%, transparent);
+    padding: 0.25rem;
+    gap: 0.125rem;
+  }
+
+  .segment-toolbar-indicator {
+    position: absolute;
+    top: 0.25rem;
+    height: calc(100% - 0.5rem);
+    border-radius: 9999px;
+    background: var(--action);
+    box-shadow:
+      0 1px 3px color-mix(in srgb, var(--action) 22%, transparent),
+      0 2px 8px color-mix(in srgb, var(--action) 14%, transparent);
+    transition: left 320ms cubic-bezier(0.4, 0, 0.15, 1),
+                width 320ms cubic-bezier(0.4, 0, 0.15, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .segment-toolbar button {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--foreground) 42%, transparent);
+    transition: color 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .segment-toolbar button:hover:not([data-active="true"]) {
+    color: var(--foreground);
+  }
+
+  .segment-toolbar button[data-active="true"] {
+    color: var(--action-text);
+  }
+
   .field-control::placeholder {
     color: color-mix(in srgb, var(--foreground) 25%, transparent);
   }
@@ -529,9 +654,11 @@ html.dark {
   .modal-surface {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: 0.75rem;
+    border-radius: 1.25rem;
     background: var(--background);
-    box-shadow: 0 24px 70px color-mix(in srgb, #080808 24%, transparent);
+    box-shadow:
+      0 8px 32px color-mix(in srgb, #080808 12%, transparent),
+      0 24px 70px color-mix(in srgb, #080808 18%, transparent);
   }
 
   [data-sileo-viewport] {
@@ -589,7 +716,7 @@ html.dark {
   }
 
   .billcraft-toast-button {
-    border-radius: 0.5rem !important;
+    border-radius: 9999px !important;
     color: var(--featured-text) !important;
     background-color: color-mix(in srgb, var(--featured-text) 12%, transparent) !important;
     font-weight: 700 !important;
@@ -600,8 +727,8 @@ html.dark {
     height: 2.5rem;
     align-items: center;
     gap: 0.625rem;
-    border-radius: 0.5rem;
-    padding: 0.1875rem 0.5rem 0.1875rem 0.1875rem;
+    border-radius: 9999px;
+    padding: 0.1875rem 0.625rem 0.1875rem 0.1875rem;
   }
 
   .brand-lockup:hover {
@@ -668,7 +795,7 @@ html.dark {
     height: 2.25rem;
     padding: 0 0.875rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 9999px;
     background: color-mix(in srgb, var(--foreground) 6%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -728,7 +855,7 @@ html.dark {
     height: 2.25rem;
     padding: 0 0.875rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 9999px;
     background: color-mix(in srgb, var(--foreground) 6%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -766,7 +893,7 @@ html.dark {
     height: 2px;
     width: 100%;
     background: var(--accent);
-    border-radius: 0 0 0.5rem 0.5rem;
+    border-radius: 0 0 9999px 9999px;
     transform-origin: left;
     animation: undo-countdown 6s linear forwards;
   }

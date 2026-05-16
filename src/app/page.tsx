@@ -80,7 +80,7 @@ export default function Home() {
           <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-1">
-                <div className="size-7 rounded-lg bg-[var(--featured-text)]/10 flex items-center justify-center">
+                <div className="size-7 rounded-xl bg-[var(--featured-text)]/10 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[14px] text-[var(--featured-text)]/60">payments</span>
                 </div>
                 <p className="text-[13px] font-medium text-[var(--featured-muted)] tracking-wide">Collected Revenue</p>
@@ -92,7 +92,7 @@ export default function Home() {
                 <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
               </h2>
               <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-md">
+                <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-full">
                   <span className="material-symbols-outlined text-[14px]">receipt_long</span>
                   <AnimatedNumber value={totals.paidCount} /> paid
                 </span>
@@ -140,20 +140,20 @@ export default function Home() {
                   {invoices.length > 0 ? <><AnimatedNumber value={`${collectionRate}%`} /> of invoices are paid</> : "Create an invoice to start tracking"}
                 </p>
               </div>
-              <div className="size-9 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
+              <div className="size-9 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
                 <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">query_stats</span>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-lg border border-[var(--card-border)] p-3">
+              <div className="rounded-xl border border-[var(--card-border)] p-3">
                 <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.paidCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--positive)] tracking-wide uppercase">Paid</p>
               </div>
-              <div className="rounded-lg border border-[var(--card-border)] p-3">
+              <div className="rounded-xl border border-[var(--card-border)] p-3">
                 <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.unpaidCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">Unpaid</p>
               </div>
-              <div className="rounded-lg border border-[var(--card-border)] p-3">
+              <div className="rounded-xl border border-[var(--card-border)] p-3">
                 <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.overdueCount} /></p>
                 <p className="text-[10px] font-semibold text-[var(--accent)] tracking-wide uppercase">Overdue</p>
               </div>
@@ -173,7 +173,7 @@ export default function Home() {
               {recentInvoices.map((inv, i) => (
                 <div key={inv.id} className={`px-6 py-4 flex flex-col gap-3 hover:bg-[var(--foreground)]/[0.02] transition-smooth cursor-pointer group ${i > 0 ? 'border-t sm:border-t-0 border-[var(--card-border)]' : ''}`}>
                   <div className="flex items-center gap-2.5">
-                    <div className="size-9 rounded-lg border border-[var(--card-border)] overflow-hidden shrink-0">
+                    <div className="size-9 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
                       <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
                     </div>
                     <div className="min-w-0">
@@ -186,7 +186,7 @@ export default function Home() {
                       <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} /></p>
                       <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">{inv.date}</p>
                     </div>
-                    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md tracking-wide uppercase ${inv.statusColor}`}>
+                    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>
                       {inv.status}
                     </span>
                   </div>

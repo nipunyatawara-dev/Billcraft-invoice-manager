@@ -21,7 +21,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -334,7 +334,7 @@ function ChartWidgetShell({
           <h3 className="text-[15px] font-semibold text-[var(--foreground)]">{title}</h3>
           <p className="mt-0.5 text-[11px] font-medium text-[var(--muted)]">{description}</p>
         </div>
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04]">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04]">
           <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
         </div>
       </div>
@@ -372,7 +372,7 @@ function RevenueFlowWidget({
             )}
           </p>
         </div>
-        <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--accent)]/10">
+        <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--accent)]/10">
           <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
         </div>
       </div>
@@ -426,7 +426,7 @@ function PaidRatioWidget({
     <div className="surface-featured relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
       <div className="relative z-10 mb-3 flex items-center justify-between">
         <p className="text-[13px] font-medium tracking-wide text-[var(--featured-text)]/50">Paid Ratio</p>
-        <div className="flex size-9 items-center justify-center rounded-lg bg-[var(--featured-text)]/10">
+        <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--featured-text)]/10">
           <span className="material-symbols-outlined text-[18px] text-[var(--featured-text)]/60">pie_chart</span>
         </div>
       </div>
@@ -485,7 +485,7 @@ function MetricWidget({
     <div className="surface-card group flex min-h-[140px] flex-col justify-between p-5 transition-smooth hover:border-[var(--foreground)]/12 lg:p-6">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{title}</p>
-        <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04] transition-transform group-hover:scale-105">
+        <div className="flex size-8 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04] transition-transform group-hover:scale-105">
           <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
         </div>
       </div>
@@ -509,7 +509,7 @@ function TopClientWidget({
       <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-24 bg-gradient-to-l from-[var(--accent)]/[0.04] to-transparent" />
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Top Client</p>
-        <div className="flex size-8 items-center justify-center rounded-lg bg-[var(--accent)]/10 transition-transform group-hover:scale-105">
+        <div className="flex size-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 transition-transform group-hover:scale-105">
           <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">star</span>
         </div>
       </div>
@@ -803,7 +803,7 @@ function CustomizePanel({
           return (
             <div key={widgetId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--foreground)]/[0.04]">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04]">
                   <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">{definition.icon}</span>
                 </div>
                 <div className="min-w-0">
@@ -861,6 +861,34 @@ export default function Analytics() {
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [draftPreferences, setDraftPreferences] = useState<AnalyticsPreferences>(() => getSavedAnalyticsPreferences());
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  const updateIndicator = useCallback(() => {
+    const toolbar = toolbarRef.current;
+    const indicator = indicatorRef.current;
+    const activeBtn = buttonRefs.current.get(activeRange);
+
+    if (!toolbar || !indicator || !activeBtn) {
+      return;
+    }
+
+    const toolbarRect = toolbar.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+
+    indicator.style.left = `${btnRect.left - toolbarRect.left}px`;
+    indicator.style.width = `${btnRect.width}px`;
+  }, [activeRange]);
+
+  useLayoutEffect(() => {
+    updateIndicator();
+  }, [updateIndicator]);
+
+  useEffect(() => {
+    window.addEventListener("resize", updateIndicator);
+    return () => window.removeEventListener("resize", updateIndicator);
+  }, [updateIndicator]);
   const filteredInvoices = useMemo(() => filterInvoicesByDate(invoices, activeRange), [activeRange, invoices]);
   const activeRangeLabel = RANGE_OPTIONS.find((option) => option.id === activeRange)?.label || "This Month";
   const totals = useMemo(() => getInvoiceTotals(filteredInvoices), [filteredInvoices]);
@@ -1056,19 +1084,21 @@ export default function Analytics() {
             <span className="material-symbols-outlined text-[16px]">tune</span>
             Customize
           </button>
-          <div className="flex w-full overflow-x-auto rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-0.5 md:w-auto">
+          <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">
+            <span
+              ref={indicatorRef}
+              aria-hidden="true"
+              className="segment-toolbar-indicator"
+            />
             {RANGE_OPTIONS.map((option) => {
               const isActive = activeRange === option.id;
 
               return (
                 <button
                   key={option.id}
+                  ref={(el) => { if (el) buttonRefs.current.set(option.id, el); }}
                   onClick={() => setActiveRange(option.id)}
-                  className={`whitespace-nowrap rounded-md px-3 py-1 text-[12px] font-medium transition-smooth ${
-                    isActive
-                      ? "bg-[var(--action)] text-[var(--action-text)]"
-                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                  }`}
+                  data-active={isActive}
                 >
                   {option.label}
                 </button>

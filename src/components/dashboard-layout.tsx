@@ -409,7 +409,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     onClick={closeSidebarOnMobile}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-xl transition-smooth ${
                       isActive
                         ? 'bg-[var(--action)]/12 text-[var(--action)]'
                         : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
@@ -428,7 +428,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       onClick={closeSidebarOnMobile}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-xl transition-smooth ${
                         isActive
                           ? 'bg-[var(--action)]/12 text-[var(--action)]'
                           : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
@@ -450,7 +450,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     onClick={closeSidebarOnMobile}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-lg transition-smooth ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-xl transition-smooth ${
                       isActive
                         ? 'bg-[var(--action)]/12 text-[var(--action)]'
                         : 'text-[var(--foreground)]/55 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80'
@@ -490,7 +490,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
               {!isFirstRun && !isProfileLocked && (
-                <button onClick={closeProfileModal} className="size-8 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                <button onClick={closeProfileModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                   <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
                 </button>
               )}
@@ -510,7 +510,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         isActive ? "border-[var(--accent)]/50" : "hover:border-[var(--foreground)]/15"
                       }`}
                     >
-                      <span className="size-11 rounded-lg overflow-hidden border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                      <span className="size-11 rounded-xl overflow-hidden border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                         {profile.profilePic ? (
                           <img className="h-full w-full object-cover" alt={profile.name} src={profile.profilePic} />
                         ) : (
@@ -536,7 +536,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {passwordPromptProfile && (
               <form onSubmit={handleProfileAccess} className="mb-5 surface-card p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <span className="size-9 rounded-lg bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
+                  <span className="size-9 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-[18px]">lock</span>
                   </span>
                   <div className="min-w-0">
@@ -565,7 +565,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             )}
 
             {!showCreateProfileForm && (profileMessage || error) && (
-              <p className="mb-5 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
+              <p className="mb-5 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
                 {profileMessage || error}
               </p>
             )}
@@ -702,7 +702,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <div className="surface-card p-4">
                   <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Profile Picture</p>
                   <div className="flex items-center gap-3">
-                    <div className="size-14 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                    <div className="size-14 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                       {profileForm.profilePic ? (
                         <img className="w-full h-full object-cover" alt="Profile preview" src={profileForm.profilePic} />
                       ) : (
@@ -719,7 +719,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <div className="surface-card p-4">
                   <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Signature</p>
                   <div className="flex items-center gap-3">
-                    <div className="h-14 w-24 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                    <div className="h-14 w-24 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                       {profileForm.signature ? (
                         <img className="w-full h-full object-contain" alt="Signature preview" src={profileForm.signature} />
                       ) : (
@@ -735,7 +735,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               {(profileMessage || error) && (
-                <p className="rounded-lg border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
+                <p className="rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
                   {profileMessage || error}
                 </p>
               )}

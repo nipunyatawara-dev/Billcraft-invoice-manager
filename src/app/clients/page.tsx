@@ -204,15 +204,16 @@ export default function Clients() {
         </div>
 
         <div className="mb-6">
-          <div className="relative max-w-md">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/25 text-[18px]">search</span>
+          <div className="search-field" data-expanded={searchQuery.length > 0}>
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="field-control py-2 pl-9 pr-3 text-[13px]"
               placeholder="Search clients..."
               type="text"
             />
+            <span className="search-icon-btn">
+              <span className="material-symbols-outlined text-[15px]">search</span>
+            </span>
           </div>
         </div>
 
@@ -232,7 +233,7 @@ export default function Clients() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="size-12 rounded-lg border border-[var(--card-border)] overflow-hidden shrink-0">
+                    <div className="size-12 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
                       <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -243,7 +244,7 @@ export default function Clients() {
                         </div>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(client); }}
-                          className="size-7 flex items-center justify-center rounded-lg text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth opacity-0 group-hover:opacity-100"
+                          className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth opacity-0 group-hover:opacity-100"
                           aria-label={`Edit ${client.name}`}
                         >
                           <span className="material-symbols-outlined text-[14px]">edit</span>
@@ -262,9 +263,9 @@ export default function Clients() {
                         </div>
                         <div className="w-px h-7 bg-[var(--card-border)]" />
                         <div className="flex flex-wrap gap-1.5">
-                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]"><AnimatedNumber value={breakdown.paid} /> paid</span>}
-                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
-                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
+                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]"><AnimatedNumber value={breakdown.paid} /> paid</span>}
+                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
+                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
                         </div>
                       </div>
                     </div>
@@ -292,7 +293,7 @@ export default function Clients() {
                 </div>
 
                 {isSelected && selectedClientData && (
-                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-lg border border-t-0 border-[var(--accent)]/30 overflow-hidden">
+                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-2xl border border-t-0 border-[var(--accent)]/30 overflow-hidden">
                     <div className="px-5 py-2.5 border-b border-[var(--card-border)]">
                       <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">Invoice History</p>
                     </div>
@@ -307,7 +308,7 @@ export default function Clients() {
                         </div>
                         <div className="flex items-center gap-3">
                           <p className="text-[13px] font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                          <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded tracking-wide uppercase ${invoice.statusColor}`}>
+                          <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase ${invoice.statusColor}`}>
                             {invoice.status}
                           </span>
                         </div>
@@ -338,14 +339,14 @@ export default function Clients() {
               <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
                 {editingClientId ? "Edit Client" : "Add Client"}
               </h2>
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>
             </div>
 
             <form onSubmit={handleSaveClient} className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="size-14 rounded-lg border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                <div className="size-14 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
                   {form.avatar ? (
                     <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
                   ) : (

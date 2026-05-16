@@ -628,7 +628,7 @@ export default function TodoPage() {
               >
                 <div className="flex items-center justify-between gap-3 pb-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center shrink-0">
+                    <div className="size-8 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{stage.icon}</span>
                     </div>
                     <div className="min-w-0">
@@ -638,7 +638,7 @@ export default function TodoPage() {
                   </div>
                   <button
                     onClick={() => openCreateModal(stage.id)}
-                    className="size-7 rounded-lg flex items-center justify-center text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                    className="size-7 rounded-full flex items-center justify-center text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
                     aria-label={`Add task to ${stage.label}`}
                   >
                     <span className="material-symbols-outlined text-[16px]">add</span>
@@ -647,7 +647,7 @@ export default function TodoPage() {
 
                 <div className="space-y-2.5 flex-1">
                   {loading && stageTasks.length === 0 ? (
-                    <div className="rounded-lg border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-4">
+                    <div className="rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-4">
                       <div className="h-3 w-24 rounded-full bg-[var(--foreground)]/10 mb-3" />
                       <div className="h-2 w-full rounded-full bg-[var(--foreground)]/10 mb-2" />
                       <div className="h-2 w-2/3 rounded-full bg-[var(--foreground)]/10" />
@@ -680,7 +680,7 @@ export default function TodoPage() {
                                 toggleSelectTask(task.id);
                               }
                             }}
-                            className={`rounded-lg border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
+                            className={`rounded-xl border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
                               isDragging ? "opacity-50 scale-[0.98] border-[var(--card-border)]" : ""
                             } ${
                               isSelected
@@ -691,11 +691,11 @@ export default function TodoPage() {
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap gap-1.5 mb-2">
-                                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wide uppercase ${getTodoPriorityStyles(task.priority)}`}>
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ${getTodoPriorityStyles(task.priority)}`}>
                                     {task.priority}
                                   </span>
                                   {task.tags.slice(0, 2).map((tag) => (
-                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-[var(--foreground)]/[0.04] text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">
+                                    <span key={tag} className="px-2 py-0.5 rounded-full bg-[var(--foreground)]/[0.04] text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">
                                       {tag}
                                     </span>
                                   ))}
@@ -704,7 +704,7 @@ export default function TodoPage() {
                               </div>
                               <button
                                 onClick={() => openEditModal(task)}
-                                className="size-7 flex items-center justify-center rounded-lg text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth shrink-0"
+                                className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth shrink-0"
                                 aria-label={`Edit ${task.title}`}
                               >
                                 <span className="material-symbols-outlined text-[14px]">edit</span>
@@ -738,7 +738,7 @@ export default function TodoPage() {
                   ) : (
                     <button
                       onClick={() => openCreateModal(stage.id)}
-                      className="w-full min-h-[160px] rounded-lg border border-dashed border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
+                      className="w-full min-h-[160px] rounded-xl border border-dashed border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
                     >
                       <span className="material-symbols-outlined text-[30px] text-[var(--foreground)]/12 mb-2">add_task</span>
                       <span className="text-[12px] font-semibold text-[var(--muted)]">Add a card</span>
@@ -766,7 +766,7 @@ export default function TodoPage() {
                   {editingTaskId ? "Update task" : "New task"}
                 </h2>
               </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>
             </div>
