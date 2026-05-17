@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, getInvoiceTotal, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -63,6 +64,7 @@ export default function Clients() {
 
   const totalRevenue = clients.reduce((sum, client) => sum + client.totalBilled, 0);
   const selectedClientData = selectedClientId ? clients.find((client) => client.id === selectedClientId) : null;
+  const clientModalTitle = editingClientId ? "Edit Client" : "Add Client";
 
   function openAddClient() {
     setEditingClientId(null);
@@ -173,10 +175,14 @@ export default function Clients() {
       <main className="app-main flex-1">
         <div className="page-heading">
           <div>
-            <p className="section-eyebrow">Manage</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              Clients
-            </h1>
+            <AnimatedText as="p" text="Manage" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text="Clients"
+              effect="micro-scale-fade"
+              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              delayMs={70}
+            />
           </div>
           <button onClick={openAddClient} className="btn-primary active:scale-[0.97]">
             <span className="material-symbols-outlined text-[16px]">person_add</span>
@@ -326,7 +332,7 @@ export default function Clients() {
         {filteredClients.length === 0 && (
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">person_search</span>
-            <p className="text-[13px] text-[var(--muted)] font-medium">No regular clients found</p>
+            <AnimatedText as="p" text="No regular clients found" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
           </div>
         )}
       </main>
@@ -336,9 +342,13 @@ export default function Clients() {
           <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
           <div className="modal-surface relative max-w-lg p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
-                {editingClientId ? "Edit Client" : "Add Client"}
-              </h2>
+              <AnimatedText
+                as="h2"
+                text={clientModalTitle}
+                effect="fade-through"
+                className="text-xl font-semibold text-[var(--foreground)] font-display"
+                replayKey={clientModalTitle}
+              />
               <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>

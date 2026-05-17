@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import {
   formatCurrency,
   getInvoiceItemsTotal,
@@ -155,6 +156,7 @@ export default function Invoices() {
   const isFormMode = modalMode === "create" || modalMode === "edit";
   const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];
   const invoiceTotal = getInvoiceItemsTotal(form.items);
+  const modalTitle = modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id || "Invoice";
 
   function openCreateModal() {
     const initialForm = createEmptyForm();
@@ -363,10 +365,14 @@ export default function Invoices() {
       <main className="app-main flex-1">
         <div className="page-heading">
           <div>
-            <p className="section-eyebrow">Billing</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              Invoices
-            </h1>
+            <AnimatedText as="p" text="Billing" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text="Invoices"
+              effect="micro-scale-fade"
+              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              delayMs={70}
+            />
           </div>
           <button onClick={openCreateModal} className="btn-primary active:scale-[0.97]">
             <span className="material-symbols-outlined text-[16px]">add</span>
@@ -472,7 +478,7 @@ export default function Invoices() {
           {filteredInvoices.length === 0 && (
             <div className="text-center py-16">
               <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">receipt_long</span>
-              <p className="text-[13px] text-[var(--muted)] font-medium">No invoices yet</p>
+              <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
             </div>
           )}
         </div>
@@ -487,9 +493,13 @@ export default function Invoices() {
           <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
-                {modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id}
-              </h2>
+              <AnimatedText
+                as="h2"
+                text={modalTitle}
+                effect="fade-through"
+                className="text-xl font-semibold text-[var(--foreground)] font-display"
+                replayKey={modalTitle}
+              />
               <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
               </button>

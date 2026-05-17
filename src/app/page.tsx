@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, getInvoiceTotal, getInvoiceTotals } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -31,13 +32,18 @@ export default function Home() {
   const { currency } = useCurrency();
   const { activeProfile } = useUserData();
   const [greeting, setGreeting] = useState("Good Morning");
+  const [hasSyncedGreeting, setHasSyncedGreeting] = useState(false);
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
   const collectionRate = invoices.length > 0 ? Math.round((totals.paidCount / invoices.length) * 100) : 0;
   const firstName = activeProfile?.name.trim().split(/\s+/)[0];
+  const greetingText = `${greeting}${firstName ? `, ${firstName}` : ""}`;
 
   useEffect(() => {
-    const syncGreeting = () => setGreeting(getTimeBasedGreeting());
+    const syncGreeting = () => {
+      setGreeting(getTimeBasedGreeting());
+      setHasSyncedGreeting(true);
+    };
     const frame = window.requestAnimationFrame(syncGreeting);
 
     const interval = window.setInterval(() => {
@@ -57,10 +63,15 @@ export default function Home() {
         {/* Greeting */}
         <div className="page-heading">
           <div>
-            <p className="section-eyebrow">Dashboard</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              {greeting}{firstName ? `, ${firstName}` : ""}
-            </h1>
+            <AnimatedText as="p" text="Dashboard" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text={greetingText}
+              effect={hasSyncedGreeting ? "fade-through" : "soft-blur-in"}
+              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              delayMs={70}
+              replayKey={greetingText}
+            />
           </div>
           <div className="hidden md:flex gap-2.5">
             <Link href="/invoices" className="btn-primary active:scale-[0.97]">
@@ -137,7 +148,18 @@ export default function Home() {
               <div>
                 <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-1">Payment Health</p>
                 <p className="text-[12px] text-[var(--muted)]">
-                  {invoices.length > 0 ? <><AnimatedNumber value={`${collectionRate}%`} /> of invoices are paid</> : "Create an invoice to start tracking"}
+                  {invoices.length > 0 ? (
+                    <>
+                      <AnimatedNumber value={`${collectionRate}%`} />{" "}
+                      <AnimatedText
+                        text="of invoices are paid"
+                        effect="fade-through"
+                        replayKey={`payment-health-${collectionRate}`}
+                      />
+                    </>
+                  ) : (
+                    <AnimatedText text="Create an invoice to start tracking" effect="fade-through" />
+                  )}
                 </p>
               </div>
               <div className="size-9 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
@@ -195,7 +217,7 @@ export default function Home() {
               {recentInvoices.length === 0 && (
                 <div className="px-6 py-10 sm:col-span-2 lg:col-span-4 text-center">
                   <span className="material-symbols-outlined text-[38px] text-[var(--foreground)]/10 mb-2 block">receipt_long</span>
-                  <p className="text-[13px] text-[var(--muted)] font-medium">No invoices yet</p>
+                  <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
                 </div>
               )}
             </div>

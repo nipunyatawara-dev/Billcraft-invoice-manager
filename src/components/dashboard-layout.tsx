@@ -2,6 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
@@ -324,6 +325,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const passwordPromptProfile = profiles.find((profile) => profile.id === (pendingSwitchProfileId || (isProfileLocked ? activeProfileId : null)));
   const isPasswordPromptForLogin = Boolean(passwordPromptProfile && passwordPromptProfile.id === activeProfileId && isProfileLocked);
   const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
+  const profileModalEyebrow = isFirstRun ? "Welcome" : isProfileLocked ? "Login" : "Profiles";
+  const profileModalTitle = isFirstRun ? "Create your first profile" : isProfileLocked ? "Enter profile password" : "Manage profiles";
 
   return (
     <div className="app-shell flex flex-col min-h-screen">
@@ -481,10 +484,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[92vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="section-eyebrow">{isFirstRun ? "Welcome" : isProfileLocked ? "Login" : "Profiles"}</p>
-                <h2 className="text-2xl font-semibold text-[var(--foreground)] font-display">
-                  {isFirstRun ? "Create your first profile" : isProfileLocked ? "Enter profile password" : "Manage profiles"}
-                </h2>
+                <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="section-eyebrow" replayKey={profileModalEyebrow} />
+                <AnimatedText
+                  as="h2"
+                  text={profileModalTitle}
+                  effect="mask-reveal-up"
+                  className="text-2xl font-semibold text-[var(--foreground)] font-display"
+                  replayKey={profileModalTitle}
+                />
                 <p className="mt-1 text-[12px] text-[var(--muted)]">
                   <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
                 </p>

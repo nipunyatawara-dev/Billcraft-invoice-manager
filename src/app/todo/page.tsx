@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
@@ -530,16 +531,21 @@ export default function TodoPage() {
   }
 
   const showTrashZone = draggingTaskId !== null || selectedTaskIds.size > 0;
+  const taskModalTitle = editingTaskId ? "Update task" : "New task";
 
   return (
     <>
       <main className="app-main flex-1">
         <div className="page-heading">
           <div>
-            <p className="section-eyebrow">Workspace</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-              To-Do
-            </h1>
+            <AnimatedText as="p" text="Workspace" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text="To-Do"
+              effect="micro-scale-fade"
+              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              delayMs={70}
+            />
           </div>
           <div className="flex items-center gap-2">
             {undoSnapshot && !draggingTaskId && (
@@ -741,7 +747,7 @@ export default function TodoPage() {
                       className="w-full min-h-[160px] rounded-xl border border-dashed border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
                     >
                       <span className="material-symbols-outlined text-[30px] text-[var(--foreground)]/12 mb-2">add_task</span>
-                      <span className="text-[12px] font-semibold text-[var(--muted)]">Add a card</span>
+                      <AnimatedText as="span" text="Add a card" effect="per-word-crossfade" className="text-[12px] font-semibold text-[var(--muted)]" />
                     </button>
                   )}
                 </div>
@@ -761,10 +767,14 @@ export default function TodoPage() {
           <form onSubmit={handleTaskSubmit} className="modal-surface relative max-w-2xl p-5 sm:p-7 max-h-[92vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="section-eyebrow">{editingTaskId ? "Edit" : "Create"}</p>
-                <h2 className="text-2xl font-semibold text-[var(--foreground)] font-display">
-                  {editingTaskId ? "Update task" : "New task"}
-                </h2>
+                <AnimatedText as="p" text={editingTaskId ? "Edit" : "Create"} effect="micro-scale-fade" className="section-eyebrow" replayKey={editingTaskId ? "edit-task" : "create-task"} />
+                <AnimatedText
+                  as="h2"
+                  text={taskModalTitle}
+                  effect="fade-through"
+                  className="text-2xl font-semibold text-[var(--foreground)] font-display"
+                  replayKey={taskModalTitle}
+                />
               </div>
               <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
                 <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>

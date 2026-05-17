@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatedNumber } from "@/components/animated-number";
+import { AnimatedText } from "@/components/animated-text";
 import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
 import { EvilBarChart } from "@/components/evilcharts/charts/bar-chart";
 import { EvilPieChart } from "@/components/evilcharts/charts/pie-chart";
@@ -308,7 +309,7 @@ function EmptyChartState({ icon, title, description }: { icon: string; title: st
   return (
     <div className="flex min-h-[190px] flex-1 flex-col items-center justify-center text-center">
       <span className="material-symbols-outlined mb-3 text-[38px] text-[var(--foreground)]/10">{icon}</span>
-      <p className="text-[13px] font-semibold text-[var(--foreground)]">{title}</p>
+      <AnimatedText as="p" text={title} effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" replayKey={title} />
       <p className="mt-1 max-w-[240px] text-[11px] font-medium text-[var(--muted)]">{description}</p>
     </div>
   );
@@ -365,10 +366,11 @@ function RevenueFlowWidget({
           <p className="text-[12px] font-medium text-[var(--muted)]">
             {filteredInvoices.length > 0 ? (
               <>
-                <AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} /> in {activeRangeLabel.toLowerCase()}
+                <AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} />{" "}
+                <AnimatedText text={`in ${activeRangeLabel.toLowerCase()}`} effect="fade-through" replayKey={`revenue-flow-${activeRangeLabel}`} />
               </>
             ) : (
-              `No invoice data for ${activeRangeLabel.toLowerCase()}`
+              <AnimatedText text={`No invoice data for ${activeRangeLabel.toLowerCase()}`} effect="fade-through" replayKey={`revenue-flow-empty-${activeRangeLabel}`} />
             )}
           </p>
         </div>
@@ -405,8 +407,14 @@ function RevenueFlowWidget({
       ) : (
         <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-[var(--card-border)] pt-4 text-center">
           <span className="material-symbols-outlined mb-3 text-[42px] text-[var(--foreground)]/10">monitoring</span>
-          <p className="text-[13px] font-semibold text-[var(--foreground)]">No revenue to chart</p>
-          <p className="mt-1 text-[11px] text-[var(--muted)]">Invoices in {activeRangeLabel.toLowerCase()} will appear here.</p>
+          <AnimatedText as="p" text="No revenue to chart" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
+          <AnimatedText
+            as="p"
+            text={`Invoices in ${activeRangeLabel.toLowerCase()} will appear here.`}
+            effect="fade-through"
+            className="mt-1 text-[11px] text-[var(--muted)]"
+            replayKey={`revenue-empty-caption-${activeRangeLabel}`}
+          />
         </div>
       )}
     </div>
@@ -459,10 +467,15 @@ function PaidRatioWidget({
         <p className="text-center text-[12px] font-medium text-[var(--featured-text)]/50">
           {filteredInvoices.length > 0 ? (
             <>
-              <AnimatedNumber value={`${paidRatio}%`} /> of {activeRangeLabel.toLowerCase()} invoices are marked paid.
+              <AnimatedNumber value={`${paidRatio}%`} />{" "}
+              <AnimatedText
+                text={`of ${activeRangeLabel.toLowerCase()} invoices are marked paid.`}
+                effect="fade-through"
+                replayKey={`paid-ratio-${activeRangeLabel}-${paidRatio}`}
+              />
             </>
           ) : (
-            `No invoices in ${activeRangeLabel.toLowerCase()}.`
+            <AnimatedText text={`No invoices in ${activeRangeLabel.toLowerCase()}.`} effect="fade-through" replayKey={`paid-ratio-empty-${activeRangeLabel}`} />
           )}
         </p>
       </div>
@@ -1070,10 +1083,14 @@ export default function Analytics() {
     <main className="app-main flex-1">
       <div className="page-heading">
         <div>
-          <p className="section-eyebrow">Overview</p>
-          <h1 className="text-3xl font-semibold leading-[1.1] text-[var(--foreground)] lg:text-[40px]">
-            Analytics
-          </h1>
+          <AnimatedText as="p" text="Overview" effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText
+            as="h1"
+            text="Analytics"
+            effect="micro-scale-fade"
+            className="text-3xl font-semibold leading-[1.1] text-[var(--foreground)] lg:text-[40px]"
+            delayMs={70}
+          />
         </div>
         <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
           <button
@@ -1130,7 +1147,7 @@ export default function Analytics() {
       ) : (
         <div className="surface-card p-10 text-center">
           <span className="material-symbols-outlined mb-3 block text-[42px] text-[var(--foreground)]/10">analytics</span>
-          <p className="text-[13px] font-semibold text-[var(--foreground)]">No analytics widgets visible</p>
+          <AnimatedText as="p" text="No analytics widgets visible" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
           <p className="mt-1 text-[11px] font-medium text-[var(--muted)]">Turn one on in Customize to rebuild this page.</p>
         </div>
       )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedText } from "@/components/animated-text";
 import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
 import { TOAST_POSITIONS, type ToastPosition, useToastPosition } from "@/hooks/use-toast-position";
@@ -544,10 +545,14 @@ export default function Settings() {
         
         {/* Header */}
         <div className="mb-8 lg:mb-9">
-          <p className="section-eyebrow">Account</p>
-          <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">
-            Settings
-          </h1>
+          <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText
+            as="h1"
+            text="Settings"
+            effect="micro-scale-fade"
+            className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+            delayMs={70}
+          />
         </div>
 
         {/* Bento Layout: Tabs + Content */}
@@ -714,7 +719,13 @@ export default function Settings() {
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
                   <div className="relative z-10 max-w-xl">
                     <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Theme Palettes</p>
-                    <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1">Choose palettes for each mode</h2>
+                    <AnimatedText
+                      as="h2"
+                      text="Choose palettes for each mode"
+                      effect="mask-reveal-up"
+                      className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
+                      replayKey="appearance-palettes"
+                    />
                     <p className="text-[12px] text-[var(--featured-text)]/50">Light and dark mode each use the palette you assign here.</p>
                   </div>
                 </div>
@@ -892,7 +903,13 @@ export default function Settings() {
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
                   <div className="relative z-10 max-w-xl">
                     <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Your Data</p>
-                    <h2 className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1">Download your BillCraft data</h2>
+                    <AnimatedText
+                      as="h2"
+                      text="Download your BillCraft data"
+                      effect="mask-reveal-up"
+                      className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
+                      replayKey="data-export"
+                    />
                     <p className="text-[12px] text-[var(--featured-text)]/50">Export profiles, clients, invoices, vendors, outsourcing invoices, and to-do tasks.</p>
                   </div>
                 </div>
@@ -1115,10 +1132,14 @@ export default function Settings() {
                 <span className="material-symbols-outlined text-[20px]">lock</span>
               </span>
               <div>
-                <p className="section-eyebrow">Export</p>
-                <h2 className="text-xl font-semibold text-[var(--foreground)] font-display">
-                  Confirm {exportRequest.toUpperCase()} export
-                </h2>
+                <AnimatedText as="p" text="Export" effect="micro-scale-fade" className="section-eyebrow" />
+                <AnimatedText
+                  as="h2"
+                  text={`Confirm ${exportRequest.toUpperCase()} export`}
+                  effect="mask-reveal-up"
+                  className="text-xl font-semibold text-[var(--foreground)] font-display"
+                  replayKey={`export-${exportRequest}`}
+                />
                 {activeProfile?.passwordHint && (
                   <p className="mt-1 text-[11px] text-[var(--muted)]">Hint: {activeProfile.passwordHint}</p>
                 )}
