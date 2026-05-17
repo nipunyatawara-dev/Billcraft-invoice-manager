@@ -345,12 +345,12 @@ export default function Invoices() {
     void submitInvoice();
   }
 
-  function handleExportInvoice(invoice: Invoice) {
+  async function handleExportInvoice(invoice: Invoice) {
     try {
-      exportInvoice(invoice);
+      await exportInvoice(invoice);
       notify.success({
         title: "Download started",
-        description: `${invoice.id} was exported as a text file.`,
+        description: `${invoice.id} was exported as a PDF.`,
       });
     } catch (error) {
       notify.error({
@@ -461,7 +461,7 @@ export default function Invoices() {
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Download">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Export PDF">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
                   <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
@@ -793,7 +793,7 @@ export default function Invoices() {
 
                 <div className="flex justify-end gap-2">
                   <button onClick={() => handleExportInvoice(selectedInvoice)} className="btn-secondary">
-                    Download
+                    Export PDF
                   </button>
                   <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary active:scale-[0.97]">
                     Edit Invoice

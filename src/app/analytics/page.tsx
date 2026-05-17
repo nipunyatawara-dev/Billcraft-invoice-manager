@@ -13,10 +13,13 @@ import {
   getClientsFromInvoices,
   getInvoiceTotal,
   getInvoiceTotals,
+  getOutsourcingInvoiceTotal,
+  getOutsourcingTotals,
   normalizeAnalyticsPreferences,
   type AnalyticsPreferences,
   type AnalyticsWidgetId,
   type Invoice,
+  type OutsourcingInvoice,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
@@ -38,13 +41,13 @@ const WIDGET_DEFINITIONS: {
   description: string;
   icon: string;
 }[] = [
-  { id: "revenue-flow", title: "Revenue Flow", description: "BillCraft bar view for range revenue.", icon: "monitoring" },
+  { id: "revenue-flow", title: "Client Billing Flow", description: "Client invoice value by period.", icon: "monitoring" },
   { id: "paid-ratio", title: "Paid Ratio", description: "Circular paid invoice share.", icon: "pie_chart" },
   { id: "avg-invoice", title: "Average Invoice", description: "Mean invoice value for selected range.", icon: "request_quote" },
   { id: "avg-ltv", title: "Average LTV", description: "Average billed value per client.", icon: "diamond" },
   { id: "top-client", title: "Top Client", description: "Highest billed client summary.", icon: "star" },
-  { id: "revenue-trend", title: "Revenue Trend", description: "Evil area chart for paid and open revenue.", icon: "area_chart" },
-  { id: "status-mix", title: "Status Mix", description: "Evil donut chart for invoice status totals.", icon: "donut_large" },
+  { id: "revenue-trend", title: "Revenue vs Receivables", description: "Paid revenue beside open client balances.", icon: "area_chart" },
+  { id: "status-mix", title: "Receivables Mix", description: "Paid, unpaid, and overdue client totals.", icon: "donut_large" },
   { id: "top-clients", title: "Top Clients", description: "Evil horizontal bars for top billed clients.", icon: "leaderboard" },
   { id: "invoice-aging", title: "Invoice Aging", description: "Evil bars for open invoices by due age.", icon: "event_busy" },
   { id: "collection-gauge", title: "Collection Gauge", description: "Evil radial chart for paid vs open.", icon: "speed" },
@@ -178,6 +181,20 @@ function getDateRange(range: AnalyticsRange) {
 }
 
 function filterInvoicesByDate(invoices: Invoice[], range: AnalyticsRange) {
+  const { start, end } = getDateRange(range);
+
+  return invoices.filter((invoice) => {
+    const invoiceDate = startOfDay(new Date(invoice.date));
+
+    if (Number.isNaN(invoiceDate.getTime())) {
+      return false;
+    }
+
+    return invoiceDate >= start && invoiceDate <= end;
+  });
+}
+
+function filterOutsourcingInvoicesByDate(invoices: OutsourcingInvoice[], range: AnalyticsRange) {
   const { start, end } = getDateRange(range);
 
   return invoices.filter((invoice) => {
@@ -362,7 +379,7 @@ function RevenueFlowWidget({
     <div className="surface-card group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="mb-0.5 text-lg font-semibold text-[var(--foreground)]">Revenue Flow</h3>
+          <h3 className="mb-0.5 text-lg font-semibold text-[var(--foreground)]">Client Billing Flow</h3>
           <p className="text-[12px] font-medium text-[var(--muted)]">
             {filteredInvoices.length > 0 ? (
               <>
@@ -407,7 +424,7 @@ function RevenueFlowWidget({
       ) : (
         <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-[var(--card-border)] pt-4 text-center">
           <span className="material-symbols-outlined mb-3 text-[42px] text-[var(--foreground)]/10">monitoring</span>
-          <AnimatedText as="p" text="No revenue to chart" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
+          <AnimatedText as="p" text="No client billing to chart" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
           <AnimatedText
             as="p"
             text={`Invoices in ${activeRangeLabel.toLowerCase()} will appear here.`}
@@ -510,6 +527,61 @@ function MetricWidget({
   );
 }
 
+function CashflowOverview({
+  activeRangeLabel,
+  currency,
+  netProfit,
+  openPayables,
+  paidOutsourcing,
+  payablesCount,
+  receivables,
+  receivablesCount,
+  revenue,
+  revenueCount,
+}: {
+  activeRangeLabel: string;
+  currency: string;
+  netProfit: number;
+  openPayables: number;
+  paidOutsourcing: number;
+  payablesCount: number;
+  receivables: number;
+  receivablesCount: number;
+  revenue: number;
+  revenueCount: number;
+}) {
+  const projectedNetCash = receivables - openPayables;
+
+  return (
+    <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <MetricWidget
+        title="Revenue"
+        icon="payments"
+        value={<AnimatedNumber value={formatCurrency(revenue, currency)} />}
+        caption={revenueCount > 0 ? <>Collected from <AnimatedNumber value={revenueCount} /> client invoices in {activeRangeLabel.toLowerCase()}</> : `No collected revenue in ${activeRangeLabel.toLowerCase()}`}
+      />
+      <MetricWidget
+        title="Receivables"
+        icon="account_balance_wallet"
+        value={<AnimatedNumber value={formatCurrency(receivables, currency)} />}
+        caption={receivablesCount > 0 ? <>Clients still owe this across <AnimatedNumber value={receivablesCount} /> invoices</> : "No open client balances in this range"}
+      />
+      <MetricWidget
+        title="Payables"
+        icon="engineering"
+        value={<AnimatedNumber value={formatCurrency(openPayables, currency)} />}
+        caption={payablesCount > 0 ? <>You still owe vendors on <AnimatedNumber value={payablesCount} /> payables</> : "No open vendor payables in this range"}
+      />
+      <MetricWidget
+        title="Net Profit"
+        icon="show_chart"
+        value={<AnimatedNumber value={formatCurrency(netProfit, currency)} />}
+        caption={paidOutsourcing > 0 ? <>Collected revenue minus <AnimatedNumber value={formatCurrency(paidOutsourcing, currency)} /> paid outsourcing</> : <>Projected open cash: <AnimatedNumber value={formatCurrency(projectedNetCash, currency)} /></>}
+      />
+    </div>
+  );
+}
+
 function TopClientWidget({
   currency,
   topClient,
@@ -556,9 +628,9 @@ function RevenueTrendWidget({
   return (
     <ChartWidgetShell
       className="md:col-span-2 lg:col-span-2"
-      description={`Paid and open invoice totals in ${activeRangeLabel.toLowerCase()}`}
+      description={`Collected revenue and client receivables in ${activeRangeLabel.toLowerCase()}`}
       icon="area_chart"
-      title="Revenue Trend"
+      title="Revenue vs Receivables"
     >
       {hasData ? (
         <EvilAreaChart
@@ -599,9 +671,9 @@ function StatusMixWidget({
   return (
     <ChartWidgetShell
       className="md:col-span-1 lg:col-span-2"
-      description={`Invoice status totals in ${activeRangeLabel.toLowerCase()}`}
+      description={`Client invoice balances by status in ${activeRangeLabel.toLowerCase()}`}
       icon="donut_large"
-      title="Status Mix"
+      title="Receivables Mix"
     >
       {hasData ? (
         <>
@@ -739,7 +811,7 @@ function CollectionGaugeWidget({
       className="md:col-span-1 lg:col-span-2"
       description={`Paid versus open amount in ${activeRangeLabel.toLowerCase()}`}
       icon="speed"
-      title="Collection Gauge"
+      title="Revenue Collection"
     >
       {hasData ? (
         <>
@@ -868,7 +940,7 @@ function CustomizePanel({
 
 export default function Analytics() {
   const { invoices } = useInvoices();
-  const { activeProfile, saveAnalyticsPreferences } = useUserData();
+  const { activeProfile, outsourcingInvoices, saveAnalyticsPreferences } = useUserData();
   const { currency } = useCurrency();
   const [activeRange, setActiveRange] = useState<AnalyticsRange>("month");
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
@@ -903,8 +975,10 @@ export default function Analytics() {
     return () => window.removeEventListener("resize", updateIndicator);
   }, [updateIndicator]);
   const filteredInvoices = useMemo(() => filterInvoicesByDate(invoices, activeRange), [activeRange, invoices]);
+  const filteredOutsourcingInvoices = useMemo(() => filterOutsourcingInvoicesByDate(outsourcingInvoices, activeRange), [activeRange, outsourcingInvoices]);
   const activeRangeLabel = RANGE_OPTIONS.find((option) => option.id === activeRange)?.label || "This Month";
   const totals = useMemo(() => getInvoiceTotals(filteredInvoices), [filteredInvoices]);
+  const payableTotals = useMemo(() => getOutsourcingTotals(filteredOutsourcingInvoices), [filteredOutsourcingInvoices]);
   const clients = useMemo(() => getClientsFromInvoices(filteredInvoices), [filteredInvoices]);
   const revenueChartData = useMemo(() => getRevenueChartData(invoices, activeRange), [activeRange, invoices]);
   const statusChartData = useMemo(() => getStatusChartData(totals), [totals]);
@@ -916,6 +990,14 @@ export default function Analytics() {
   const averageInvoice = filteredInvoices.length > 0 ? totals.totalAmount / filteredInvoices.length : 0;
   const averageClientValue = clients.length > 0 ? totals.totalAmount / clients.length : 0;
   const topClient = [...clients].sort((a, b) => b.totalBilled - a.totalBilled)[0];
+  const receivables = totals.pendingAmount + totals.overdueAmount;
+  const receivablesCount = totals.unpaidCount + totals.overdueCount;
+  const openPayables = payableTotals.pendingAmount + payableTotals.overdueAmount;
+  const openPayablesCount = payableTotals.unpaidCount + payableTotals.overdueCount;
+  const paidOutsourcing = filteredOutsourcingInvoices
+    .filter((invoice) => invoice.status === "Paid")
+    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const netProfit = totals.paidAmount - paidOutsourcing;
 
   useEffect(() => {
     setDraftPreferences(getSavedAnalyticsPreferences(activeProfile?.analyticsPreferences));
@@ -1135,6 +1217,19 @@ export default function Analytics() {
           onToggle={toggleDraftWidget}
         />
       )}
+
+      <CashflowOverview
+        activeRangeLabel={activeRangeLabel}
+        currency={currency}
+        netProfit={netProfit}
+        openPayables={openPayables}
+        paidOutsourcing={paidOutsourcing}
+        payablesCount={openPayablesCount}
+        receivables={receivables}
+        receivablesCount={receivablesCount}
+        revenue={totals.paidAmount}
+        revenueCount={totals.paidCount}
+      />
 
       {visibleWidgetIds.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">

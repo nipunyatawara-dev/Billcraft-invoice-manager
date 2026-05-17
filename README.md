@@ -99,7 +99,7 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 - Save new clients as regular clients or one-time invoice contacts
 - Upload client avatars while creating invoice contacts
 - Preview invoice profile, client details, line items, and totals before export
-- Export invoices as `.txt` files
+- Export invoices as `.pdf` files
 
 ### Clients
 
