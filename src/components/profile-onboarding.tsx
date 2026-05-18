@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ProfileOnboardingProps = {
   profileId: string | null;
@@ -148,6 +148,7 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
   const shouldReduceMotion = useReducedMotion();
   const { activeProfile, activeProfileId, clients, invoices, isProfileLocked } = useUserData();
   const initialStoredState = profileId ? readStoredState(profileId) : {};
+  const onboardingRef = useRef<HTMLElement | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [manualCompletedStepIds, setManualCompletedStepIds] = useState<string[]>(() => initialStoredState.completedStepIds || []);
@@ -162,6 +163,28 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
 
     return () => window.clearTimeout(timer);
   }, [isDismissed, profileId, shouldReduceMotion]);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      return;
+    }
+
+    function collapseOnOutsidePointer(event: PointerEvent) {
+      const target = event.target;
+
+      if (!(target instanceof Node) || onboardingRef.current?.contains(target)) {
+        return;
+      }
+
+      setIsExpanded(false);
+    }
+
+    document.addEventListener("pointerdown", collapseOnOutsidePointer);
+
+    return () => {
+      document.removeEventListener("pointerdown", collapseOnOutsidePointer);
+    };
+  }, [isExpanded]);
 
   const manualCompletedIds = useMemo(() => new Set(manualCompletedStepIds), [manualCompletedStepIds]);
   const steps = useMemo<OnboardingStep[]>(() => {
@@ -283,6 +306,7 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
   return (
     <AnimatePresence>
       <motion.aside
+        ref={onboardingRef}
         className="fixed inset-x-3 bottom-3 z-[90] mx-auto w-[min(100%,24rem)] sm:inset-x-auto sm:right-5 sm:bottom-5"
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 18, filter: "blur(8px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -347,14 +371,14 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                   <>
                     {selectedStep && (
                       <div className="border-b border-[var(--card-border)]">
-                        <div className="h-[180px] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_82%,white)_0%,color-mix(in_srgb,var(--chart-soft)_72%,var(--background))_100%)] px-5 py-4 text-[var(--action-text)]">
+                        <div className="h-[180px] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_82%,white)_0%,color-mix(in_srgb,var(--chart-soft)_72%,var(--background))_100%)] px-5 py-4 text-[var(--action-text)]">
                           <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[var(--action-text)]/80">
                             <span className="material-symbols-outlined text-[15px]">arrow_back_ios_new</span>
                             <span><AnimatedNumber value={selectedStepIndex + 1} /> of <AnimatedNumber value={totalSteps} /></span>
                           </div>
                           <StepPreview step={selectedStep} />
                         </div>
-                        <div className="px-4 py-4">
+                        <div className="relative bg-[var(--card)] px-4 py-4">
                           <h3 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">{selectedStep.title}</h3>
                           <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--muted)]">{selectedStep.description}</p>
                           <div className="mt-4 flex gap-2">

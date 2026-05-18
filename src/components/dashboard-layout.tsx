@@ -160,6 +160,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (storedProfileId) {
       if (profiles.some((profile) => profile.id === storedProfileId)) {
         setOnboardingProfileId(storedProfileId);
+        setIsSidebarOpen(true);
       } else {
         window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
       }
@@ -258,6 +259,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       if (createdProfile?.id) {
         window.localStorage.setItem(ACTIVE_ONBOARDING_PROFILE_KEY, createdProfile.id);
         setOnboardingProfileId(createdProfile.id);
+        setIsSidebarOpen(true);
       }
     } catch (createError) {
       setProfileMessage(createError instanceof Error ? createError.message : "Unable to create profile.");
