@@ -132,7 +132,7 @@ type UserDataContextValue = LocalDataSnapshot & {
   loading: boolean;
   error: string | null;
   isProfileLocked: boolean;
-  createProfile: (profile: ProfileDraft) => Promise<void>;
+  createProfile: (profile: ProfileDraft) => Promise<UserProfile | null>;
   updateProfile: (profile: ProfileDraft) => Promise<void>;
   switchProfile: (profileId: string, password?: string) => Promise<void>;
   unlockProfile: (profileId: string, password: string) => Promise<void>;
@@ -339,6 +339,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     try {
       const nextSnapshot = await postAction({ action: "createProfile", profile });
       setUnlockedProfileId(nextSnapshot.activeProfileId);
+      return nextSnapshot.activeProfile;
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : "Unable to create profile.";
       setError(message);

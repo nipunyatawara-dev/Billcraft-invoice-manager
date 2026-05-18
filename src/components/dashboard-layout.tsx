@@ -4,6 +4,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
+import { ProfileCreateOnboarding } from "@/components/profile-create-onboarding";
+import { ProfileOnboarding } from "@/components/profile-onboarding";
 import { getBalanceDue, isRecordOverdue } from "@/data/invoices";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
@@ -41,6 +43,8 @@ const EMPTY_PROFILE_FORM: ProfileDraft = {
   passwordHint: "",
 };
 
+const ACTIVE_ONBOARDING_PROFILE_KEY = "billcraft.profile-onboarding.active.v1";
+
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -67,6 +71,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [pendingSwitchProfileId, setPendingSwitchProfileId] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
+  const [onboardingProfileId, setOnboardingProfileId] = useState<string | null>(null);
   const pathname = usePathname();
   const {
     activeProfile,
@@ -145,6 +150,22 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(badgeTimer);
   }, []);
 
+  useEffect(() => {
+    if (loading || onboardingProfileId) {
+      return;
+    }
+
+    const storedProfileId = window.localStorage.getItem(ACTIVE_ONBOARDING_PROFILE_KEY);
+
+    if (storedProfileId) {
+      if (profiles.some((profile) => profile.id === storedProfileId)) {
+        setOnboardingProfileId(storedProfileId);
+      } else {
+        window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
+      }
+    }
+  }, [loading, onboardingProfileId, profiles]);
+
   function closeSidebarOnMobile() {
     if (window.matchMedia("(max-width: 1023px)").matches) {
       setIsSidebarOpen(false);
@@ -216,7 +237,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setProfileMessage("");
 
     try {
-      await notifyPromise(createProfile(profileForm), {
+      const createdProfile = await notifyPromise(createProfile(profileForm), {
         loading: {
           title: "Creating profile...",
           description: "Preparing your local invoice workspace.",
@@ -234,6 +255,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       setProfilePasswordConfirm("");
       setShowCreateProfileForm(false);
       setIsProfileModalOpen(false);
+      if (createdProfile?.id) {
+        window.localStorage.setItem(ACTIVE_ONBOARDING_PROFILE_KEY, createdProfile.id);
+        setOnboardingProfileId(createdProfile.id);
+      }
     } catch (createError) {
       setProfileMessage(createError instanceof Error ? createError.message : "Unable to create profile.");
     } finally {
@@ -399,6 +424,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const passwordPromptProfile = profiles.find((profile) => profile.id === (pendingSwitchProfileId || (isProfileLocked ? activeProfileId : null)));
   const isPasswordPromptForLogin = Boolean(passwordPromptProfile && passwordPromptProfile.id === activeProfileId && isProfileLocked);
   const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
+  const isCreatingProfile = isFirstRun || showCreateProfileForm;
   const profileModalEyebrow = isFirstRun ? "Welcome" : isProfileLocked ? "Login" : "Profiles";
   const profileModalTitle = isFirstRun ? "Create your first profile" : isProfileLocked ? "Enter profile password" : "Manage profiles";
 
@@ -552,6 +578,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      <ProfileOnboarding
+        key={onboardingProfileId || "profile-onboarding"}
+        profileId={onboardingProfileId}
+        onClose={() => {
+          window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
+          setOnboardingProfileId(null);
+        }}
+      />
+
       {(isProfileModalOpen || isFirstRun) && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
@@ -559,29 +594,35 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm"
             onClick={closeProfileModal}
           />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div>
-                <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="section-eyebrow" replayKey={profileModalEyebrow} />
-                <AnimatedText
-                  as="h2"
-                  text={profileModalTitle}
-                  effect="mask-reveal-up"
-                  className="text-2xl font-semibold text-[var(--foreground)] font-display"
-                  replayKey={profileModalTitle}
-                />
-                <p className="mt-1 text-[12px] text-[var(--muted)]">
-                  <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
-                </p>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className={`modal-surface relative max-h-[92vh] overflow-y-auto ${isCreatingProfile ? "max-w-4xl p-0" : "max-w-3xl p-5 sm:p-7"}`}
+          >
+            {!isCreatingProfile && (
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div>
+                  <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="section-eyebrow" replayKey={profileModalEyebrow} />
+                  <AnimatedText
+                    as="h2"
+                    text={profileModalTitle}
+                    effect="mask-reveal-up"
+                    className="text-2xl font-semibold text-[var(--foreground)] font-display"
+                    replayKey={profileModalTitle}
+                  />
+                  <p className="mt-1 text-[12px] text-[var(--muted)]">
+                    <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
+                  </p>
+                </div>
+                {!isFirstRun && !isProfileLocked && (
+                  <button onClick={closeProfileModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                    <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+                  </button>
+                )}
               </div>
-              {!isFirstRun && !isProfileLocked && (
-                <button onClick={closeProfileModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
-                </button>
-              )}
-            </div>
+            )}
 
-            {profiles.length > 0 && (
+            {!isCreatingProfile && profiles.length > 0 && (
               <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {profiles.map((profile) => {
                   const isActive = profile.id === activeProfileId;
@@ -618,7 +659,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            {passwordPromptProfile && (
+            {!isCreatingProfile && passwordPromptProfile && (
               <form onSubmit={handleProfileAccess} className="mb-5 surface-card p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <span className="size-9 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
@@ -680,175 +721,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            {(isFirstRun || showCreateProfileForm) && (
-            <form onSubmit={handleCreateProfile} className={`space-y-4 ${profiles.length >= 5 ? "opacity-50 pointer-events-none" : ""}`}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-name">Name</label>
-                  <input
-                    id="profile-name"
-                    required
-                    value={profileForm.name}
-                    onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
-                    placeholder="Your name"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-profession">Profession</label>
-                  <input
-                    id="profile-profession"
-                    required
-                    value={profileForm.profession}
-                    onChange={(event) => setProfileForm({ ...profileForm, profession: event.target.value })}
-                    placeholder="Designer, developer, consultant"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-email">Email</label>
-                  <input
-                    id="profile-email"
-                    type="email"
-                    value={profileForm.email}
-                    onChange={(event) => setProfileForm({ ...profileForm, email: event.target.value })}
-                    placeholder="you@example.com"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-phone">Phone</label>
-                  <input
-                    id="profile-phone"
-                    value={profileForm.phone}
-                    onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })}
-                    placeholder="+94 77 000 0000"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-business">Business Name</label>
-                <input
-                  id="profile-business"
-                  value={profileForm.businessName}
-                  onChange={(event) => setProfileForm({ ...profileForm, businessName: event.target.value })}
-                  placeholder="Studio or business name"
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-password">Password</label>
-                  <input
-                    id="profile-password"
-                    required
-                    minLength={6}
-                    type="password"
-                    value={profileForm.password || ""}
-                    onChange={(event) => setProfileForm({ ...profileForm, password: event.target.value })}
-                    placeholder="Minimum 6 characters"
-                    className="field-control px-3 py-2"
-                  />
-                  <p className="text-[10px] text-[var(--muted)]">Numbers-only passwords are allowed.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-password-confirm">Confirm Password</label>
-                  <input
-                    id="profile-password-confirm"
-                    required
-                    minLength={6}
-                    type="password"
-                    value={profilePasswordConfirm}
-                    onChange={(event) => setProfilePasswordConfirm(event.target.value)}
-                    placeholder="Repeat password"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="profile-password-hint">Password Hint</label>
-                <input
-                  id="profile-password-hint"
-                  value={profileForm.passwordHint || ""}
-                  onChange={(event) => setProfileForm({ ...profileForm, passwordHint: event.target.value })}
-                  placeholder="Optional reminder"
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="surface-card p-4">
-                  <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Profile Picture</p>
-                  <div className="flex items-center gap-3">
-                    <div className="size-14 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
-                      {profileForm.profilePic ? (
-                        <img className="w-full h-full object-cover" alt="Profile preview" src={profileForm.profilePic} />
-                      ) : (
-                        <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
-                      )}
-                    </div>
-                    <label className="btn-secondary text-[12px] min-h-8 px-3 py-1.5 cursor-pointer">
-                      <span>{profileForm.profilePic ? "Change" : "Upload"}</span>
-                      <input className="sr-only" type="file" accept="image/*" onChange={(event) => handleProfileImageChange("profilePic", event)} />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="surface-card p-4">
-                  <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-3">Signature</p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-14 w-24 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
-                      {profileForm.signature ? (
-                        <img className="w-full h-full object-contain" alt="Signature preview" src={profileForm.signature} />
-                      ) : (
-                        <span className="material-symbols-outlined text-[var(--foreground)]/25">draw</span>
-                      )}
-                    </div>
-                    <label className="btn-secondary text-[12px] min-h-8 px-3 py-1.5 cursor-pointer">
-                      <span>{profileForm.signature ? "Change" : "Upload"}</span>
-                      <input className="sr-only" type="file" accept="image/*" onChange={(event) => handleProfileImageChange("signature", event)} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {(profileMessage || error) && (
-                <p className="rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
-                  {profileMessage || error}
-                </p>
-              )}
-
-              <div className="flex justify-end gap-2 pt-1">
-                {!isFirstRun && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateProfileForm(false);
-                      setProfileForm(EMPTY_PROFILE_FORM);
-                      setProfilePasswordConfirm("");
-                      setProfileMessage("");
-                    }}
-                    className="btn-ghost"
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button type="submit" className="btn-primary active:scale-[0.97]" disabled={profileSaving || profiles.length >= 5}>
-                  {profileSaving ? "Saving..." : "Create Profile"}
-                </button>
-              </div>
-            </form>
-            )}
-
-            {profiles.length >= 5 && (
-              <p className="mt-4 text-[12px] text-[var(--muted)]">Profile limit reached. Switch between your existing profiles above.</p>
+            {isCreatingProfile && (
+              <ProfileCreateOnboarding
+                error={error}
+                isFirstRun={isFirstRun}
+                maxProfiles={5}
+                onCancel={() => {
+                  setShowCreateProfileForm(false);
+                  setProfileForm(EMPTY_PROFILE_FORM);
+                  setProfilePasswordConfirm("");
+                  setProfileMessage("");
+                }}
+                onImageChange={handleProfileImageChange}
+                onSubmit={handleCreateProfile}
+                profileForm={profileForm}
+                profileMessage={profileMessage}
+                profilePasswordConfirm={profilePasswordConfirm}
+                profileSaving={profileSaving}
+                profilesLength={profiles.length}
+                setProfileForm={setProfileForm}
+                setProfilePasswordConfirm={setProfilePasswordConfirm}
+              />
             )}
           </div>
         </div>
