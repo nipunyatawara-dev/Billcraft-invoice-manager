@@ -12,6 +12,8 @@ import {
   type InvoiceItem,
   type InvoiceStatus,
   type OutsourcingInvoice,
+  type PaymentAttachment,
+  type PaymentRecord,
   type UserProfile,
   type Vendor,
 } from "@/data/invoices";
@@ -83,6 +85,12 @@ export type InvoiceDraft = {
   templateId: string;
   templateName: string;
   items: InvoiceItem[];
+  amountPaid?: number;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentNotes?: string;
+  receiptAttachments?: PaymentAttachment[];
+  payments?: PaymentRecord[];
   saveClientMode?: "regular" | "onetime";
 };
 
@@ -101,6 +109,12 @@ export type OutsourcingInvoiceDraft = {
   templateId: string;
   templateName: string;
   items: InvoiceItem[];
+  amountPaid?: number;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentNotes?: string;
+  receiptAttachments?: PaymentAttachment[];
+  payments?: PaymentRecord[];
   saveVendorMode?: "regular" | "onetime";
 };
 
@@ -133,6 +147,7 @@ type UserDataContextValue = LocalDataSnapshot & {
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
   saveOutsourcingInvoice: (invoice: OutsourcingInvoiceDraft) => Promise<OutsourcingInvoice | null>;
   saveAnalyticsPreferences: (preferences: AnalyticsPreferences) => Promise<AnalyticsPreferences | null>;
+  markProfileBackedUp: () => Promise<UserProfile | null>;
   saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
   exportInvoice: (invoice: Invoice) => Promise<void>;
   exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => void;
@@ -506,6 +521,12 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       templateId: draft.templateId,
       templateName: draft.templateName,
       items,
+      amountPaid: draft.amountPaid,
+      paidAt: draft.paidAt,
+      paymentMethod: draft.paymentMethod,
+      paymentNotes: draft.paymentNotes,
+      receiptAttachments: draft.receiptAttachments || [],
+      payments: draft.payments || [],
       status: draft.status,
       statusColor: getStatusColor(draft.status),
       clientColor: "bg-[var(--foreground)]/10",
@@ -578,6 +599,12 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       templateId: draft.templateId,
       templateName: draft.templateName,
       items,
+      amountPaid: draft.amountPaid,
+      paidAt: draft.paidAt,
+      paymentMethod: draft.paymentMethod,
+      paymentNotes: draft.paymentNotes,
+      receiptAttachments: draft.receiptAttachments || [],
+      payments: draft.payments || [],
       status: draft.status,
       statusColor: getStatusColor(draft.status),
       vendorColor: "bg-[var(--foreground)]/10",
@@ -636,6 +663,20 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     return nextSnapshot.activeProfile?.analyticsPreferences || preferences;
   }, [postAction, snapshot.activeProfileId]);
 
+  const markProfileBackedUp = useCallback(async () => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    setError(null);
+    const nextSnapshot = await postAction({
+      action: "markProfileBackedUp",
+      profileId: snapshot.activeProfileId,
+    });
+
+    return nextSnapshot.activeProfile;
+  }, [postAction, snapshot.activeProfileId]);
+
   const exportInvoice = useCallback(async (invoice: Invoice) => {
     await exportInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
@@ -657,6 +698,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       `Date: ${invoice.date}`,
       invoice.dueDate ? `Due: ${invoice.dueDate}` : "",
       `Status: ${invoice.status}`,
+      `Amount Paid: ${formatCurrency(invoice.amountPaid || 0, currency)}`,
+      invoice.paidAt ? `Paid At: ${invoice.paidAt}` : "",
+      invoice.paymentMethod ? `Payment Method: ${invoice.paymentMethod}` : "",
+      invoice.paymentNotes ? `Payment Notes: ${invoice.paymentNotes}` : "",
       "",
       "Work",
       ...(lineItems.length > 0 ? lineItems : ["No line items"]),
@@ -693,6 +738,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveVendor,
     saveOutsourcingInvoice,
     saveAnalyticsPreferences,
+    markProfileBackedUp,
     saveTodoTasks,
     exportInvoice,
     exportOutsourcingInvoice,
@@ -706,6 +752,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     isProfileLocked,
     loading,
     logoutProfile,
+    markProfileBackedUp,
     refresh,
     saveClient,
     saveInvoice,

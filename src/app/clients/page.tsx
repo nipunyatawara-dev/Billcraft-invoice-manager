@@ -1,12 +1,13 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { formatCurrency, getInvoiceTotal, type Client, type Invoice } from "@/data/invoices";
+import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -40,6 +41,7 @@ export default function Clients() {
 
   const { invoices, clientRecords, saveClient } = useInvoices();
   const { currency } = useCurrency();
+  const shouldReduceMotion = useReducedMotion();
 
   const clients = useMemo<ClientWithInvoices[]>(() => (
     clientRecords.map((client) => {
@@ -163,11 +165,49 @@ export default function Clients() {
   }
 
   function getStatusBreakdown(clientInvoices: Invoice[]) {
-    const paid = clientInvoices.filter((invoice) => invoice.status === "Paid").length;
-    const unpaid = clientInvoices.filter((invoice) => invoice.status === "Unpaid").length;
-    const overdue = clientInvoices.filter((invoice) => invoice.status === "Overdue").length;
+    const paid = clientInvoices.filter((invoice) => getBalanceDue(invoice) <= 0).length;
+    const unpaid = clientInvoices.filter((invoice) => getBalanceDue(invoice) > 0 && getPaymentState(invoice) !== "Overdue").length;
+    const overdue = clientInvoices.filter((invoice) => getPaymentState(invoice) === "Overdue").length;
 
     return { paid, unpaid, overdue };
+  }
+
+  function getAveragePaymentDays(clientInvoices: Invoice[]) {
+    const paidInvoices = clientInvoices
+      .map((invoice) => {
+        const paidAt = invoice.paidAt || invoice.payments?.[0]?.paidAt;
+        const invoiceDate = new Date(invoice.date);
+        const paymentDate = paidAt ? new Date(paidAt) : null;
+
+        if (!paymentDate || Number.isNaN(invoiceDate.getTime()) || Number.isNaN(paymentDate.getTime())) {
+          return null;
+        }
+
+        return Math.max(Math.round((paymentDate.getTime() - invoiceDate.getTime()) / (24 * 60 * 60 * 1000)), 0);
+      })
+      .filter((days): days is number => typeof days === "number");
+
+    return paidInvoices.length > 0
+      ? Math.round(paidInvoices.reduce((sum, days) => sum + days, 0) / paidInvoices.length)
+      : null;
+  }
+
+  function quickCreateInvoice(clientId: string) {
+    window.sessionStorage.setItem("billcraft.quick-invoice-client-id", clientId);
+    window.location.href = "/invoices";
+  }
+
+  function toggleClient(clientId: string) {
+    setSelectedClientId((currentClientId) => currentClientId === clientId ? null : clientId);
+  }
+
+  function handleClientCardKeyDown(event: KeyboardEvent<HTMLDivElement>, clientId: string) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    toggleClient(clientId);
   }
 
   return (
@@ -227,11 +267,18 @@ export default function Clients() {
           {filteredClients.map((client) => {
             const breakdown = getStatusBreakdown(client.invoices);
             const isSelected = selectedClientId === client.id;
+            const outstandingBalance = client.invoices.reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+            const averagePaymentDays = getAveragePaymentDays(client.invoices);
 
             return (
               <div key={client.id} className="flex flex-col">
                 <div
-                  onClick={() => setSelectedClientId(isSelected ? null : client.id)}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isSelected}
+                  aria-controls={`client-details-${client.id}`}
+                  onClick={() => toggleClient(client.id)}
+                  onKeyDown={(event) => handleClientCardKeyDown(event, client.id)}
                   className={`surface-card p-5 cursor-pointer transition-smooth group ${
                     isSelected
                       ? "border-[var(--accent)]/30 rounded-b-none"
@@ -298,32 +345,90 @@ export default function Clients() {
                   </div>
                 </div>
 
-                {isSelected && selectedClientData && (
-                  <div className="bg-[var(--foreground)]/[0.02] rounded-b-2xl border border-t-0 border-[var(--accent)]/30 overflow-hidden">
-                    <div className="px-5 py-2.5 border-b border-[var(--card-border)]">
-                      <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase">Invoice History</p>
-                    </div>
-                    {selectedClientData.invoices.length > 0 ? selectedClientData.invoices.map((invoice) => (
-                      <div key={invoice.id} className="px-5 py-3 flex items-center justify-between border-b border-[var(--card-border)] last:border-0 hover:bg-[var(--foreground)]/[0.02] transition-smooth">
-                        <div className="flex items-center gap-2.5">
-                          <span className="material-symbols-outlined text-[16px] text-[var(--foreground)]/25">receipt_long</span>
-                          <div>
-                            <p className="text-[13px] font-semibold text-[var(--foreground)]">{invoice.id}</p>
-                            <p className="text-[11px] text-[var(--muted)]">{invoice.date}</p>
+                <AnimatePresence initial={false}>
+                  {isSelected && selectedClientData && (
+                    <motion.div
+                      key={`${client.id}-details`}
+                      id={`client-details-${client.id}`}
+                      initial={shouldReduceMotion ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0, y: -8 }}
+                      animate={{ opacity: 1, height: "auto", y: 0 }}
+                      exit={shouldReduceMotion ? { opacity: 0, height: 0 } : { opacity: 0, height: 0, y: -6 }}
+                      transition={{ duration: shouldReduceMotion ? 0.01 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="rounded-b-2xl border border-t-0 border-[var(--accent)]/30 bg-[var(--foreground)]/[0.02] overflow-hidden">
+                        <div className="grid grid-cols-1 gap-3 border-b border-[var(--card-border)] p-5 lg:grid-cols-4">
+                          <div className="rounded-xl border border-[var(--card-border)] p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Outstanding</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(outstandingBalance, currency)} /></p>
+                          </div>
+                          <div className="rounded-xl border border-[var(--card-border)] p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Avg Pay Time</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-[var(--foreground)]">{averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}</p>
+                          </div>
+                          <div className="rounded-xl border border-[var(--card-border)] p-3 lg:col-span-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Notes</p>
+                            <p className="mt-1 line-clamp-2 text-[12px] text-[var(--muted)]">{client.notes || "No client notes yet. Add notes from Edit."}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-[13px] font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                          <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase ${invoice.statusColor}`}>
-                            {invoice.status}
-                          </span>
+
+                        <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+                          <div className="border-b border-[var(--card-border)] lg:border-b-0 lg:border-r">
+                            <div className="flex items-center justify-between gap-3 px-5 py-3">
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">Invoices</p>
+                              <button type="button" onClick={() => quickCreateInvoice(client.id)} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
+                                <span className="material-symbols-outlined text-[14px]">add</span>
+                                Create Invoice
+                              </button>
+                            </div>
+                            {selectedClientData.invoices.length > 0 ? selectedClientData.invoices.map((invoice) => (
+                              <div key={invoice.id} className="flex items-center justify-between gap-3 border-t border-[var(--card-border)] px-5 py-3 transition-smooth hover:bg-[var(--foreground)]/[0.02]">
+                                <div className="flex min-w-0 items-center gap-2.5">
+                                  <span className="material-symbols-outlined text-[16px] text-[var(--foreground)]/25">receipt_long</span>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{invoice.id}</p>
+                                    <p className="text-[11px] text-[var(--muted)]">{invoice.date} · <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected</p>
+                                  </div>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  <p className="text-[13px] font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                                  <p className="text-[10px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(getBalanceDue(invoice), currency)} /> due</p>
+                                </div>
+                              </div>
+                            )) : (
+                              <div className="border-t border-[var(--card-border)] px-5 py-5 text-[12px] text-[var(--muted)]">No invoices for this client yet.</div>
+                            )}
+                          </div>
+
+                          <div>
+                            <div className="px-5 py-3">
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">Contact History</p>
+                            </div>
+                            <div className="space-y-0 border-t border-[var(--card-border)]">
+                              {[
+                                client.createdAt ? { icon: "person_add", label: "Client added", date: client.createdAt } : null,
+                                client.updatedAt && client.updatedAt !== client.createdAt ? { icon: "edit_note", label: "Contact updated", date: client.updatedAt } : null,
+                                ...selectedClientData.invoices.slice(0, 4).map((invoice) => ({
+                                  icon: getBalanceDue(invoice) <= 0 ? "payments" : "request_quote",
+                                  label: `${invoice.id} ${getPaymentState(invoice).toLowerCase()}`,
+                                  date: invoice.paidAt || invoice.date,
+                                })),
+                              ].filter(Boolean).map((event) => (
+                                <div key={`${event!.label}-${event!.date}`} className="flex items-start gap-2.5 border-b border-[var(--card-border)] px-5 py-3 last:border-b-0">
+                                  <span className="material-symbols-outlined mt-0.5 text-[15px] text-[var(--foreground)]/25">{event!.icon}</span>
+                                  <div>
+                                    <p className="text-[12px] font-semibold text-[var(--foreground)]">{event!.label}</p>
+                                    <p className="text-[11px] text-[var(--muted)]">{formatDisplayDate(event!.date)}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    )) : (
-                      <div className="px-5 py-5 text-[12px] text-[var(--muted)]">No invoices for this client yet.</div>
-                    )}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
@@ -423,6 +528,17 @@ export default function Clients() {
                   value={form.address}
                   onChange={(event) => setForm({ ...form, address: event.target.value })}
                   placeholder="Billing address"
+                  className="field-control min-h-20 px-3 py-2 resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-notes">Notes</label>
+                <textarea
+                  id="client-notes"
+                  value={form.notes}
+                  onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                  placeholder="Payment preferences, scope notes, or relationship context"
                   className="field-control min-h-20 px-3 py-2 resize-none"
                 />
               </div>

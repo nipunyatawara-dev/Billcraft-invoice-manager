@@ -4,10 +4,11 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
+import { getBalanceDue, isRecordOverdue } from "@/data/invoices";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,6 +41,19 @@ const EMPTY_PROFILE_FORM: ProfileDraft = {
   passwordHint: "",
 };
 
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getTimeValue(value?: string) {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useModePalettes();
 
@@ -57,16 +71,56 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const {
     activeProfile,
     activeProfileId,
+    clients,
     createProfile,
     error,
+    invoices,
     isProfileLocked,
     loading,
     logoutProfile,
+    outsourcingInvoices,
     profiles,
     switchProfile,
+    todoTasks,
     unlockProfile,
+    vendors,
   } = useUserData();
   const isFirstRun = !loading && profiles.length === 0;
+  const activeAlerts = useMemo(() => {
+    const overdueInvoices = invoices.filter(isRecordOverdue);
+    const tasksDueToday = todoTasks.filter((task) => task.stage !== "done" && task.dueDate === todayKey());
+    const unpaidVendorInvoices = outsourcingInvoices.filter((invoice) => getBalanceDue(invoice) > 0);
+    const latestProfileDataTime = Math.max(
+      getTimeValue(activeProfile?.updatedAt),
+      ...clients.map((client) => getTimeValue(client.updatedAt || client.createdAt)),
+      ...invoices.map((invoice) => getTimeValue(invoice.updatedAt || invoice.createdAt)),
+      ...vendors.map((vendor) => getTimeValue(vendor.updatedAt || vendor.createdAt)),
+      ...outsourcingInvoices.map((invoice) => getTimeValue(invoice.updatedAt || invoice.createdAt)),
+      ...todoTasks.map((task) => getTimeValue(task.updatedAt || task.createdAt)),
+    );
+    const hasProfileData = clients.length + invoices.length + vendors.length + outsourcingInvoices.length + todoTasks.length > 0;
+    const profileNeedsBackup = Boolean(
+      activeProfile &&
+      hasProfileData &&
+      (!activeProfile.lastBackupAt || getTimeValue(activeProfile.lastBackupAt) < latestProfileDataTime),
+    );
+
+    return [
+      overdueInvoices.length > 0
+        ? { icon: "warning", label: "Overdue invoices", count: overdueInvoices.length, detail: "Client invoices need follow-up." }
+        : null,
+      tasksDueToday.length > 0
+        ? { icon: "event", label: "Tasks due today", count: tasksDueToday.length, detail: "To-do items are due today." }
+        : null,
+      profileNeedsBackup
+        ? { icon: "backup", label: "Profile backup due", count: 1, detail: "Export the latest local data from Settings." }
+        : null,
+      unpaidVendorInvoices.length > 0
+        ? { icon: "engineering", label: "Unpaid vendor invoices", count: unpaidVendorInvoices.length, detail: "Outsourcing payables still have a balance." }
+        : null,
+    ].filter(Boolean) as Array<{ icon: string; label: string; count: number; detail: string }>;
+  }, [activeProfile, clients, invoices, outsourcingInvoices, todoTasks, vendors]);
+  const alertCount = activeAlerts.reduce((sum, alert) => sum + alert.count, 0);
 
   useEffect(() => {
     if (isFirstRun) {
@@ -316,9 +370,29 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (activeAlerts.length > 0) {
+      notify.warning({
+        title: `${alertCount} billing alert${alertCount === 1 ? "" : "s"}`,
+        description: (
+          <div className="space-y-2">
+            {activeAlerts.map((alert) => (
+              <div key={alert.label} className="flex items-start gap-2">
+                <span className="material-symbols-outlined mt-0.5 text-[15px]">{alert.icon}</span>
+                <span>
+                  <span className="block text-[12px] font-semibold">{alert.count} {alert.label}</span>
+                  <span className="block text-[11px] opacity-75">{alert.detail}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        ),
+      });
+      return;
+    }
+
     notify.info({
       title: "All caught up",
-      description: "No new billing notifications right now.",
+      description: "No overdue invoices, due tasks, backup reminders, or unpaid vendor bills right now.",
     });
   }
 
@@ -364,9 +438,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
           <button onClick={handleNotificationsClick} className="icon-button active:scale-95 hidden sm:inline-flex relative" aria-label="Notifications">
             <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="t-badge" data-open={isNotificationBadgeOpen ? "true" : "false"} aria-hidden="true">
-              <span className="t-badge-dot" />
-            </span>
+            {alertCount > 0 && (
+              <span className="t-badge" data-open={isNotificationBadgeOpen ? "true" : "false"} aria-label={`${alertCount} billing alerts`}>
+                <span className="flex min-h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold leading-none text-[var(--action-text)]">
+                  {alertCount > 9 ? "9+" : alertCount}
+                </span>
+              </span>
+            )}
           </button>
           <button
             onClick={() => {

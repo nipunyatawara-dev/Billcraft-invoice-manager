@@ -2,14 +2,20 @@
 
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
+import { PaymentSummary, PaymentTrackingForm, createPaymentRecord } from "@/components/payment-tracking";
 import {
   formatCurrency,
+  getAmountPaid,
+  getBalanceDue,
   getInvoiceItemsTotal,
   getOutsourcingInvoiceTotal,
   getOutsourcingTotals,
+  getPaymentState,
   type InvoiceItem,
   type InvoiceStatus,
   type OutsourcingInvoice,
+  type PaymentAttachment,
+  type PaymentRecord,
   type Vendor,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
@@ -45,6 +51,9 @@ type OutsourcingForm = {
   dueDate: string;
   status: InvoiceStatus;
   items: InvoiceItem[];
+  paymentNotes: string;
+  payments: PaymentRecord[];
+  receiptAttachments: PaymentAttachment[];
   saveVendorMode: SaveVendorMode | null;
 };
 
@@ -76,6 +85,9 @@ function createEmptyForm(): OutsourcingForm {
     dueDate: "",
     status: "Unpaid",
     items: [createItem()],
+    paymentNotes: "",
+    payments: [],
+    receiptAttachments: [],
     saveVendorMode: null,
   };
 }
@@ -124,6 +136,9 @@ function getOutsourcingForm(invoice: OutsourcingInvoice, vendors: Vendor[]): Out
     dueDate: toDateInputValue(invoice.dueDate),
     status: invoice.status,
     items: fallbackItems,
+    paymentNotes: invoice.paymentNotes || "",
+    payments: invoice.payments || [],
+    receiptAttachments: invoice.receiptAttachments || [],
     saveVendorMode: null,
   };
 }
@@ -292,6 +307,8 @@ export default function Outsourcing() {
 
     try {
       const isEditing = modalMode === "edit";
+      const paymentTotal = form.payments.reduce((sum, payment) => sum + Math.max(Number(payment.amount) || 0, 0), 0);
+      const latestPayment = [...form.payments].sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime())[0];
       await notifyPromise(saveOutsourcingInvoice({
         id: modalMode === "edit" ? selectedInvoice?.id : undefined,
         vendorId: form.vendorMode === "saved" ? form.vendorId : undefined,
@@ -307,6 +324,12 @@ export default function Outsourcing() {
         templateId: selectedTemplate.id,
         templateName: selectedTemplate.name,
         items: normalizedItems,
+        amountPaid: form.payments.length > 0 ? paymentTotal : form.status === "Paid" ? invoiceTotal : 0,
+        paidAt: latestPayment?.paidAt || (form.status === "Paid" ? form.date : undefined),
+        paymentMethod: latestPayment?.method,
+        paymentNotes: form.paymentNotes,
+        receiptAttachments: form.receiptAttachments,
+        payments: form.payments,
         saveVendorMode: form.vendorMode === "new" ? saveVendorMode || form.saveVendorMode || "onetime" : "onetime",
       }).then((savedInvoice) => {
         if (!savedInvoice) {
@@ -428,6 +451,11 @@ export default function Outsourcing() {
 
         <div className="space-y-2">
           {filteredInvoices.map((invoice) => (
+            (() => {
+              const balanceDue = getBalanceDue(invoice);
+              const paymentState = getPaymentState(invoice);
+
+              return (
             <button
               type="button"
               key={invoice.id}
@@ -448,10 +476,12 @@ export default function Outsourcing() {
                 </div>
                 <div className="text-right hidden sm:block">
                   <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)} /></p>
-                  <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
+                  <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">
+                    <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> paid
+                  </p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
-                  {invoice.status}
+                  {paymentState}
                 </span>
                 <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
@@ -467,8 +497,11 @@ export default function Outsourcing() {
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
                 <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getOutsourcingInvoiceTotal(invoice), currency)} /></p>
+                <p className="text-[11px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
               </div>
             </button>
+              );
+            })()
           ))}
 
           {filteredInvoices.length === 0 && (
@@ -639,7 +672,21 @@ export default function Outsourcing() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="outsourcing-status">Status</label>
-                    <select id="outsourcing-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as InvoiceStatus })} className="field-control px-3 py-2">
+                    <select
+                      id="outsourcing-status"
+                      value={form.status}
+                      onChange={(event) => {
+                        const status = event.target.value as InvoiceStatus;
+                        setForm((currentForm) => ({
+                          ...currentForm,
+                          status,
+                          payments: status === "Paid" && currentForm.payments.length === 0
+                            ? [createPaymentRecord(invoiceTotal)]
+                            : currentForm.payments,
+                        }));
+                      }}
+                      className="field-control px-3 py-2"
+                    >
                       {STATUSES.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </div>
@@ -682,6 +729,16 @@ export default function Outsourcing() {
                   </div>
                 </div>
 
+                <PaymentTrackingForm
+                  currency={currency}
+                  total={invoiceTotal}
+                  payments={form.payments}
+                  paymentNotes={form.paymentNotes}
+                  title="Payment Tracking"
+                  onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
+                  onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
+                />
+
                 {needsVendorSaveChoice && (
                   <div className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
                     <p className="text-[13px] font-semibold text-[var(--foreground)] mb-1">Save this vendor?</p>
@@ -715,7 +772,7 @@ export default function Outsourcing() {
                       <p className="text-2xl font-semibold text-[var(--foreground)] font-display">{selectedInvoice.id}</p>
                     </div>
                     <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${selectedInvoice.statusColor}`}>
-                      {selectedInvoice.status}
+                      {getPaymentState(selectedInvoice)}
                     </span>
                   </div>
 
@@ -763,6 +820,8 @@ export default function Outsourcing() {
                     </div>
                   </div>
                 </div>
+
+                <PaymentSummary currency={currency} record={selectedInvoice} title="Payment Tracking" />
 
                 <div className="flex justify-end gap-2">
                   <button onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary">

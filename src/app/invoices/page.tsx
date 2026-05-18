@@ -2,21 +2,27 @@
 
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
+import { PaymentSummary, PaymentTrackingForm, createPaymentRecord } from "@/components/payment-tracking";
 import {
   formatCurrency,
+  getAmountPaid,
+  getBalanceDue,
   getInvoiceItemsTotal,
   getInvoiceTotal,
   getInvoiceTotals,
+  getPaymentState,
   type Client,
   type Invoice,
   type InvoiceItem,
   type InvoiceStatus,
+  type PaymentAttachment,
+  type PaymentRecord,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
@@ -46,6 +52,9 @@ type InvoiceForm = {
   dueDate: string;
   status: InvoiceStatus;
   items: InvoiceItem[];
+  paymentNotes: string;
+  payments: PaymentRecord[];
+  receiptAttachments: PaymentAttachment[];
   saveClientMode: SaveClientMode | null;
 };
 
@@ -77,6 +86,9 @@ function createEmptyForm(): InvoiceForm {
     dueDate: "",
     status: "Unpaid",
     items: [createItem()],
+    paymentNotes: "",
+    payments: [],
+    receiptAttachments: [],
     saveClientMode: null,
   };
 }
@@ -125,6 +137,9 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
     dueDate: toDateInputValue(invoice.dueDate),
     status: invoice.status,
     items: fallbackItems,
+    paymentNotes: invoice.paymentNotes || "",
+    payments: invoice.payments || [],
+    receiptAttachments: invoice.receiptAttachments || [],
     saveClientMode: null,
   };
 }
@@ -158,15 +173,36 @@ export default function Invoices() {
   const invoiceTotal = getInvoiceItemsTotal(form.items);
   const modalTitle = modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id || "Invoice";
 
-  function openCreateModal() {
+  function openCreateModal(prefillClient?: Client) {
     const initialForm = createEmptyForm();
-    const firstClient = clientRecords[0];
+    const firstClient = prefillClient || clientRecords[0];
 
     setSelectedInvoice(null);
     setNeedsClientSaveChoice(false);
     setForm(firstClient ? getFormFromClient(firstClient, initialForm) : { ...initialForm, clientMode: "new" });
     setModalMode("create");
   }
+
+  useEffect(() => {
+    const quickClientId = window.sessionStorage.getItem("billcraft.quick-invoice-client-id");
+
+    if (!quickClientId || clientRecords.length === 0 || modalMode) {
+      return;
+    }
+
+    const quickClient = clientRecords.find((client) => client.id === quickClientId);
+
+    if (!quickClient) {
+      window.sessionStorage.removeItem("billcraft.quick-invoice-client-id");
+      return;
+    }
+
+    window.sessionStorage.removeItem("billcraft.quick-invoice-client-id");
+    setSelectedInvoice(null);
+    setNeedsClientSaveChoice(false);
+    setForm(getFormFromClient(quickClient, createEmptyForm()));
+    setModalMode("create");
+  }, [clientRecords, modalMode]);
 
   function openEditModal(invoice: Invoice) {
     setSelectedInvoice(invoice);
@@ -294,6 +330,8 @@ export default function Invoices() {
 
     try {
       const isEditing = modalMode === "edit";
+      const paymentTotal = form.payments.reduce((sum, payment) => sum + Math.max(Number(payment.amount) || 0, 0), 0);
+      const latestPayment = [...form.payments].sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime())[0];
       await notifyPromise(saveInvoice({
         id: modalMode === "edit" ? selectedInvoice?.id : undefined,
         clientId: form.clientMode === "saved" ? form.clientId : undefined,
@@ -309,6 +347,12 @@ export default function Invoices() {
         templateId: selectedTemplate.id,
         templateName: selectedTemplate.name,
         items: normalizedItems,
+        amountPaid: form.payments.length > 0 ? paymentTotal : form.status === "Paid" ? invoiceTotal : 0,
+        paidAt: latestPayment?.paidAt || (form.status === "Paid" ? form.date : undefined),
+        paymentMethod: latestPayment?.method,
+        paymentNotes: form.paymentNotes,
+        receiptAttachments: form.receiptAttachments,
+        payments: form.payments,
         saveClientMode: form.clientMode === "new" ? saveClientMode || form.saveClientMode || "onetime" : "onetime",
       }).then((savedInvoice) => {
         if (!savedInvoice) {
@@ -374,7 +418,7 @@ export default function Invoices() {
               delayMs={70}
             />
           </div>
-          <button onClick={openCreateModal} className="btn-primary active:scale-[0.97]">
+          <button onClick={() => openCreateModal()} className="btn-primary active:scale-[0.97]">
             <span className="material-symbols-outlined text-[16px]">add</span>
             New Invoice
           </button>
@@ -390,8 +434,8 @@ export default function Invoices() {
             <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-[var(--muted)]">invoices</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Paid</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.paidCount} /> <span className="text-[12px] font-normal text-[var(--positive)]">cleared</span></p>
+            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Collected</p>
+            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
             <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Attention</p>
@@ -430,6 +474,11 @@ export default function Invoices() {
 
         <div className="space-y-2">
           {filteredInvoices.map((invoice) => (
+            (() => {
+              const balanceDue = getBalanceDue(invoice);
+              const paymentState = getPaymentState(invoice);
+
+              return (
             <button
               type="button"
               key={invoice.id}
@@ -452,10 +501,12 @@ export default function Invoices() {
                 </div>
                 <div className="text-right hidden sm:block">
                   <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                  <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">{currency}</p>
+                  <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">
+                    <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected
+                  </p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
-                  {invoice.status}
+                  {paymentState}
                 </span>
                 <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
@@ -471,8 +522,11 @@ export default function Invoices() {
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
                 <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                <p className="text-[11px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
               </div>
             </button>
+              );
+            })()
           ))}
 
           {filteredInvoices.length === 0 && (
@@ -647,7 +701,21 @@ export default function Invoices() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-status">Status</label>
-                    <select id="invoice-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as InvoiceStatus })} className="field-control px-3 py-2">
+                    <select
+                      id="invoice-status"
+                      value={form.status}
+                      onChange={(event) => {
+                        const status = event.target.value as InvoiceStatus;
+                        setForm((currentForm) => ({
+                          ...currentForm,
+                          status,
+                          payments: status === "Paid" && currentForm.payments.length === 0
+                            ? [createPaymentRecord(invoiceTotal)]
+                            : currentForm.payments,
+                        }));
+                      }}
+                      className="field-control px-3 py-2"
+                    >
                       {STATUSES.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </div>
@@ -689,6 +757,15 @@ export default function Invoices() {
                     <span className="text-2xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(invoiceTotal, currency)} /></span>
                   </div>
                 </div>
+
+                <PaymentTrackingForm
+                  currency={currency}
+                  total={invoiceTotal}
+                  payments={form.payments}
+                  paymentNotes={form.paymentNotes}
+                  onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
+                  onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
+                />
 
                 {needsClientSaveChoice && (
                   <div className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
@@ -757,7 +834,7 @@ export default function Invoices() {
                       </div>
                       <div className="surface-card p-3.5">
                         <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">Status</p>
-                        <p className="text-[13px] font-semibold text-[var(--foreground)]">{selectedInvoice.status}</p>
+                        <p className="text-[13px] font-semibold text-[var(--foreground)]">{getPaymentState(selectedInvoice)}</p>
                       </div>
                     </div>
                   </div>
@@ -790,6 +867,8 @@ export default function Invoices() {
                     </div>
                   )}
                 </div>
+
+                <PaymentSummary currency={currency} record={selectedInvoice} />
 
                 <div className="flex justify-end gap-2">
                   <button onClick={() => handleExportInvoice(selectedInvoice)} className="btn-secondary">

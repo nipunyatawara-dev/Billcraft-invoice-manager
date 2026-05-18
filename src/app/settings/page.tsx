@@ -37,6 +37,10 @@ function toCsv(rows: ExportRow[]) {
     "dueDate",
     "status",
     "total",
+    "amountPaid",
+    "balanceDue",
+    "paidAt",
+    "paymentMethod",
     "priority",
     "stage",
     "createdAt",
@@ -84,6 +88,7 @@ export default function Settings() {
     deleteProfile,
     invoices,
     loading,
+    markProfileBackedUp,
     outsourcingInvoices,
     profiles,
     todoTasks,
@@ -382,7 +387,18 @@ export default function Settings() {
     };
   }
 
-  function downloadJson() {
+  async function markCurrentExportBackedUp() {
+    try {
+      await markProfileBackedUp();
+    } catch {
+      notify.warning({
+        title: "Backup marker not saved",
+        description: "The export downloaded, but BillCraft could not update the backup reminder.",
+      });
+    }
+  }
+
+  async function downloadJson() {
     const snapshot = getExportSnapshot();
 
     downloadFile(
@@ -391,13 +407,15 @@ export default function Settings() {
       "application/json;charset=utf-8",
     );
 
+    await markCurrentExportBackedUp();
+
     notify.success({
       title: "Data exported",
       description: "JSON file is ready in your downloads.",
     });
   }
 
-  function downloadCsv() {
+  async function downloadCsv() {
     const rows: ExportRow[] = [
       ...profiles.map((profile) => ({
         category: "profile",
@@ -432,9 +450,17 @@ export default function Settings() {
         dueDate: invoice.dueDate,
         status: invoice.status,
         total: invoice.total,
+        amountPaid: invoice.amountPaid,
+        balanceDue: Math.max((invoice.total || 0) - (invoice.amountPaid || 0), 0),
+        paidAt: invoice.paidAt,
+        paymentMethod: invoice.paymentMethod,
         createdAt: invoice.createdAt,
         updatedAt: invoice.updatedAt,
-        details: (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+        details: [
+          invoice.paymentNotes,
+          (invoice.payments || []).map((payment) => `${payment.paidAt}: ${payment.amount} via ${payment.method}`).join("; "),
+          (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+        ].filter(Boolean).join(" | "),
       })),
       ...vendors.map((vendor) => ({
         category: "vendor",
@@ -458,9 +484,17 @@ export default function Settings() {
         dueDate: invoice.dueDate,
         status: invoice.status,
         total: invoice.total,
+        amountPaid: invoice.amountPaid,
+        balanceDue: Math.max((invoice.total || 0) - (invoice.amountPaid || 0), 0),
+        paidAt: invoice.paidAt,
+        paymentMethod: invoice.paymentMethod,
         createdAt: invoice.createdAt,
         updatedAt: invoice.updatedAt,
-        details: (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+        details: [
+          invoice.paymentNotes,
+          (invoice.payments || []).map((payment) => `${payment.paidAt}: ${payment.amount} via ${payment.method}`).join("; "),
+          (invoice.items || []).map((item) => `${item.description}: ${item.quantity} x ${item.price}`).join("; "),
+        ].filter(Boolean).join(" | "),
       })),
       ...todoTasks.map((task) => ({
         category: "todo",
@@ -481,6 +515,8 @@ export default function Settings() {
       "text/csv;charset=utf-8",
     );
 
+    await markCurrentExportBackedUp();
+
     notify.success({
       title: "Data exported",
       description: "CSV file is ready in your downloads.",
@@ -490,9 +526,9 @@ export default function Settings() {
   function requestExport(format: ExportFormat) {
     if (!activeProfile?.hasPassword || !activeProfileId) {
       if (format === "json") {
-        downloadJson();
+        void downloadJson();
       } else {
-        downloadCsv();
+        void downloadCsv();
       }
       return;
     }
@@ -527,9 +563,9 @@ export default function Settings() {
       });
 
       if (exportRequest === "json") {
-        downloadJson();
+        await downloadJson();
       } else {
-        downloadCsv();
+        await downloadCsv();
       }
 
       setExportRequest(null);

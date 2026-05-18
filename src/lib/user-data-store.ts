@@ -5,11 +5,15 @@ import { promisify } from "util";
 import {
   createAvatar,
   getInvoiceItemsTotal,
+  getLatestPayment,
+  getPaymentRecordsTotal,
   getStatusColor,
   normalizeAnalyticsPreferences,
   type AnalyticsPreferences,
   type Client,
   type Invoice,
+  type PaymentAttachment,
+  type PaymentRecord,
   type OutsourcingInvoice,
   type UserProfile,
   type Vendor,
@@ -268,6 +272,8 @@ function fileExtensionForMime(mimeType: string) {
     "image/webp": "webp",
     "image/gif": "gif",
     "image/svg+xml": "svg",
+    "application/pdf": "pdf",
+    "text/plain": "txt",
   };
 
   return extensions[mimeType] || "png";
@@ -282,7 +288,7 @@ async function saveDataUrlAsset(profileId: string, label: string, value?: string
     return value;
   }
 
-  const match = value.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+  const match = value.match(/^data:([a-zA-Z0-9+.-]+\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
 
   if (!match) {
     return value;
@@ -297,6 +303,22 @@ async function saveDataUrlAsset(profileId: string, label: string, value?: string
   await fs.writeFile(assetPath, Buffer.from(base64, "base64"));
 
   return `/api/user-data/asset?profileId=${encodeURIComponent(profileId)}&file=${encodeURIComponent(fileName)}`;
+}
+
+async function savePaymentAttachmentAssets(profileId: string, label: string, attachments: PaymentAttachment[] = []) {
+  const nextAttachments = await Promise.all(attachments.map(async (attachment, index) => ({
+    ...hydratePaymentAttachment(attachment, index),
+    url: await saveDataUrlAsset(profileId, `${label}-${attachment.name || attachment.id || index}`, attachment.url) || attachment.url,
+  })));
+
+  return nextAttachments.filter((attachment) => attachment.url);
+}
+
+async function savePaymentRecordAssets(profileId: string, label: string, payments: PaymentRecord[] = []) {
+  return Promise.all(payments.map(async (payment, index) => ({
+    ...hydratePaymentRecord(payment),
+    receiptAttachments: await savePaymentAttachmentAssets(profileId, `${label}-${payment.id || index}`, payment.receiptAttachments || []),
+  })));
 }
 
 async function normalizeProfileAssets(profileId: string, draft: ProfileDraft, existingProfile?: UserProfile): Promise<UserProfile> {
@@ -314,8 +336,31 @@ async function normalizeProfileAssets(profileId: string, draft: ProfileDraft, ex
     analyticsPreferences: existingProfile?.analyticsPreferences
       ? normalizeAnalyticsPreferences(existingProfile.analyticsPreferences)
       : undefined,
+    lastBackupAt: existingProfile?.lastBackupAt,
     createdAt: existingProfile?.createdAt || now,
     updatedAt: now,
+  };
+}
+
+function hydratePaymentAttachment(attachment: PaymentAttachment, index: number): PaymentAttachment {
+  return {
+    id: attachment.id || uniqueEntityId("receipt"),
+    name: attachment.name?.trim() || `Receipt ${index + 1}`,
+    type: attachment.type || "application/octet-stream",
+    size: Number.isFinite(attachment.size) ? Math.max(attachment.size, 0) : 0,
+    url: attachment.url || "",
+  };
+}
+
+function hydratePaymentRecord(payment: PaymentRecord): PaymentRecord {
+  return {
+    ...payment,
+    id: payment.id || uniqueEntityId("payment"),
+    amount: Number.isFinite(payment.amount) ? Math.max(payment.amount, 0) : 0,
+    paidAt: payment.paidAt || new Date().toISOString().slice(0, 10),
+    method: payment.method?.trim() || "Other",
+    notes: payment.notes?.trim() || undefined,
+    receiptAttachments: (payment.receiptAttachments || []).map(hydratePaymentAttachment),
   };
 }
 
@@ -344,12 +389,29 @@ function hydrateVendor(vendor: Vendor): Vendor {
 function hydrateInvoice(invoice: Invoice): Invoice {
   const items = invoice.items || [];
   const total = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(items);
+  const payments = (invoice.payments || []).map(hydratePaymentRecord);
+  const paymentAttachments = (invoice.receiptAttachments || []).map(hydratePaymentAttachment);
+  const latestPayment = getLatestPayment(payments);
+  const paidFromPayments = getPaymentRecordsTotal(payments);
+  const amountPaid = typeof invoice.amountPaid === "number"
+    ? invoice.amountPaid
+    : paidFromPayments > 0
+      ? paidFromPayments
+      : invoice.status === "Paid"
+        ? total
+        : 0;
 
   return {
     ...invoice,
     items,
     total,
     subtotal: typeof invoice.subtotal === "number" ? invoice.subtotal : total,
+    amountPaid: Math.min(Math.max(amountPaid, 0), total),
+    paidAt: invoice.paidAt || latestPayment?.paidAt,
+    paymentMethod: invoice.paymentMethod || latestPayment?.method,
+    paymentNotes: invoice.paymentNotes?.trim() || undefined,
+    receiptAttachments: paymentAttachments,
+    payments,
     statusColor: getStatusColor(invoice.status),
     clientColor: invoice.clientColor || "bg-[var(--foreground)]/10",
     avatar: invoice.avatar || createAvatar(invoice.client),
@@ -361,12 +423,29 @@ function hydrateInvoice(invoice: Invoice): Invoice {
 function hydrateOutsourcingInvoice(invoice: OutsourcingInvoice): OutsourcingInvoice {
   const items = invoice.items || [];
   const total = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(items);
+  const payments = (invoice.payments || []).map(hydratePaymentRecord);
+  const paymentAttachments = (invoice.receiptAttachments || []).map(hydratePaymentAttachment);
+  const latestPayment = getLatestPayment(payments);
+  const paidFromPayments = getPaymentRecordsTotal(payments);
+  const amountPaid = typeof invoice.amountPaid === "number"
+    ? invoice.amountPaid
+    : paidFromPayments > 0
+      ? paidFromPayments
+      : invoice.status === "Paid"
+        ? total
+        : 0;
 
   return {
     ...invoice,
     items,
     total,
     subtotal: typeof invoice.subtotal === "number" ? invoice.subtotal : total,
+    amountPaid: Math.min(Math.max(amountPaid, 0), total),
+    paidAt: invoice.paidAt || latestPayment?.paidAt,
+    paymentMethod: invoice.paymentMethod || latestPayment?.method,
+    paymentNotes: invoice.paymentNotes?.trim() || undefined,
+    receiptAttachments: paymentAttachments,
+    payments,
     statusColor: getStatusColor(invoice.status),
     vendorColor: invoice.vendorColor || "bg-[var(--foreground)]/10",
     avatar: invoice.avatar || createAvatar(invoice.vendor),
@@ -681,6 +760,26 @@ export async function saveAnalyticsPreferences(profileId: string, preferences: A
   return analyticsPreferences;
 }
 
+export async function markProfileBackedUp(profileId: string) {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((profile) => profile.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  const profile: UserProfile = {
+    ...existingProfile,
+    lastBackupAt: new Date().toISOString(),
+  };
+  const nextProfiles = index.profiles.map((currentProfile) => currentProfile.id === profileId ? profile : currentProfile);
+
+  await writeProfileIndex({ profiles: nextProfiles });
+  await saveProfileFile(profile);
+
+  return profile;
+}
+
 export async function saveClient(profileId: string, originalClientId: string | null, draft: ClientDraft) {
   if (!draft.name.trim()) {
     throw new Error("Client name is required.");
@@ -803,8 +902,17 @@ export async function saveInvoice({ profileId, invoice, clientSaveMode, client }
   const invoices = await readInvoices(profileId);
   const existingInvoice = invoices.find((currentInvoice) => currentInvoice.id === invoice.id);
   const now = new Date().toISOString();
+  const payments = await savePaymentRecordAssets(profileId, `invoice-${invoice.id}-payment`, invoice.payments || []);
+  const receiptAttachments = await savePaymentAttachmentAssets(profileId, `invoice-${invoice.id}-receipt`, invoice.receiptAttachments || []);
+  const amountPaid = typeof invoice.amountPaid === "number" ? invoice.amountPaid : getPaymentRecordsTotal(payments);
+  const latestPayment = getLatestPayment(payments);
   const hydratedInvoice = hydrateInvoice({
     ...invoice,
+    amountPaid,
+    paidAt: invoice.paidAt || latestPayment?.paidAt,
+    paymentMethod: invoice.paymentMethod || latestPayment?.method,
+    receiptAttachments,
+    payments,
     clientId: invoice.clientId || regularClient?.id,
     avatar: invoice.avatar || regularClient?.avatar || createAvatar(invoice.client),
     statusColor: getStatusColor(invoice.status),
@@ -834,8 +942,17 @@ export async function saveOutsourcingInvoice({ profileId, invoice, vendorSaveMod
   const invoices = await readOutsourcingInvoices(profileId);
   const existingInvoice = invoices.find((currentInvoice) => currentInvoice.id === invoice.id);
   const now = new Date().toISOString();
+  const payments = await savePaymentRecordAssets(profileId, `outsourcing-${invoice.id}-payment`, invoice.payments || []);
+  const receiptAttachments = await savePaymentAttachmentAssets(profileId, `outsourcing-${invoice.id}-receipt`, invoice.receiptAttachments || []);
+  const amountPaid = typeof invoice.amountPaid === "number" ? invoice.amountPaid : getPaymentRecordsTotal(payments);
+  const latestPayment = getLatestPayment(payments);
   const hydratedInvoice = hydrateOutsourcingInvoice({
     ...invoice,
+    amountPaid,
+    paidAt: invoice.paidAt || latestPayment?.paidAt,
+    paymentMethod: invoice.paymentMethod || latestPayment?.method,
+    receiptAttachments,
+    payments,
     vendorId: invoice.vendorId || regularVendor?.id,
     avatar: invoice.avatar || regularVendor?.avatar || createAvatar(invoice.vendor),
     statusColor: getStatusColor(invoice.status),

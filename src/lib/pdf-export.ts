@@ -1,6 +1,6 @@
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
-import { getInvoiceItemsTotal, type Invoice, type UserProfile } from "@/data/invoices";
+import { getAmountPaid, getBalanceDue, getInvoiceItemsTotal, getPaymentState, type Invoice, type UserProfile } from "@/data/invoices";
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
@@ -225,6 +225,9 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
   let y = PAGE_HEIGHT - PAGE_MARGIN;
   const businessName = profile?.businessName || profile?.name || "BillCraft";
   const invoiceTotal = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(invoice.items || []);
+  const amountPaid = getAmountPaid(invoice);
+  const balanceDue = getBalanceDue(invoice);
+  const paymentState = getPaymentState(invoice);
   const statusTone = statusColor(invoice.status);
 
   function drawFooter(currentPage: PDFPage, pageIndex: number) {
@@ -281,8 +284,8 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
   addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 40, 8.5, "regular", MUTED);
   addText(page, fonts, "INVOICE", PAGE_WIDTH - PAGE_MARGIN, y - 4, 25, "bold", TEXT, "right");
   addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10.5, "semibold", MUTED, "right");
-  addRect(page, PAGE_WIDTH - PAGE_MARGIN - 78, y - 48, 78, 20, statusTone);
-  addText(page, fonts, invoice.status.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 39, y - 42, 8.5, "bold", WHITE, "center");
+  addRect(page, PAGE_WIDTH - PAGE_MARGIN - 104, y - 48, 104, 20, statusTone);
+  addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
   y -= 78;
 
   addRect(page, PAGE_MARGIN, y - 88, CONTENT_WIDTH, 88, ACCENT_SOFT);
@@ -343,14 +346,16 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
 
   const summaryX = PAGE_WIDTH - PAGE_MARGIN - 220;
   const summaryTop = y + 44;
-  addRect(page, summaryX, summaryTop - 100, 220, 100, WHITE);
-  addStrokeRect(page, summaryX, summaryTop - 100, 220, 100);
+  addRect(page, summaryX, summaryTop - 122, 220, 122, WHITE);
+  addStrokeRect(page, summaryX, summaryTop - 122, 220, 122);
   addText(page, fonts, "Subtotal", summaryX + 16, summaryTop - 28, 10, "regular", MUTED);
   addText(page, fonts, formatPdfCurrency(invoice.subtotal || invoiceTotal, currency), summaryX + 204, summaryTop - 28, 10, "regular", TEXT, "right");
-  addLine(page, summaryX + 16, summaryTop - 48, summaryX + 204, summaryTop - 48);
-  addText(page, fonts, invoice.status === "Paid" ? "Paid total" : "Balance due", summaryX + 16, summaryTop - 73, 13, "bold", TEXT);
-  addText(page, fonts, formatPdfCurrency(invoiceTotal, currency), summaryX + 204, summaryTop - 73, 13, "bold", TEXT, "right");
-  y = summaryTop - 124;
+  addText(page, fonts, "Paid", summaryX + 16, summaryTop - 52, 10, "regular", MUTED);
+  addText(page, fonts, formatPdfCurrency(amountPaid, currency), summaryX + 204, summaryTop - 52, 10, "regular", TEXT, "right");
+  addLine(page, summaryX + 16, summaryTop - 72, summaryX + 204, summaryTop - 72);
+  addText(page, fonts, "Balance due", summaryX + 16, summaryTop - 97, 13, "bold", TEXT);
+  addText(page, fonts, formatPdfCurrency(balanceDue, currency), summaryX + 204, summaryTop - 97, 13, "bold", TEXT, "right");
+  y = summaryTop - 146;
 
   if (profile?.signature) {
     addText(page, fonts, "Signature on file", summaryX + 204, y, 9, "bold", MUTED, "right");

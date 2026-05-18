@@ -3,6 +3,7 @@ import {
   changeProfilePassword,
   createProfile,
   loadLocalDataSnapshot,
+  markProfileBackedUp,
   saveClient,
   saveInvoice,
   saveAnalyticsPreferences,
@@ -29,6 +30,7 @@ type UserDataAction =
   | { action: "saveClient"; profileId: string; originalClientId: string | null; client: Parameters<typeof saveClient>[2] }
   | ({ action: "saveInvoice" } & SaveInvoicePayload)
   | { action: "saveAnalyticsPreferences"; profileId: string; preferences: Parameters<typeof saveAnalyticsPreferences>[1] }
+  | { action: "markProfileBackedUp"; profileId: string }
   | { action: "saveVendor"; profileId: string; originalVendorId: string | null; vendor: Parameters<typeof saveVendor>[2] }
   | ({ action: "saveOutsourcingInvoice" } & SaveOutsourcingInvoicePayload)
   | { action: "saveTodoTasks"; profileId: string; tasks: Parameters<typeof saveTodoTasks>[1] }
@@ -93,6 +95,11 @@ export async function POST(request: NextRequest) {
 
     if (body.action === "saveAnalyticsPreferences") {
       await saveAnalyticsPreferences(body.profileId, body.preferences);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "markProfileBackedUp") {
+      await markProfileBackedUp(body.profileId);
       activeProfileId = body.profileId;
     }
 

@@ -10,7 +10,9 @@ const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".png": "image/png",
+  ".pdf": "application/pdf",
   ".svg": "image/svg+xml",
+  ".txt": "text/plain",
   ".webp": "image/webp",
 };
 

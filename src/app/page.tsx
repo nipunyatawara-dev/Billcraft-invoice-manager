@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { formatCurrency, getInvoiceTotal, getInvoiceTotals, getOutsourcingTotals } from "@/data/invoices";
+import { formatCurrency, getAmountPaid, getBalanceDue, getInvoiceTotal, getInvoiceTotals, getOutsourcingTotals, getPaymentState } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
@@ -210,12 +210,19 @@ export default function Home() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} /></p>
-                      <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">{inv.date}</p>
+                      <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">
+                        <AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected
+                      </p>
                     </div>
                     <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>
-                      {inv.status}
+                      {getPaymentState(inv)}
                     </span>
                   </div>
+                  {getBalanceDue(inv) > 0 && (
+                    <p className="text-[10px] font-medium text-[var(--muted)]">
+                      <AnimatedNumber value={formatCurrency(getBalanceDue(inv), currency)} /> still due
+                    </p>
+                  )}
                 </div>
               ))}
               {recentInvoices.length === 0 && (

@@ -11,6 +11,12 @@ export interface Invoice {
   templateId?: string;
   templateName?: string;
   items?: InvoiceItem[];
+  amountPaid?: number;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentNotes?: string;
+  receiptAttachments?: PaymentAttachment[];
+  payments?: PaymentRecord[];
   status: "Paid" | "Unpaid" | "Overdue";
   statusColor: string;
   clientColor: string;
@@ -29,6 +35,23 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+}
+
+export interface PaymentAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+}
+
+export interface PaymentRecord {
+  id: string;
+  amount: number;
+  paidAt: string;
+  method: string;
+  notes?: string;
+  receiptAttachments?: PaymentAttachment[];
 }
 
 export const ANALYTICS_WIDGET_IDS = [
@@ -65,6 +88,7 @@ export interface UserProfile {
   hasPassword?: boolean;
   passwordHint?: string;
   passwordChangedAt?: string;
+  lastBackupAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -161,6 +185,12 @@ export interface OutsourcingInvoice {
   templateId?: string;
   templateName?: string;
   items?: InvoiceItem[];
+  amountPaid?: number;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentNotes?: string;
+  receiptAttachments?: PaymentAttachment[];
+  payments?: PaymentRecord[];
   status: InvoiceStatus;
   statusColor: string;
   vendorColor: string;
@@ -204,6 +234,90 @@ export function getInvoiceItemsTotal(items: InvoiceItem[] = []) {
   }, 0);
 }
 
+export type PaymentTrackable = {
+  dueDate?: string;
+  amountPaid?: number;
+  paidAt?: string;
+  paymentMethod?: string;
+  paymentNotes?: string;
+  payments?: PaymentRecord[];
+  receiptAttachments?: PaymentAttachment[];
+  status: InvoiceStatus;
+  total?: number;
+  amount: string;
+};
+
+export function getPaymentRecordsTotal(payments: PaymentRecord[] = []) {
+  return payments.reduce((sum, payment) => {
+    const amount = Number(payment.amount);
+    return sum + (Number.isFinite(amount) ? Math.max(amount, 0) : 0);
+  }, 0);
+}
+
+export function getTrackableTotal(record: PaymentTrackable) {
+  if (typeof record.total === "number") {
+    return record.total;
+  }
+
+  return parseInvoiceAmount(record.amount);
+}
+
+export function getAmountPaid(record: PaymentTrackable) {
+  const total = getTrackableTotal(record);
+  const paymentsTotal = getPaymentRecordsTotal(record.payments);
+  const fallbackPaid = typeof record.amountPaid === "number" ? record.amountPaid : 0;
+  const paidAmount = paymentsTotal > 0 ? paymentsTotal : fallbackPaid > 0 ? fallbackPaid : record.status === "Paid" ? total : 0;
+
+  return Math.min(Math.max(paidAmount, 0), total);
+}
+
+export function getBalanceDue(record: PaymentTrackable) {
+  return Math.max(getTrackableTotal(record) - getAmountPaid(record), 0);
+}
+
+export function isDueDateOverdue(dueDate?: string) {
+  if (!dueDate) {
+    return false;
+  }
+
+  const due = new Date(dueDate);
+
+  if (Number.isNaN(due.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  return due < today;
+}
+
+export function isRecordOverdue(record: PaymentTrackable) {
+  return getBalanceDue(record) > 0 && (record.status === "Overdue" || isDueDateOverdue(record.dueDate));
+}
+
+export function getPaymentState(record: PaymentTrackable): "Paid" | "Partially Paid" | "Overdue" | "Unpaid" {
+  const amountPaid = getAmountPaid(record);
+  const balanceDue = getBalanceDue(record);
+
+  if (balanceDue <= 0) {
+    return "Paid";
+  }
+
+  if (isRecordOverdue(record)) {
+    return amountPaid > 0 ? "Partially Paid" : "Overdue";
+  }
+
+  return amountPaid > 0 ? "Partially Paid" : "Unpaid";
+}
+
+export function getLatestPayment(payments: PaymentRecord[] = []) {
+  return [...payments]
+    .filter((payment) => payment.paidAt)
+    .sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime())[0];
+}
+
 export function formatCurrency(value: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -242,47 +356,43 @@ export function createAvatar(name: string) {
 
 export function getInvoiceTotals(invoices: Invoice[]) {
   const totalAmount = invoices.reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
-  const paidAmount = invoices
-    .filter((invoice) => invoice.status === "Paid")
-    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
+  const paidAmount = invoices.reduce((sum, invoice) => sum + getAmountPaid(invoice), 0);
   const pendingAmount = invoices
-    .filter((invoice) => invoice.status === "Unpaid")
-    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
+    .filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice))
+    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
   const overdueAmount = invoices
-    .filter((invoice) => invoice.status === "Overdue")
-    .reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
+    .filter(isRecordOverdue)
+    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
 
   return {
     totalAmount,
     paidAmount,
     pendingAmount,
     overdueAmount,
-    paidCount: invoices.filter((invoice) => invoice.status === "Paid").length,
-    unpaidCount: invoices.filter((invoice) => invoice.status === "Unpaid").length,
-    overdueCount: invoices.filter((invoice) => invoice.status === "Overdue").length,
+    paidCount: invoices.filter((invoice) => getBalanceDue(invoice) <= 0).length,
+    unpaidCount: invoices.filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice)).length,
+    overdueCount: invoices.filter(isRecordOverdue).length,
   };
 }
 
 export function getOutsourcingTotals(invoices: OutsourcingInvoice[]) {
   const totalAmount = invoices.reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
-  const paidAmount = invoices
-    .filter((invoice) => invoice.status === "Paid")
-    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const paidAmount = invoices.reduce((sum, invoice) => sum + getAmountPaid(invoice), 0);
   const pendingAmount = invoices
-    .filter((invoice) => invoice.status === "Unpaid")
-    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+    .filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice))
+    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
   const overdueAmount = invoices
-    .filter((invoice) => invoice.status === "Overdue")
-    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+    .filter(isRecordOverdue)
+    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
 
   return {
     totalAmount,
     paidAmount,
     pendingAmount,
     overdueAmount,
-    paidCount: invoices.filter((invoice) => invoice.status === "Paid").length,
-    unpaidCount: invoices.filter((invoice) => invoice.status === "Unpaid").length,
-    overdueCount: invoices.filter((invoice) => invoice.status === "Overdue").length,
+    paidCount: invoices.filter((invoice) => getBalanceDue(invoice) <= 0).length,
+    unpaidCount: invoices.filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice)).length,
+    overdueCount: invoices.filter(isRecordOverdue).length,
   };
 }
 

@@ -10,10 +10,11 @@ import type { ChartConfig } from "@/components/evilcharts/ui/chart";
 import {
   DEFAULT_ANALYTICS_PREFERENCES,
   formatCurrency,
+  getAmountPaid,
+  getBalanceDue,
   getClientsFromInvoices,
   getInvoiceTotal,
   getInvoiceTotals,
-  getOutsourcingInvoiceTotal,
   getOutsourcingTotals,
   normalizeAnalyticsPreferences,
   type AnalyticsPreferences,
@@ -235,13 +236,11 @@ function getRevenueChartData(invoices: Invoice[], range: AnalyticsRange): Revenu
 
     const bucketIndex = Math.min(Math.floor((parsedDate.getTime() - start.getTime()) / bucketLength), bucketCount - 1);
     const total = getInvoiceTotal(invoice);
+    const paid = getAmountPaid(invoice);
+    const open = getBalanceDue(invoice);
     buckets[bucketIndex].total += total;
-
-    if (invoice.status === "Paid") {
-      buckets[bucketIndex].paid += total;
-    } else {
-      buckets[bucketIndex].open += total;
-    }
+    buckets[bucketIndex].paid += paid;
+    buckets[bucketIndex].open += open;
   });
 
   return buckets;
@@ -276,10 +275,10 @@ function getInvoiceAgingChartData(invoices: Invoice[]): AgingPoint[] {
   ];
 
   invoices
-    .filter((invoice) => invoice.status !== "Paid")
+    .filter((invoice) => getBalanceDue(invoice) > 0)
     .forEach((invoice) => {
       const dueDate = invoice.dueDate ? startOfDay(new Date(invoice.dueDate)) : null;
-      const total = getInvoiceTotal(invoice);
+      const balanceDue = getBalanceDue(invoice);
       let bucketIndex = 4;
 
       if (dueDate && !Number.isNaN(dueDate.getTime())) {
@@ -287,7 +286,7 @@ function getInvoiceAgingChartData(invoices: Invoice[]): AgingPoint[] {
         bucketIndex = overdueDays < 0 ? 0 : overdueDays <= 7 ? 1 : overdueDays <= 30 ? 2 : 3;
       }
 
-      buckets[bucketIndex].amount += total;
+      buckets[bucketIndex].amount += balanceDue;
       buckets[bucketIndex].invoices += 1;
     });
 
@@ -994,9 +993,7 @@ export default function Analytics() {
   const receivablesCount = totals.unpaidCount + totals.overdueCount;
   const openPayables = payableTotals.pendingAmount + payableTotals.overdueAmount;
   const openPayablesCount = payableTotals.unpaidCount + payableTotals.overdueCount;
-  const paidOutsourcing = filteredOutsourcingInvoices
-    .filter((invoice) => invoice.status === "Paid")
-    .reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
+  const paidOutsourcing = payableTotals.paidAmount;
   const netProfit = totals.paidAmount - paidOutsourcing;
 
   useEffect(() => {
