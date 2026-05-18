@@ -44,6 +44,11 @@ const EMPTY_PROFILE_FORM: ProfileDraft = {
 };
 
 const ACTIVE_ONBOARDING_PROFILE_KEY = "billcraft.profile-onboarding.active.v1";
+const NOTIFICATION_TOAST_DURATION = 4200;
+const NOTIFICATION_TOAST_OPTIONS = {
+  duration: NOTIFICATION_TOAST_DURATION,
+  autopilot: false,
+} as const;
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -385,6 +390,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       notify.error({
         title: "Data sync issue",
         description: error,
+        ...NOTIFICATION_TOAST_OPTIONS,
       });
       return;
     }
@@ -393,6 +399,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       notify.info({
         title: "Profile setup needed",
         description: "Create a profile to start saving invoices and clients.",
+        ...NOTIFICATION_TOAST_OPTIONS,
       });
       return;
     }
@@ -400,6 +407,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     if (activeAlerts.length > 0) {
       notify.warning({
         title: `${alertCount} billing alert${alertCount === 1 ? "" : "s"}`,
+        ...NOTIFICATION_TOAST_OPTIONS,
         description: (
           <div className="space-y-2">
             {activeAlerts.map((alert) => (
@@ -420,6 +428,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     notify.info({
       title: "All caught up",
       description: "No overdue invoices, due tasks, backup reminders, or unpaid vendor bills right now.",
+      ...NOTIFICATION_TOAST_OPTIONS,
     });
   }
 

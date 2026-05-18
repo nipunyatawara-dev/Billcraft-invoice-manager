@@ -43,7 +43,8 @@ html {
   --accent: var(--palette-7);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: var(--palette-5);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-7);
   --negative: var(--palette-8);
@@ -79,7 +80,8 @@ html.dark {
   --accent: var(--palette-8);
   --accent-hover: var(--palette-5);
   --action: var(--palette-5);
-  --action-hover: var(--palette-6);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-8);
   --negative: var(--palette-9);
@@ -422,13 +424,14 @@ html.dark {
       0 4px 12px color-mix(in srgb, var(--action) 10%, transparent);
   }
 
-  .btn-primary:hover {
+  .btn-primary:hover:not(:disabled) {
     background: var(--action-hover);
+    color: var(--action-hover-text, var(--action-text));
     transform: translateY(-1px);
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--action-text) 14%, transparent),
-      0 4px 10px color-mix(in srgb, var(--action) 22%, transparent),
-      0 8px 20px color-mix(in srgb, var(--action) 14%, transparent);
+      inset 0 1px 0 color-mix(in srgb, var(--action-hover-text, var(--action-text)) 18%, transparent),
+      0 4px 12px color-mix(in srgb, var(--action-hover) 28%, transparent),
+      0 10px 26px color-mix(in srgb, var(--action-hover) 18%, transparent);
   }
 
   .btn-secondary {
@@ -437,10 +440,31 @@ html.dark {
     color: var(--foreground);
   }
 
-  .btn-secondary:hover,
-  .btn-ghost:hover {
-    background: color-mix(in srgb, var(--foreground) 4%, transparent);
-    color: var(--foreground);
+  .btn-secondary:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 72%, var(--card-border));
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 24%, var(--card)) 0%,
+        color-mix(in srgb, var(--accent) 16%, var(--card)) 100%
+      );
+    color: var(--accent);
+    transform: translateY(-2px) scale(1.015);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--accent) 18%, transparent),
+      0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent),
+      0 6px 16px color-mix(in srgb, var(--accent) 22%, transparent),
+      0 14px 34px color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--card-border));
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow:
+      0 3px 10px color-mix(in srgb, var(--accent) 14%, transparent),
+      0 8px 22px color-mix(in srgb, var(--accent) 10%, transparent);
   }
 
   .btn-ghost {
@@ -455,9 +479,14 @@ html.dark {
     color: color-mix(in srgb, var(--foreground) 50%, transparent);
   }
 
-  .icon-button:hover {
-    background: color-mix(in srgb, var(--foreground) 5%, transparent);
-    color: var(--foreground);
+  .icon-button:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--card-border));
+    background: color-mix(in srgb, var(--accent) 12%, var(--card));
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow:
+      0 3px 10px color-mix(in srgb, var(--accent) 14%, transparent),
+      0 8px 22px color-mix(in srgb, var(--accent) 10%, transparent);
   }
 
   .t-badge {

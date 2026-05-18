@@ -16,7 +16,8 @@ html[data-light-palette="palette-6"] {
   --accent: var(--palette-7);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: var(--palette-5);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-7);
   --negative: var(--palette-8);
@@ -49,7 +50,8 @@ html[data-light-palette="palette-7"] {
   --accent: var(--palette-8);
   --accent-hover: var(--palette-5);
   --action: var(--palette-5);
-  --action-hover: var(--palette-6);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-8);
   --negative: var(--palette-9);
@@ -209,7 +211,8 @@ html.dark[data-dark-palette="palette-7"] {
   --accent: var(--palette-8);
   --accent-hover: var(--palette-5);
   --action: var(--palette-5);
-  --action-hover: var(--palette-6);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-8);
   --negative: var(--palette-9);
@@ -241,7 +244,8 @@ html.dark[data-dark-palette="palette-6"] {
   --accent: var(--palette-7);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: var(--palette-5);
+  --action-hover: var(--accent);
+  --action-hover-text: var(--action-text);
   --action-text: var(--palette-1);
   --positive: var(--palette-7);
   --negative: var(--palette-8);
