@@ -19,7 +19,7 @@ import {
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
-import { exportInvoicePdf } from "@/lib/pdf-export";
+import { exportInvoicePdf, exportOutsourcingInvoicePdf } from "@/lib/pdf-export";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 const ACTIVE_PROFILE_KEY = "billcraft.active-profile.v1";
@@ -150,7 +150,7 @@ type UserDataContextValue = LocalDataSnapshot & {
   markProfileBackedUp: () => Promise<UserProfile | null>;
   saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
   exportInvoice: (invoice: Invoice) => Promise<void>;
-  exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => void;
+  exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => Promise<void>;
   refresh: () => Promise<void>;
 };
 
@@ -682,41 +682,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     await exportInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
 
-  const exportOutsourcingInvoice = useCallback((invoice: OutsourcingInvoice) => {
-    const profile = snapshot.activeProfile;
-    const lineItems = (invoice.items || []).map((item) => (
-      `${item.description} | ${item.quantity} x ${formatCurrency(item.price, currency)} = ${formatCurrency(item.quantity * item.price, currency)}`
-    ));
-    const contents = [
-      profile?.businessName || profile?.name || "BillCraft",
-      profile?.profession ? `Profession: ${profile.profession}` : "",
-      "",
-      `Outsourcing Invoice: ${invoice.id}`,
-      `Template: ${invoice.templateName || "Outsourcing Invoice"}`,
-      `Pay To: ${invoice.vendor}`,
-      `Email: ${invoice.email || "Not provided"}`,
-      `Phone: ${invoice.phone || "Not provided"}`,
-      `Date: ${invoice.date}`,
-      invoice.dueDate ? `Due: ${invoice.dueDate}` : "",
-      `Status: ${invoice.status}`,
-      `Amount Paid: ${formatCurrency(invoice.amountPaid || 0, currency)}`,
-      invoice.paidAt ? `Paid At: ${invoice.paidAt}` : "",
-      invoice.paymentMethod ? `Payment Method: ${invoice.paymentMethod}` : "",
-      invoice.paymentNotes ? `Payment Notes: ${invoice.paymentNotes}` : "",
-      "",
-      "Work",
-      ...(lineItems.length > 0 ? lineItems : ["No line items"]),
-      "",
-      `Total Payable: ${formatCurrency(invoice.total || getInvoiceItemsTotal(invoice.items), currency)}`,
-    ].filter(Boolean).join("\n");
-    const blob = new Blob([contents], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `${invoice.id.replace("#", "")}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+  const exportOutsourcingInvoice = useCallback(async (invoice: OutsourcingInvoice) => {
+    await exportOutsourcingInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
 
   const value = useMemo<UserDataContextValue>(() => ({

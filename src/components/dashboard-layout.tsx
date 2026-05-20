@@ -10,6 +10,7 @@ import { getBalanceDue, isRecordOverdue } from "@/data/invoices";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -436,6 +437,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const isPasswordPromptForLogin = Boolean(passwordPromptProfile && passwordPromptProfile.id === activeProfileId && isProfileLocked);
   const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
   const isCreatingProfile = isFirstRun || showCreateProfileForm;
+  const isLoggingIn = isProfileLocked || pendingSwitchProfileId !== null;
+  const showPremiumBg = isCreatingProfile || isLoggingIn;
   const profileModalEyebrow = isFirstRun ? "Welcome" : isProfileLocked ? "Login" : "Profiles";
   const profileModalTitle = isFirstRun ? "Create your first profile" : isProfileLocked ? "Enter profile password" : "Manage profiles";
 
@@ -600,9 +603,37 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {(isProfileModalOpen || isFirstRun) && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          {showPremiumBg && (
+            <div className="absolute inset-0 onboarding-bg overflow-hidden pointer-events-none animate-fade-in duration-500">
+              <div className="onboarding-bg-glows absolute inset-0" />
+              <div className="onboarding-bg-grid absolute inset-0" />
+              <div className="onboarding-bg-lines absolute inset-0 opacity-20">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--accent)" stopOpacity="0" />
+                      <stop offset="50%" stopColor="var(--accent)" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="15%" cy="25%" r="200" fill="none" stroke="var(--card-border)" strokeWidth="1" strokeDasharray="6 6" />
+                  <circle cx="85%" cy="75%" r="350" fill="none" stroke="var(--card-border)" strokeWidth="1.5" />
+                  <circle cx="85%" cy="75%" r="150" fill="none" stroke="var(--card-border)" strokeWidth="1" strokeDasharray="4 4" />
+                  <line x1="0" y1="25%" x2="100%" y2="25%" stroke="url(#line-grad)" strokeWidth="1" />
+                  <line x1="85%" y1="0" x2="85%" y2="100%" stroke="url(#line-grad)" strokeWidth="1" />
+                </svg>
+              </div>
+            </div>
+          )}
+
           <button
             aria-label="Close profile manager"
-            className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm"
+            className={cn(
+              "absolute inset-0 transition-all duration-300",
+              showPremiumBg 
+                ? "bg-[var(--background)]/20 backdrop-blur-md" 
+                : "bg-[var(--foreground)]/25 backdrop-blur-sm"
+            )}
             onClick={closeProfileModal}
           />
           <div

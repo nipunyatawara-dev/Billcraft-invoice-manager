@@ -1,6 +1,6 @@
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
-import { getAmountPaid, getBalanceDue, getInvoiceItemsTotal, getPaymentState, type Invoice, type UserProfile } from "@/data/invoices";
+import { getAmountPaid, getBalanceDue, getInvoiceItemsTotal, getPaymentState, isDueDateOverdue, getInvoiceTotal, type Invoice, type UserProfile, type OutsourcingInvoice, type Client } from "@/data/invoices";
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
@@ -382,3 +382,399 @@ export async function exportInvoicePdf(invoice: Invoice, profile: UserProfile | 
   link.click();
   URL.revokeObjectURL(url);
 }
+
+export async function createOutsourcingInvoicePdfBlob(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
+  const pdf = await PDFDocument.create();
+  const fonts = await embedGoogleSansFlex(pdf);
+  let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  let y = PAGE_HEIGHT - PAGE_MARGIN;
+  const businessName = profile?.businessName || profile?.name || "BillCraft";
+  const invoiceTotal = typeof invoice.total === "number" ? invoice.total : getInvoiceItemsTotal(invoice.items || []);
+  const amountPaid = getAmountPaid(invoice);
+  const balanceDue = getBalanceDue(invoice);
+  const paymentState = getPaymentState(invoice);
+  const statusTone = statusColor(invoice.status);
+
+  function drawFooter(currentPage: PDFPage, pageIndex: number) {
+    addLine(currentPage, PAGE_MARGIN, 48, PAGE_WIDTH - PAGE_MARGIN, 48, rgb(0.9, 0.91, 0.94));
+    addText(currentPage, fonts, `${businessName} | Outsourcing Payable ${invoice.id}`, PAGE_MARGIN, 30, 8, "regular", MUTED);
+    addText(currentPage, fonts, `Page ${pageIndex + 1} of ${pdf.getPageCount()}`, PAGE_WIDTH - PAGE_MARGIN, 30, 8, "regular", MUTED, "right");
+  }
+
+  function drawTableHeader(currentPage: PDFPage, headerY: number) {
+    addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, INK);
+    addText(currentPage, fonts, "WORK PURCHASED", PAGE_MARGIN + 14, headerY - 14, 8.5, "bold", WHITE);
+    addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 184, headerY - 14, 8.5, "bold", WHITE, "right");
+    addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", WHITE, "right");
+    addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 14, headerY - 14, 8.5, "bold", WHITE, "right");
+  }
+
+  function addPage() {
+    page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    y = PAGE_HEIGHT - PAGE_MARGIN;
+    addText(page, fonts, businessName, PAGE_MARGIN, y, 12, "semibold", TEXT);
+    addText(page, fonts, `${invoice.id} continued`, PAGE_WIDTH - PAGE_MARGIN, y, 10, "semibold", MUTED, "right");
+    y -= 22;
+    addLine(page, PAGE_MARGIN, y, PAGE_WIDTH - PAGE_MARGIN, y);
+    y -= 28;
+    drawTableHeader(page, y);
+    y -= 44;
+  }
+
+  function ensureSpace(height: number) {
+    if (y - height < PAGE_BOTTOM) {
+      addPage();
+    }
+  }
+
+  const issuerLines = [
+    businessName,
+    profile?.profession,
+    profile?.email,
+    profile?.phone,
+  ].filter(Boolean) as string[];
+  const vendorLines = [
+    invoice.vendor,
+    invoice.company,
+    invoice.email,
+    invoice.phone,
+    invoice.address,
+  ].filter(Boolean) as string[];
+
+  addRect(page, 0, PAGE_HEIGHT - 18, PAGE_WIDTH, 18, MUTED);
+  addRect(page, PAGE_MARGIN, y - 41, 42, 42, MUTED);
+  addText(page, fonts, businessInitials(invoice.vendor), PAGE_MARGIN + 21, y - 26, 13, "bold", WHITE, "center");
+  addText(page, fonts, invoice.vendor, PAGE_MARGIN + 56, y - 8, 15, "bold", TEXT);
+  addText(page, fonts, invoice.company || "Subcontractor / Vendor", PAGE_MARGIN + 56, y - 26, 9.5, "regular", MUTED);
+  addText(page, fonts, [invoice.email, invoice.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 40, 8.5, "regular", MUTED);
+  addText(page, fonts, "PAYMENT VOUCHER", PAGE_WIDTH - PAGE_MARGIN, y - 4, 22, "bold", TEXT, "right");
+  addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10.5, "semibold", MUTED, "right");
+  addRect(page, PAGE_WIDTH - PAGE_MARGIN - 104, y - 48, 104, 20, statusTone);
+  addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
+  y -= 78;
+
+  addRect(page, PAGE_MARGIN, y - 88, CONTENT_WIDTH, 88, SOFT);
+  addText(page, fonts, "TOTAL PAYABLE VALUE", PAGE_MARGIN + 20, y - 26, 8.5, "bold", MUTED);
+  addText(page, fonts, formatPdfCurrency(invoiceTotal, currency), PAGE_MARGIN + 20, y - 57, 24, "bold", TEXT);
+  addText(page, fonts, "Voucher date", PAGE_WIDTH - PAGE_MARGIN - 178, y - 25, 8.5, "bold", MUTED);
+  addText(page, fonts, invoice.date || "Not set", PAGE_WIDTH - PAGE_MARGIN - 178, y - 43, 10, "bold", TEXT);
+  addText(page, fonts, "Due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 25, 8.5, "bold", MUTED);
+  addText(page, fonts, invoice.dueDate || "No due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 43, 10, "bold", TEXT);
+  addText(page, fonts, invoice.templateName || "Outsourcing Voucher", PAGE_WIDTH - PAGE_MARGIN - 20, y - 68, 8.5, "regular", MUTED, "right");
+  y -= 120;
+
+  const cardGap = 18;
+  const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+  const cardHeight = 132;
+  addRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, WHITE);
+  addStrokeRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight);
+  addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, WHITE);
+  addStrokeRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight);
+  addText(page, fonts, "ISSUER", PAGE_MARGIN + 16, y - 24, 8.5, "bold", MUTED);
+  addText(page, fonts, "PAY TO", PAGE_MARGIN + cardWidth + cardGap + 16, y - 24, 8.5, "bold", MUTED);
+  addTextBlock(page, fonts, issuerLines, PAGE_MARGIN + 16, y - 46, 31);
+  addTextBlock(page, fonts, vendorLines, PAGE_MARGIN + cardWidth + cardGap + 16, y - 46, 31);
+  y -= cardHeight + 34;
+
+  drawTableHeader(page, y);
+  y -= 44;
+
+  const items = invoice.items && invoice.items.length > 0
+    ? invoice.items
+    : [{ id: "total", description: "Payable total", quantity: 1, price: invoiceTotal }];
+
+  items.forEach((item, itemIndex) => {
+    const lines = wrapText(item.description || "Work item", 52);
+    const rowHeight = Math.max(lines.length * 13 + 18, 38);
+
+    ensureSpace(rowHeight);
+
+    const rowTop = y;
+    addRect(page, PAGE_MARGIN, rowTop - rowHeight + 11, CONTENT_WIDTH, rowHeight, itemIndex % 2 === 0 ? SOFT : WHITE);
+    lines.forEach((line, index) => {
+      addText(page, fonts, line, PAGE_MARGIN + 14, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
+    });
+    addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 184, rowTop, 10, "regular", MUTED, "right");
+    addText(page, fonts, formatPdfCurrency(item.price, currency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
+    addText(page, fonts, formatPdfCurrency(item.quantity * item.price, currency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop, 10, "bold", TEXT, "right");
+    y -= rowHeight;
+    addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.9, 0.91, 0.94));
+  });
+
+  ensureSpace(150);
+  y -= 22;
+  addText(page, fonts, "Payment details", PAGE_MARGIN, y, 10, "bold", TEXT);
+  y -= 16;
+  addText(page, fonts, `Reference voucher: ${invoice.id}`, PAGE_MARGIN, y, 9.5, "regular", MUTED);
+  y -= 15;
+  addText(page, fonts, invoice.dueDate ? `Payment due date: ${invoice.dueDate}.` : "No due date was set for this voucher.", PAGE_MARGIN, y, 9.5, "regular", MUTED);
+
+  const summaryX = PAGE_WIDTH - PAGE_MARGIN - 220;
+  const summaryTop = y + 44;
+  addRect(page, summaryX, summaryTop - 122, 220, 122, WHITE);
+  addStrokeRect(page, summaryX, summaryTop - 122, 220, 122);
+  addText(page, fonts, "Subtotal", summaryX + 16, summaryTop - 28, 10, "regular", MUTED);
+  addText(page, fonts, formatPdfCurrency(invoice.subtotal || invoiceTotal, currency), summaryX + 204, summaryTop - 28, 10, "regular", TEXT, "right");
+  addText(page, fonts, "Paid", summaryX + 16, summaryTop - 52, 10, "regular", MUTED);
+  addText(page, fonts, formatPdfCurrency(amountPaid, currency), summaryX + 204, summaryTop - 52, 10, "regular", TEXT, "right");
+  addLine(page, summaryX + 16, summaryTop - 72, summaryX + 204, summaryTop - 72);
+  addText(page, fonts, "Balance due", summaryX + 16, summaryTop - 97, 13, "bold", TEXT);
+  addText(page, fonts, formatPdfCurrency(balanceDue, currency), summaryX + 204, summaryTop - 97, 13, "bold", TEXT, "right");
+  y = summaryTop - 146;
+
+  y = Math.max(y - 12, PAGE_BOTTOM + 18);
+  addText(page, fonts, "Outsourcing payable record. Thank you for your partnership.", PAGE_MARGIN, y, 10.5, "semibold", TEXT);
+
+  pdf.getPages().forEach((currentPage, index) => {
+    drawFooter(currentPage, index);
+  });
+
+  const bytes = await pdf.save();
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+}
+
+export async function exportOutsourcingInvoicePdf(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
+  const blob = await createOutsourcingInvoicePdfBlob(invoice, profile, currency);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `${invoice.id.replace("#", "").toUpperCase()}_VOUCHER.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function createClientStatementPdfBlob(
+  client: Client & { invoices: Invoice[] },
+  profile: UserProfile | null,
+  currency: string
+) {
+  const pdf = await PDFDocument.create();
+  const fonts = await embedGoogleSansFlex(pdf);
+  let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  let y = PAGE_HEIGHT - PAGE_MARGIN;
+  const businessName = profile?.businessName || profile?.name || "BillCraft";
+
+  // Calculate metrics
+  const invoices = client.invoices || [];
+  const totalBilled = invoices.reduce((sum, inv) => sum + getInvoiceTotal(inv), 0);
+  const totalPaid = invoices.reduce((sum, inv) => sum + getAmountPaid(inv), 0);
+  const totalOutstanding = invoices.reduce((sum, inv) => sum + getBalanceDue(inv), 0);
+  
+  // Overdue calculations
+  const totalOverdue = invoices
+    .filter(inv => getPaymentState(inv) === "Overdue" || isDueDateOverdue(inv.dueDate))
+    .reduce((sum, inv) => sum + getBalanceDue(inv), 0);
+
+  // Aging buckets
+  let currentBucket = 0;
+  let over1to30 = 0;
+  let over31to60 = 0;
+  let over61to90 = 0;
+  let over90 = 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  invoices.forEach((inv) => {
+    const balance = getBalanceDue(inv);
+    if (balance <= 0) return;
+
+    if (!inv.dueDate) {
+      currentBucket += balance;
+      return;
+    }
+
+    const due = new Date(inv.dueDate);
+    if (Number.isNaN(due.getTime())) {
+      currentBucket += balance;
+      return;
+    }
+
+    due.setHours(0, 0, 0, 0);
+
+    if (due >= today) {
+      currentBucket += balance;
+    } else {
+      const diffTime = Math.abs(today.getTime() - due.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 30) {
+        over1to30 += balance;
+      } else if (diffDays <= 60) {
+        over31to60 += balance;
+      } else if (diffDays <= 90) {
+        over61to90 += balance;
+      } else {
+        over90 += balance;
+      }
+    }
+  });
+
+  function drawFooter(currentPage: PDFPage, pageIndex: number) {
+    addLine(currentPage, PAGE_MARGIN, 48, PAGE_WIDTH - PAGE_MARGIN, 48, rgb(0.9, 0.91, 0.94));
+    addText(currentPage, fonts, `${businessName} | Statement of Accounts: ${client.name}`, PAGE_MARGIN, 30, 8, "regular", MUTED);
+    addText(currentPage, fonts, `Page ${pageIndex + 1} of ${pdf.getPageCount()}`, PAGE_WIDTH - PAGE_MARGIN, 30, 8, "regular", MUTED, "right");
+  }
+
+  function drawTableHeader(currentPage: PDFPage, headerY: number) {
+    addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, INK);
+    addText(currentPage, fonts, "DATE", PAGE_MARGIN + 14, headerY - 14, 8.5, "bold", WHITE);
+    addText(currentPage, fonts, "INVOICE ID", PAGE_MARGIN + 110, headerY - 14, 8.5, "bold", WHITE);
+    addText(currentPage, fonts, "STATUS", PAGE_MARGIN + 210, headerY - 14, 8.5, "bold", WHITE);
+    addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 170, headerY - 14, 8.5, "bold", WHITE, "right");
+    addText(currentPage, fonts, "PAID", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", WHITE, "right");
+    addText(currentPage, fonts, "BALANCE DUE", PAGE_WIDTH - PAGE_MARGIN - 14, headerY - 14, 8.5, "bold", WHITE, "right");
+  }
+
+  function addPage() {
+    page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    y = PAGE_HEIGHT - PAGE_MARGIN;
+    addText(page, fonts, businessName, PAGE_MARGIN, y, 12, "semibold", TEXT);
+    addText(page, fonts, `Statement for ${client.name} continued`, PAGE_WIDTH - PAGE_MARGIN, y, 10, "semibold", MUTED, "right");
+    y -= 22;
+    addLine(page, PAGE_MARGIN, y, PAGE_WIDTH - PAGE_MARGIN, y);
+    y -= 28;
+    drawTableHeader(page, y);
+    y -= 44;
+  }
+
+  function ensureSpace(height: number) {
+    if (y - height < PAGE_BOTTOM) {
+      addPage();
+    }
+  }
+
+  // Header Banner
+  addRect(page, 0, PAGE_HEIGHT - 18, PAGE_WIDTH, 18, ACCENT);
+  addRect(page, PAGE_MARGIN, y - 41, 42, 42, ACCENT);
+  addText(page, fonts, businessInitials(client.name), PAGE_MARGIN + 21, y - 26, 13, "bold", WHITE, "center");
+  addText(page, fonts, client.name, PAGE_MARGIN + 56, y - 8, 15, "bold", TEXT);
+  addText(page, fonts, client.company || "Statement of Accounts", PAGE_MARGIN + 56, y - 26, 9.5, "regular", MUTED);
+  addText(page, fonts, [client.email, client.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 40, 8.5, "regular", MUTED);
+  addText(page, fonts, "STATEMENT", PAGE_WIDTH - PAGE_MARGIN, y - 4, 25, "bold", TEXT, "right");
+  addText(page, fonts, `Generated on ${formatPdfDate(new Date())}`, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10, "semibold", MUTED, "right");
+  y -= 78;
+
+  // Overview Cards
+  const totalCardsWidth = CONTENT_WIDTH;
+  const cardGap = 12;
+  const numCards = 4;
+  const singleCardWidth = (totalCardsWidth - (cardGap * (numCards - 1))) / numCards;
+  const overviewCardHeight = 64;
+
+  const cardData = [
+    { label: "TOTAL BILLED", value: totalBilled, bg: SOFT, color: TEXT },
+    { label: "TOTAL COLLECTED", value: totalPaid, bg: ACCENT_SOFT, color: ACCENT },
+    { label: "OUTSTANDING", value: totalOutstanding, bg: SOFT, color: TEXT },
+    { label: "OVERDUE BALANCE", value: totalOverdue, bg: rgb(1, 0.95, 0.95), color: WARNING },
+  ];
+
+  cardData.forEach((card, idx) => {
+    const cardX = PAGE_MARGIN + idx * (singleCardWidth + cardGap);
+    addRect(page, cardX, y - overviewCardHeight, singleCardWidth, overviewCardHeight, card.bg);
+    addStrokeRect(page, cardX, y - overviewCardHeight, singleCardWidth, overviewCardHeight, BORDER);
+    addText(page, fonts, card.label, cardX + 10, y - 18, 7.5, "bold", MUTED);
+    addText(page, fonts, formatPdfCurrency(card.value, currency), cardX + 10, y - 44, 11.5, "bold", card.color);
+  });
+  y -= overviewCardHeight + 24;
+
+  // Aging Analysis Schedule
+  const agingCardHeight = 64;
+  const numAging = 5;
+  const agingWidth = (totalCardsWidth - (cardGap * (numAging - 1))) / numAging;
+
+  addText(page, fonts, "AGING SCHEDULE (OUTSTANDING BALANCES)", PAGE_MARGIN, y, 9, "bold", TEXT);
+  y -= 16;
+
+  const agingData = [
+    { label: "Current", value: currentBucket },
+    { label: "1 - 30 Days", value: over1to30 },
+    { label: "31 - 60 Days", value: over31to60 },
+    { label: "61 - 90 Days", value: over61to90 },
+    { label: "90+ Days", value: over90 },
+  ];
+
+  agingData.forEach((bucket, idx) => {
+    const ageX = PAGE_MARGIN + idx * (agingWidth + cardGap);
+    const hasBalance = bucket.value > 0;
+    addRect(page, ageX, y - agingCardHeight, agingWidth, agingCardHeight, hasBalance ? ACCENT_SOFT : WHITE);
+    addStrokeRect(page, ageX, y - agingCardHeight, agingWidth, agingCardHeight, hasBalance ? ACCENT : BORDER);
+    addText(page, fonts, bucket.label, ageX + 10, y - 18, 8, "semibold", hasBalance ? ACCENT : MUTED);
+    addText(page, fonts, formatPdfCurrency(bucket.value, currency), ageX + 10, y - 44, 10, "bold", hasBalance ? TEXT : MUTED);
+  });
+  y -= agingCardHeight + 28;
+
+  // Ledger Table
+  drawTableHeader(page, y);
+  y -= 44;
+
+  if (invoices.length === 0) {
+    addRect(page, PAGE_MARGIN, y - 40, CONTENT_WIDTH, 40, SOFT);
+    addText(page, fonts, "No invoice records found for this client.", PAGE_MARGIN + 14, y - 24, 10, "regular", MUTED);
+    y -= 40;
+  } else {
+    invoices.forEach((inv, invIdx) => {
+      const rowHeight = 36;
+      ensureSpace(rowHeight);
+
+      const rowTop = y;
+      const statusText = getPaymentState(inv).toUpperCase();
+      const statusTone = statusColor(inv.status);
+
+      addRect(page, PAGE_MARGIN, rowTop - rowHeight + 11, CONTENT_WIDTH, rowHeight, invIdx % 2 === 0 ? SOFT : WHITE);
+      
+      addText(page, fonts, inv.date, PAGE_MARGIN + 14, rowTop - 12, 9.5, "regular", TEXT);
+      addText(page, fonts, inv.id, PAGE_MARGIN + 110, rowTop - 12, 9.5, "semibold", TEXT);
+      addText(page, fonts, statusText, PAGE_MARGIN + 210, rowTop - 12, 8.5, "bold", statusTone);
+      
+      addText(page, fonts, formatPdfCurrency(getInvoiceTotal(inv), currency), PAGE_WIDTH - PAGE_MARGIN - 170, rowTop - 12, 9.5, "regular", TEXT, "right");
+      addText(page, fonts, formatPdfCurrency(getAmountPaid(inv), currency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop - 12, 9.5, "regular", TEXT, "right");
+      addText(page, fonts, formatPdfCurrency(getBalanceDue(inv), currency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop - 12, 9.5, "bold", TEXT, "right");
+      
+      y -= rowHeight;
+      addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.9, 0.91, 0.94));
+    });
+  }
+
+  ensureSpace(80);
+  y -= 20;
+  
+  // Notes / Footer Info
+  addText(page, fonts, "Summary Statement of Account", PAGE_MARGIN, y, 10.5, "bold", TEXT);
+  y -= 16;
+  addText(page, fonts, `This is a consolidated statement summarizing all financial billing ledger transactions.`, PAGE_MARGIN, y, 9.5, "regular", MUTED);
+  y -= 14;
+  addText(page, fonts, `Total Unresolved Outstanding Balance: ${formatPdfCurrency(totalOutstanding, currency)}.`, PAGE_MARGIN, y, 9.5, "semibold", TEXT);
+
+  pdf.getPages().forEach((currentPage, index) => {
+    drawFooter(currentPage, index);
+  });
+
+  const bytes = await pdf.save();
+  return new Blob([bytes as BlobPart], { type: "application/pdf" });
+}
+
+export async function exportClientStatementPdf(
+  client: Client & { invoices: Invoice[] },
+  profile: UserProfile | null,
+  currency: string
+) {
+  const blob = await createClientStatementPdfBlob(client, profile, currency);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `STATEMENT_${client.name.replace(/[^a-z0-9-]+/gi, "").toUpperCase()}.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatPdfDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+

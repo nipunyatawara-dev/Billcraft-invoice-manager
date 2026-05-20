@@ -366,12 +366,12 @@ export default function Outsourcing() {
     void submitOutsourcingInvoice();
   }
 
-  function handleExportOutsourcingInvoice(invoice: OutsourcingInvoice) {
+  async function handleExportOutsourcingInvoice(invoice: OutsourcingInvoice) {
     try {
-      exportOutsourcingInvoice(invoice);
+      await exportOutsourcingInvoice(invoice);
       notify.success({
         title: "Download started",
-        description: `${invoice.id} was exported as a text file.`,
+        description: `${invoice.id} was exported as a PDF voucher.`,
       });
     } catch (error) {
       notify.error({

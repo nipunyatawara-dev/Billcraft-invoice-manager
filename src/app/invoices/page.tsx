@@ -18,6 +18,7 @@ import {
   type PaymentAttachment,
   type PaymentRecord,
 } from "@/data/invoices";
+import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
@@ -102,6 +103,31 @@ function toDateInputValue(date?: string) {
   return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
 }
 
+function parseEstimateToHours(estimate?: string): number {
+  if (!estimate) return 0;
+  const cleaned = estimate.trim().toLowerCase();
+  
+  const hourMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*h/);
+  const minMatch = cleaned.match(/(\d+)\s*m/);
+  
+  let hours = 0;
+  if (hourMatch) {
+    hours += parseFloat(hourMatch[1]);
+  }
+  if (minMatch) {
+    hours += parseInt(minMatch[1], 10) / 60;
+  }
+  
+  if (!hourMatch && !minMatch) {
+    const rawNumber = parseFloat(cleaned);
+    if (!isNaN(rawNumber)) {
+      hours = rawNumber;
+    }
+  }
+  
+  return Math.round(hours * 100) / 100;
+}
+
 function getFormFromClient(client: Client, currentForm: InvoiceForm): InvoiceForm {
   return {
     ...currentForm,
@@ -146,7 +172,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
 
 export default function Invoices() {
   const { invoices, clientRecords, saveInvoice, exportInvoice } = useInvoices();
-  const { activeProfile } = useUserData();
+  const { activeProfile, todoTasks = [], saveTodoTasks } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,6 +181,99 @@ export default function Invoices() {
   const [form, setForm] = useState<InvoiceForm>(createEmptyForm);
   const [needsClientSaveChoice, setNeedsClientSaveChoice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    setImportedTaskIds([]);
+  }, [form.client]);
+
+  const importableTasks = useMemo(() => {
+    if (!form.client.trim()) return [];
+    const clientQuery = form.client.trim().toLowerCase();
+    return todoTasks.filter(task => 
+      task.client && 
+      task.client.trim().toLowerCase() === clientQuery &&
+      task.stage === "done" &&
+      !task.tags.includes("Billed")
+    );
+  }, [todoTasks, form.client]);
+
+  function importTask(task: TodoTask) {
+    if (importedTaskIds.includes(task.id)) return;
+    
+    const parsedHours = parseEstimateToHours(task.estimate);
+    const hourlyRate = (activeProfile as any)?.hourlyRate || 50;
+    const newItem = {
+      id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      description: task.title + (task.description ? `: ${task.description}` : ""),
+      quantity: parsedHours || 1,
+      price: hourlyRate,
+    };
+
+    setForm((currentForm) => {
+      const hasSingleEmptyItem = 
+        currentForm.items.length === 1 && 
+        !currentForm.items[0].description.trim() && 
+        currentForm.items[0].quantity === 1 && 
+        currentForm.items[0].price === 0;
+
+      const nextItems = hasSingleEmptyItem
+        ? [newItem]
+        : [...currentForm.items, newItem];
+
+      return {
+        ...currentForm,
+        items: nextItems,
+      };
+    });
+
+    setImportedTaskIds((prev) => [...prev, task.id]);
+    notify.success({
+      title: "Task imported",
+      description: `"${task.title}" was added to line items.`,
+    });
+  }
+
+  function importAllTasks(tasks: TodoTask[]) {
+    const hourlyRate = (activeProfile as any)?.hourlyRate || 50;
+    const newItems = tasks
+      .filter(task => !importedTaskIds.includes(task.id))
+      .map(task => {
+        const parsedHours = parseEstimateToHours(task.estimate);
+        return {
+          id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${task.id}`,
+          description: task.title + (task.description ? `: ${task.description}` : ""),
+          quantity: parsedHours || 1,
+          price: hourlyRate,
+        };
+      });
+
+    if (newItems.length === 0) return;
+
+    setForm((currentForm) => {
+      const hasSingleEmptyItem = 
+        currentForm.items.length === 1 && 
+        !currentForm.items[0].description.trim() && 
+        currentForm.items[0].quantity === 1 && 
+        currentForm.items[0].price === 0;
+
+      const nextItems = hasSingleEmptyItem
+        ? newItems
+        : [...currentForm.items, ...newItems];
+
+      return {
+        ...currentForm,
+        items: nextItems,
+      };
+    });
+
+    setImportedTaskIds((prev) => [...prev, ...tasks.map(t => t.id)]);
+    notify.success({
+      title: "All tasks imported",
+      description: `${newItems.length} tasks added to line items.`,
+    });
+  }
 
   const filteredInvoices = useMemo(() => invoices.filter((invoice) => {
     const normalizedSearch = searchQuery.toLowerCase();
@@ -375,10 +494,28 @@ export default function Invoices() {
         }),
       });
 
+      if (importedTaskIds.length > 0) {
+        const nextTasks = todoTasks.map(task => {
+          if (importedTaskIds.includes(task.id)) {
+            const tags = task.tags || [];
+            if (!tags.includes("Billed")) {
+              return {
+                ...task,
+                tags: [...tags, "Billed"],
+                updatedAt: new Date().toISOString(),
+              };
+            }
+          }
+          return task;
+        });
+        await saveTodoTasks(nextTasks);
+      }
+
       setModalMode(null);
       setSelectedInvoice(null);
       setNeedsClientSaveChoice(false);
       setForm(createEmptyForm());
+      setImportedTaskIds([]);
     } finally {
       setIsSaving(false);
     }
@@ -689,6 +826,53 @@ export default function Invoices() {
                     </div>
                   )}
                 </div>
+
+                {importableTasks.length > 0 && (
+                  <div className="surface-card overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01]">
+                      <div>
+                        <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Unbilled Done Tasks</p>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Found completed tasks for {form.client}. Import them to line items.</p>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => importAllTasks(importableTasks)} 
+                        disabled={importableTasks.every(t => importedTaskIds.includes(t.id))}
+                        className="btn-secondary text-[11px] min-h-8 px-3 py-1.5 disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">done_all</span>
+                        Import All
+                      </button>
+                    </div>
+                    <div className="divide-y divide-[var(--card-border)] max-h-48 overflow-y-auto">
+                      {importableTasks.map((task) => {
+                        const isImported = importedTaskIds.includes(task.id);
+                        const parsedHours = parseEstimateToHours(task.estimate);
+                        return (
+                          <div key={task.id} className="flex items-center justify-between gap-4 p-3 hover:bg-[var(--foreground)]/[0.01] transition-smooth">
+                            <div className="min-w-0">
+                              <p className="text-[12.5px] font-semibold text-[var(--foreground)] truncate">{task.title}</p>
+                              <p className="text-[11px] text-[var(--muted)] truncate">
+                                {task.estimate ? `Estimate: ${task.estimate}` : "No estimate"} · {parsedHours > 0 ? `${parsedHours} hours` : "1.00 hours"} billable
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => importTask(task)}
+                              disabled={isImported}
+                              className={`btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 ${isImported ? "bg-[var(--positive)]/10 text-[var(--positive)] border-[var(--positive)]/20" : ""}`}
+                            >
+                              <span className="material-symbols-outlined text-[13px]">
+                                {isImported ? "check_circle" : "add"}
+                              </span>
+                              {isImported ? "Imported" : "Import"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">

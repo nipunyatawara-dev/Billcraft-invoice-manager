@@ -6,6 +6,8 @@ import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
+import { useUserData } from "@/hooks/use-user-data";
+import { exportClientStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
@@ -40,6 +42,7 @@ export default function Clients() {
   const [isSaving, setIsSaving] = useState(false);
 
   const { invoices, clientRecords, saveClient } = useInvoices();
+  const { activeProfile } = useUserData();
   const { currency } = useCurrency();
   const shouldReduceMotion = useReducedMotion();
 
@@ -190,6 +193,21 @@ export default function Clients() {
     return paidInvoices.length > 0
       ? Math.round(paidInvoices.reduce((sum, days) => sum + days, 0) / paidInvoices.length)
       : null;
+  }
+
+  async function handleExportStatement(client: ClientWithInvoices) {
+    try {
+      await exportClientStatementPdf(client, activeProfile, currency);
+      notify.success({
+        title: "Download started",
+        description: `Billing statement for ${client.name} was exported as a PDF.`,
+      });
+    } catch (error) {
+      notify.error({
+        title: "Download failed",
+        description: getToastErrorMessage(error, "Unable to export billing statement."),
+      });
+    }
   }
 
   function quickCreateInvoice(clientId: string) {
@@ -376,10 +394,16 @@ export default function Clients() {
                           <div className="border-b border-[var(--card-border)] lg:border-b-0 lg:border-r">
                             <div className="flex items-center justify-between gap-3 px-5 py-3">
                               <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">Invoices</p>
-                              <button type="button" onClick={() => quickCreateInvoice(client.id)} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
-                                <span className="material-symbols-outlined text-[14px]">add</span>
-                                Create Invoice
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button type="button" onClick={() => handleExportStatement(client)} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
+                                  <span className="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                                  Statement PDF
+                                </button>
+                                <button type="button" onClick={() => quickCreateInvoice(client.id)} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
+                                  <span className="material-symbols-outlined text-[14px]">add</span>
+                                  Create Invoice
+                                </button>
+                              </div>
                             </div>
                             {selectedClientData.invoices.length > 0 ? selectedClientData.invoices.map((invoice) => (
                               <div key={invoice.id} className="flex items-center justify-between gap-3 border-t border-[var(--card-border)] px-5 py-3 transition-smooth hover:bg-[var(--foreground)]/[0.02]">
