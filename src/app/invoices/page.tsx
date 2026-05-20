@@ -15,8 +15,10 @@ import {
   type Invoice,
   type InvoiceItem,
   type InvoiceStatus,
+  type InvoiceWorkflowStatus,
   type PaymentAttachment,
   type PaymentRecord,
+  type UserProfile,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
@@ -27,6 +29,8 @@ import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
+const WORKFLOW_STATUSES: InvoiceWorkflowStatus[] = ["Draft", "Sent", "Work Confirmed", "Delivered"];
+const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
 const TEMPLATES = [
   {
     id: "classic",
@@ -46,12 +50,15 @@ type InvoiceForm = {
   client: string;
   email: string;
   phone: string;
+  whatsapp: string;
   company: string;
   address: string;
+  deliveryLink: string;
   avatar: string;
   date: string;
   dueDate: string;
   status: InvoiceStatus;
+  workflowStatus: InvoiceWorkflowStatus;
   items: InvoiceItem[];
   paymentNotes: string;
   payments: PaymentRecord[];
@@ -80,12 +87,15 @@ function createEmptyForm(): InvoiceForm {
     client: "",
     email: "",
     phone: "",
+    whatsapp: "",
     company: "",
     address: "",
+    deliveryLink: "",
     avatar: "",
     date: todayInputValue(),
     dueDate: "",
     status: "Unpaid",
+    workflowStatus: "Draft",
     items: [createItem()],
     paymentNotes: "",
     payments: [],
@@ -101,6 +111,27 @@ function toDateInputValue(date?: string) {
 
   const parsed = new Date(date);
   return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+function getJobColor(invoiceId: string) {
+  const colorIndex = [...invoiceId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % JOB_COLORS.length;
+  return JOB_COLORS[colorIndex];
+}
+
+function getWhatsAppUrl(phone: string, message: string) {
+  const digits = phone.replace(/[^\d]/g, "");
+
+  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : "";
+}
+
+function getInvoiceContactMessage(invoice: Invoice) {
+  return `Hi ${invoice.client}, ${invoice.id} is ready for review.`;
+}
+
+function getProfileHourlyRate(profile: UserProfile | null | undefined) {
+  const profileWithBilling = profile as (UserProfile & { hourlyRate?: unknown }) | null | undefined;
+
+  return typeof profileWithBilling?.hourlyRate === "number" ? profileWithBilling.hourlyRate : 50;
 }
 
 function parseEstimateToHours(estimate?: string): number {
@@ -136,8 +167,10 @@ function getFormFromClient(client: Client, currentForm: InvoiceForm): InvoiceFor
     client: client.name,
     email: client.email,
     phone: client.phone,
+    whatsapp: client.whatsapp || "",
     company: client.company || "",
     address: client.address || "",
+    deliveryLink: client.deliveryLink || "",
     avatar: client.avatar,
     saveClientMode: null,
   };
@@ -156,12 +189,15 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
     client: invoice.client,
     email: invoice.email,
     phone: invoice.phone,
+    whatsapp: invoice.whatsapp || matchingClient?.whatsapp || "",
     company: invoice.company || matchingClient?.company || "",
     address: invoice.address || matchingClient?.address || "",
+    deliveryLink: invoice.deliveryLink || matchingClient?.deliveryLink || "",
     avatar: invoice.avatar,
     date: toDateInputValue(invoice.date) || todayInputValue(),
     dueDate: toDateInputValue(invoice.dueDate),
     status: invoice.status,
+    workflowStatus: invoice.workflowStatus || "Draft",
     items: fallbackItems,
     paymentNotes: invoice.paymentNotes || "",
     payments: invoice.payments || [],
@@ -181,6 +217,8 @@ export default function Invoices() {
   const [form, setForm] = useState<InvoiceForm>(createEmptyForm);
   const [needsClientSaveChoice, setNeedsClientSaveChoice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingTaskInvoice, setPendingTaskInvoice] = useState<Invoice | null>(null);
+  const [isCreatingTasks, setIsCreatingTasks] = useState(false);
 
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
 
@@ -203,7 +241,7 @@ export default function Invoices() {
     if (importedTaskIds.includes(task.id)) return;
     
     const parsedHours = parseEstimateToHours(task.estimate);
-    const hourlyRate = (activeProfile as any)?.hourlyRate || 50;
+    const hourlyRate = getProfileHourlyRate(activeProfile);
     const newItem = {
       id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       description: task.title + (task.description ? `: ${task.description}` : ""),
@@ -236,7 +274,7 @@ export default function Invoices() {
   }
 
   function importAllTasks(tasks: TodoTask[]) {
-    const hourlyRate = (activeProfile as any)?.hourlyRate || 50;
+    const hourlyRate = getProfileHourlyRate(activeProfile);
     const newItems = tasks
       .filter(task => !importedTaskIds.includes(task.id))
       .map(task => {
@@ -364,8 +402,10 @@ export default function Invoices() {
       client: "",
       email: "",
       phone: "",
+      whatsapp: "",
       company: "",
       address: "",
+      deliveryLink: "",
       avatar: "",
       saveClientMode: null,
     }));
@@ -451,18 +491,21 @@ export default function Invoices() {
       const isEditing = modalMode === "edit";
       const paymentTotal = form.payments.reduce((sum, payment) => sum + Math.max(Number(payment.amount) || 0, 0), 0);
       const latestPayment = [...form.payments].sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime())[0];
-      await notifyPromise(saveInvoice({
+      const savedInvoice = await notifyPromise(saveInvoice({
         id: modalMode === "edit" ? selectedInvoice?.id : undefined,
         clientId: form.clientMode === "saved" ? form.clientId : undefined,
         client: clientName,
         email: form.email,
         phone: form.phone,
+        whatsapp: form.whatsapp,
         company: form.company,
         address: form.address,
+        deliveryLink: form.deliveryLink,
         avatar: form.avatar,
         date: form.date,
         dueDate: form.dueDate,
         status: form.status,
+        workflowStatus: form.workflowStatus,
         templateId: selectedTemplate.id,
         templateName: selectedTemplate.name,
         items: normalizedItems,
@@ -516,6 +559,9 @@ export default function Invoices() {
       setNeedsClientSaveChoice(false);
       setForm(createEmptyForm());
       setImportedTaskIds([]);
+      if (!isEditing && savedInvoice.items && savedInvoice.items.length > 0) {
+        setPendingTaskInvoice(savedInvoice);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -524,6 +570,127 @@ export default function Invoices() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void submitInvoice();
+  }
+
+  function useClientDeliveryLocation() {
+    const selectedClient = clientRecords.find((client) => client.id === form.clientId);
+
+    if (!selectedClient?.deliveryLink) {
+      return;
+    }
+
+    setForm((currentForm) => ({ ...currentForm, deliveryLink: selectedClient.deliveryLink || "" }));
+  }
+
+  function useProfileDeliveryLocation() {
+    if (!activeProfile?.defaultDeliveryLink) {
+      return;
+    }
+
+    setForm((currentForm) => ({ ...currentForm, deliveryLink: activeProfile.defaultDeliveryLink || "" }));
+  }
+
+  async function createTodoCardsForInvoice(invoice: Invoice) {
+    if (isCreatingTasks) {
+      return;
+    }
+
+    const invoiceItems = invoice.items?.filter((item) => item.description.trim()) || [];
+
+    if (invoiceItems.length === 0) {
+      setPendingTaskInvoice(null);
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const jobColor = getJobColor(invoice.id);
+    const nextTasks: TodoTask[] = [
+      ...invoiceItems.map((item, index): TodoTask => ({
+        id: `todo-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+        title: item.description.trim(),
+        description: `${invoice.id} · ${formatCurrency(item.quantity * item.price, currency)}`,
+        client: invoice.client,
+        clientId: invoice.clientId,
+        clientEmail: invoice.email,
+        clientPhone: invoice.phone,
+        clientWhatsapp: invoice.whatsapp,
+        invoiceId: invoice.id,
+        jobColor,
+        deliveryLink: invoice.deliveryLink,
+        dueDate: toDateInputValue(invoice.dueDate) || undefined,
+        estimate: item.quantity > 1 ? `${item.quantity} units` : undefined,
+        stage: "backlog",
+        priority: "Medium",
+        tags: ["Invoice", invoice.id],
+        order: index,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      ...todoTasks.map((task) => task.stage === "backlog" ? { ...task, order: task.order + invoiceItems.length } : task),
+    ];
+
+    setIsCreatingTasks(true);
+
+    try {
+      await notifyPromise(saveTodoTasks(nextTasks), {
+        loading: {
+          title: "Creating task cards...",
+          description: "Adding this invoice work to the To-Do board.",
+        },
+        success: {
+          title: "Tasks added",
+          description: `${invoiceItems.length} card${invoiceItems.length === 1 ? "" : "s"} created for ${invoice.id}.`,
+        },
+        error: (error) => ({
+          title: "Task creation failed",
+          description: getToastErrorMessage(error, "Unable to add these cards."),
+        }),
+      });
+      setPendingTaskInvoice(null);
+    } finally {
+      setIsCreatingTasks(false);
+    }
+  }
+
+  async function updateInvoiceWorkflowStatus(invoice: Invoice, workflowStatus: InvoiceWorkflowStatus) {
+    const invoiceForm = getInvoiceForm(invoice, clientRecords);
+
+    setIsSaving(true);
+
+    try {
+      const updatedInvoice = await notifyPromise(saveInvoice({
+        ...invoiceForm,
+        id: invoice.id,
+        clientId: invoice.clientId,
+        client: invoice.client,
+        workflowStatus,
+        templateName: invoice.templateName || TEMPLATES[0].name,
+        saveClientMode: "onetime",
+      }).then((savedInvoice) => {
+        if (!savedInvoice) {
+          throw new Error("Create a profile before updating invoices.");
+        }
+
+        return savedInvoice;
+      }), {
+        loading: {
+          title: "Updating work status...",
+          description: `${invoice.id} is being updated.`,
+        },
+        success: {
+          title: "Work status updated",
+          description: `${invoice.id} is now ${workflowStatus.toLowerCase()}.`,
+        },
+        error: (error) => ({
+          title: "Status update failed",
+          description: getToastErrorMessage(error, "Unable to update this invoice."),
+        }),
+      });
+
+      setSelectedInvoice(updatedInvoice);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function handleExportInvoice(invoice: Invoice) {
@@ -644,6 +811,9 @@ export default function Invoices() {
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
                   {paymentState}
+                </span>
+                <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 bg-[var(--foreground)]/[0.05] text-[var(--muted)]">
+                  {invoice.workflowStatus || "Draft"}
                 </span>
                 <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
@@ -780,6 +950,8 @@ export default function Invoices() {
                           <p className="font-semibold text-[var(--foreground)] truncate">{form.client}</p>
                           <p className="truncate">{form.email || "No email saved"}</p>
                           <p className="truncate">{form.phone || "No phone saved"}</p>
+                          <p className="truncate">{form.whatsapp || "No WhatsApp saved"}</p>
+                          {form.deliveryLink && <p className="mt-1 truncate text-[var(--accent)]">{form.deliveryLink}</p>}
                           {form.address && <p className="mt-1 whitespace-pre-line">{form.address}</p>}
                         </div>
                       </div>
@@ -819,12 +991,49 @@ export default function Invoices() {
                           <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
                         </div>
                       </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-whatsapp">WhatsApp</label>
+                          <input id="invoice-whatsapp" value={form.whatsapp} onChange={(event) => setForm({ ...form, whatsapp: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-delivery-link-new">Finished Work Folder</label>
+                          <input id="invoice-delivery-link-new" type="url" value={form.deliveryLink} onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })} placeholder="https://drive.google.com/..." className="field-control px-3 py-2" />
+                        </div>
+                      </div>
                       <div className="space-y-1.5">
                         <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-address">Address</label>
                         <textarea id="invoice-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Billing address" className="field-control min-h-20 px-3 py-2 resize-none" />
                       </div>
                     </div>
                   )}
+                </div>
+
+                <div className="surface-card p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Delivery Location</p>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Pick where the finished product should be uploaded after the work is done.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={useClientDeliveryLocation} disabled={!clientRecords.find((client) => client.id === form.clientId)?.deliveryLink} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] disabled:opacity-50">
+                        <span className="material-symbols-outlined text-[14px]">folder_shared</span>
+                        Client location
+                      </button>
+                      <button type="button" onClick={useProfileDeliveryLocation} disabled={!activeProfile?.defaultDeliveryLink} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] disabled:opacity-50">
+                        <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                        My Drive location
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    id="invoice-delivery-link"
+                    type="url"
+                    value={form.deliveryLink}
+                    onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
+                    placeholder="https://drive.google.com/..."
+                    className="field-control px-3 py-2"
+                  />
                 </div>
 
                 {importableTasks.length > 0 && (
@@ -874,7 +1083,7 @@ export default function Invoices() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-date">Date</label>
                     <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-2" />
@@ -893,7 +1102,7 @@ export default function Invoices() {
                         setForm((currentForm) => ({
                           ...currentForm,
                           status,
-                          payments: status === "Paid" && currentForm.payments.length === 0
+                          payments: modalMode === "edit" && status === "Paid" && currentForm.payments.length === 0
                             ? [createPaymentRecord(invoiceTotal)]
                             : currentForm.payments,
                         }));
@@ -901,6 +1110,17 @@ export default function Invoices() {
                       className="field-control px-3 py-2"
                     >
                       {STATUSES.map((status) => <option key={status}>{status}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-workflow-status">Work Status</label>
+                    <select
+                      id="invoice-workflow-status"
+                      value={form.workflowStatus}
+                      onChange={(event) => setForm({ ...form, workflowStatus: event.target.value as InvoiceWorkflowStatus })}
+                      className="field-control px-3 py-2"
+                    >
+                      {WORKFLOW_STATUSES.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </div>
                 </div>
@@ -942,14 +1162,16 @@ export default function Invoices() {
                   </div>
                 </div>
 
-                <PaymentTrackingForm
-                  currency={currency}
-                  total={invoiceTotal}
-                  payments={form.payments}
-                  paymentNotes={form.paymentNotes}
-                  onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
-                  onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
-                />
+                {modalMode === "edit" && (
+                  <PaymentTrackingForm
+                    currency={currency}
+                    total={invoiceTotal}
+                    payments={form.payments}
+                    paymentNotes={form.paymentNotes}
+                    onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
+                    onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
+                  />
+                )}
 
                 {needsClientSaveChoice && (
                   <div className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
@@ -1007,6 +1229,7 @@ export default function Invoices() {
                           <p className="text-[14px] font-semibold text-[var(--foreground)]">{selectedInvoice.client}</p>
                           <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.email || "No email added"}</p>
                           <p className="text-[12px] text-[var(--muted)]">{selectedInvoice.phone || "No phone added"}</p>
+                          {selectedInvoice.whatsapp && <p className="text-[12px] text-[var(--muted)]">WhatsApp: {selectedInvoice.whatsapp}</p>}
                           {selectedInvoice.address && <p className="text-[12px] text-[var(--muted)] whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
                         </div>
                       </div>
@@ -1019,6 +1242,10 @@ export default function Invoices() {
                       <div className="surface-card p-3.5">
                         <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">Status</p>
                         <p className="text-[13px] font-semibold text-[var(--foreground)]">{getPaymentState(selectedInvoice)}</p>
+                      </div>
+                      <div className="surface-card p-3.5 col-span-2">
+                        <p className="text-[10px] font-semibold text-[var(--muted)] tracking-widest uppercase mb-1.5">Work Status</p>
+                        <p className="text-[13px] font-semibold text-[var(--foreground)]">{selectedInvoice.workflowStatus || "Draft"}</p>
                       </div>
                     </div>
                   </div>
@@ -1054,16 +1281,103 @@ export default function Invoices() {
 
                 <PaymentSummary currency={currency} record={selectedInvoice} />
 
-                <div className="flex justify-end gap-2">
+                <div className="surface-card p-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Delivery</p>
+                      {selectedInvoice.deliveryLink ? (
+                        <a href={selectedInvoice.deliveryLink} target="_blank" rel="noreferrer" className="mt-1 block truncate text-[13px] font-semibold text-[var(--accent)]">
+                          {selectedInvoice.deliveryLink}
+                        </a>
+                      ) : (
+                        <p className="mt-1 text-[12px] text-[var(--muted)]">No upload location selected for this invoice.</p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedInvoice.email && (
+                        <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={`mailto:${selectedInvoice.email}?subject=${encodeURIComponent(`${selectedInvoice.id} finished work`)}&body=${encodeURIComponent(getInvoiceContactMessage(selectedInvoice))}`}>
+                          <span className="material-symbols-outlined text-[14px]">mail</span>
+                          Email
+                        </a>
+                      )}
+                      {selectedInvoice.whatsapp && getWhatsAppUrl(selectedInvoice.whatsapp, getInvoiceContactMessage(selectedInvoice)) && (
+                        <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={getWhatsAppUrl(selectedInvoice.whatsapp, getInvoiceContactMessage(selectedInvoice))} target="_blank" rel="noreferrer">
+                          <span className="material-symbols-outlined text-[14px]">chat</span>
+                          WhatsApp
+                        </a>
+                      )}
+                      {selectedInvoice.deliveryLink && (
+                        <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={selectedInvoice.deliveryLink} target="_blank" rel="noreferrer">
+                          <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                          Upload
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
                   <button onClick={() => handleExportInvoice(selectedInvoice)} className="btn-secondary">
                     Export PDF
                   </button>
+                  {selectedInvoice.workflowStatus !== "Sent" && (
+                    <button onClick={() => void updateInvoiceWorkflowStatus(selectedInvoice, "Sent")} className="btn-secondary" disabled={isSaving}>
+                      Mark Sent
+                    </button>
+                  )}
+                  {selectedInvoice.workflowStatus !== "Work Confirmed" && (
+                    <button onClick={() => void updateInvoiceWorkflowStatus(selectedInvoice, "Work Confirmed")} className="btn-secondary" disabled={isSaving}>
+                      Work Confirmed
+                    </button>
+                  )}
                   <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary active:scale-[0.97]">
                     Edit Invoice
                   </button>
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {pendingTaskInvoice && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+          <button aria-label="Close task prompt" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={() => setPendingTaskInvoice(null)} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl p-5 sm:p-7">
+            <div className="mb-5">
+              <AnimatedText as="p" text="Next Step" effect="micro-scale-fade" className="section-eyebrow" replayKey="invoice-task-prompt" />
+              <AnimatedText
+                as="h2"
+                text="Add this invoice to To-Do?"
+                effect="fade-through"
+                className="text-2xl font-semibold text-[var(--foreground)] font-display"
+                replayKey={`task-prompt-${pendingTaskInvoice.id}`}
+              />
+              <p className="mt-2 text-[12px] leading-relaxed text-[var(--muted)]">
+                BillCraft can create one task card for each work item on {pendingTaskInvoice.id}. Matching cards share the same color so they read as one job on the board.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.02] p-3">
+              {(pendingTaskInvoice.items || []).map((item) => (
+                <div key={item.id} className="flex items-center gap-3 rounded-lg bg-[var(--card)] px-3 py-2">
+                  <span className="h-8 w-1 rounded-full" style={{ backgroundColor: getJobColor(pendingTaskInvoice.id) }} />
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{item.description}</p>
+                    <p className="text-[11px] text-[var(--muted)]">{pendingTaskInvoice.client}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setPendingTaskInvoice(null)} className="btn-ghost" disabled={isCreatingTasks}>
+                Skip
+              </button>
+              <button type="button" onClick={() => void createTodoCardsForInvoice(pendingTaskInvoice)} className="btn-primary active:scale-[0.97]" disabled={isCreatingTasks}>
+                {isCreatingTasks ? "Adding..." : "Add To-Do Cards"}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -17,8 +17,10 @@ type ClientForm = {
   name: string;
   email: string;
   phone: string;
+  whatsapp: string;
   company: string;
   address: string;
+  deliveryLink: string;
   avatar: string;
   notes: string;
 };
@@ -27,8 +29,10 @@ const EMPTY_FORM: ClientForm = {
   name: "",
   email: "",
   phone: "",
+  whatsapp: "",
   company: "",
   address: "",
+  deliveryLink: "",
   avatar: "",
   notes: "",
 };
@@ -64,6 +68,7 @@ export default function Clients() {
     return searchQuery === "" ||
       client.name.toLowerCase().includes(normalizedSearch) ||
       client.email.toLowerCase().includes(normalizedSearch) ||
+      (client.whatsapp || "").toLowerCase().includes(normalizedSearch) ||
       (client.company || "").toLowerCase().includes(normalizedSearch);
   });
 
@@ -83,8 +88,10 @@ export default function Clients() {
       name: client.name,
       email: client.email,
       phone: client.phone,
+      whatsapp: client.whatsapp || "",
       company: client.company || "",
       address: client.address || "",
+      deliveryLink: client.deliveryLink || "",
       avatar: client.avatar,
       notes: client.notes || "",
     });
@@ -311,7 +318,7 @@ export default function Clients() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="font-semibold text-[14px] text-[var(--foreground)] truncate">{client.name}</h3>
-                          <p className="text-[11px] text-[var(--muted)] mt-0.5 truncate">{client.email || client.company || "No contact details"}</p>
+                          <p className="text-[11px] text-[var(--muted)] mt-0.5 truncate">{client.email || client.whatsapp || client.company || "No contact details"}</p>
                         </div>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(client); }}
@@ -350,6 +357,12 @@ export default function Clients() {
                           {client.phone}
                         </span>
                       )}
+                      {client.whatsapp && (
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">chat</span>
+                          {client.whatsapp}
+                        </span>
+                      )}
                       {client.company && (
                         <span className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-[13px]">business</span>
@@ -385,8 +398,20 @@ export default function Clients() {
                             <p className="mt-1 font-display text-lg font-semibold text-[var(--foreground)]">{averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}</p>
                           </div>
                           <div className="rounded-xl border border-[var(--card-border)] p-3 lg:col-span-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Notes</p>
-                            <p className="mt-1 line-clamp-2 text-[12px] text-[var(--muted)]">{client.notes || "No client notes yet. Add notes from Edit."}</p>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Delivery Location</p>
+                            {client.deliveryLink ? (
+                              <a
+                                href={client.deliveryLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-1 block truncate text-[12px] font-semibold text-[var(--accent)]"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                {client.deliveryLink}
+                              </a>
+                            ) : (
+                              <p className="mt-1 line-clamp-2 text-[12px] text-[var(--muted)]">No finished-work folder saved yet.</p>
+                            )}
                           </div>
                         </div>
 
@@ -535,6 +560,17 @@ export default function Clients() {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-whatsapp">WhatsApp</label>
+                <input
+                  id="client-whatsapp"
+                  value={form.whatsapp}
+                  onChange={(event) => setForm({ ...form, whatsapp: event.target.value })}
+                  placeholder="+1 (555) 000-0000"
+                  className="field-control px-3 py-2"
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-company">Company</label>
                 <input
                   id="client-company"
@@ -553,6 +589,18 @@ export default function Clients() {
                   onChange={(event) => setForm({ ...form, address: event.target.value })}
                   placeholder="Billing address"
                   className="field-control min-h-20 px-3 py-2 resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-delivery-link">Finished Work Folder</label>
+                <input
+                  id="client-delivery-link"
+                  type="url"
+                  value={form.deliveryLink}
+                  onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
+                  placeholder="https://drive.google.com/..."
+                  className="field-control px-3 py-2"
                 />
               </div>
 

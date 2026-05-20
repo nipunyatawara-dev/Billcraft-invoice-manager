@@ -105,6 +105,7 @@ export default function Settings() {
     email: "",
     phone: "",
     businessName: "",
+    defaultDeliveryLink: "",
     profilePic: "",
     signature: "",
   });
@@ -136,6 +137,7 @@ export default function Settings() {
       email: activeProfile.email || "",
       phone: activeProfile.phone || "",
       businessName: activeProfile.businessName || "",
+      defaultDeliveryLink: activeProfile.defaultDeliveryLink || "",
       profilePic: activeProfile.profilePic || "",
       signature: activeProfile.signature || "",
     });
@@ -426,7 +428,7 @@ export default function Settings() {
         company: profile.businessName,
         createdAt: profile.createdAt,
         updatedAt: profile.updatedAt,
-        details: profile.profession,
+        details: [profile.profession, profile.defaultDeliveryLink].filter(Boolean).join(" | "),
       })),
       ...clients.map((client) => ({
         category: "client",
@@ -437,7 +439,7 @@ export default function Settings() {
         company: client.company,
         createdAt: client.createdAt,
         updatedAt: client.updatedAt,
-        details: client.notes || client.address,
+        details: [client.notes, client.address, client.whatsapp, client.deliveryLink].filter(Boolean).join(" | "),
       })),
       ...invoices.map((invoice) => ({
         category: "invoice",
@@ -695,6 +697,19 @@ export default function Settings() {
                     onChange={(event) => setProfileForm({ ...profileForm, businessName: event.target.value })}
                     className="field-control px-3 py-2 text-base font-semibold font-display"
                   />
+                </div>
+
+                <div className="surface-card p-5 space-y-1.5">
+                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="settings-delivery-link">My Drive Location</label>
+                  <input
+                    id="settings-delivery-link"
+                    type="url"
+                    value={profileForm.defaultDeliveryLink}
+                    onChange={(event) => setProfileForm({ ...profileForm, defaultDeliveryLink: event.target.value })}
+                    placeholder="https://drive.google.com/..."
+                    className="field-control px-3 py-2 text-base font-semibold font-display"
+                  />
+                  <p className="text-[11px] text-[var(--muted)]">Shows as the My Drive location option when choosing where finished work should go.</p>
                 </div>
 
                 <div className="surface-card p-5">

@@ -18,17 +18,21 @@ export interface Invoice {
   receiptAttachments?: PaymentAttachment[];
   payments?: PaymentRecord[];
   status: "Paid" | "Unpaid" | "Overdue";
+  workflowStatus?: InvoiceWorkflowStatus;
   statusColor: string;
   clientColor: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   company?: string;
   address?: string;
+  deliveryLink?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export type InvoiceStatus = Invoice["status"];
+export type InvoiceWorkflowStatus = "Draft" | "Sent" | "Work Confirmed" | "Delivered";
 
 export interface InvoiceItem {
   id: string;
@@ -82,6 +86,7 @@ export interface UserProfile {
   email?: string;
   phone?: string;
   businessName?: string;
+  defaultDeliveryLink?: string;
   profilePic?: string;
   signature?: string;
   analyticsPreferences?: AnalyticsPreferences;
@@ -151,9 +156,11 @@ export interface Client {
   name: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   avatar: string;
   company?: string;
   address?: string;
+  deliveryLink?: string;
   notes?: string;
   createdAt?: string;
   updatedAt?: string;

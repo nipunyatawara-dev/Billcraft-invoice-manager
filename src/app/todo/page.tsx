@@ -5,7 +5,7 @@ import { AnimatedText } from "@/components/animated-text";
 import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, FormEvent } from "react";
 
 type TaskForm = {
@@ -98,6 +98,16 @@ function getDueTone(dueDate?: string, stage?: TodoStageId) {
   }
 
   return "text-[var(--muted)]";
+}
+
+function getWhatsAppUrl(phone: string, message: string) {
+  const digits = phone.replace(/[^\d]/g, "");
+
+  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : "";
+}
+
+function getTaskDoneMessage(task: TodoTask) {
+  return `Hi ${task.client || "there"}, ${task.invoiceId ? `${task.invoiceId} ` : ""}${task.title} is done.`;
 }
 
 function getTagList(tags: string) {
@@ -376,6 +386,13 @@ export default function TodoPage() {
       title,
       description: form.description.trim() || undefined,
       client: form.client.trim() || undefined,
+      clientId: existingTask?.clientId,
+      clientEmail: existingTask?.clientEmail,
+      clientPhone: existingTask?.clientPhone,
+      clientWhatsapp: existingTask?.clientWhatsapp,
+      invoiceId: existingTask?.invoiceId,
+      jobColor: existingTask?.jobColor,
+      deliveryLink: existingTask?.deliveryLink,
       dueDate: form.dueDate || undefined,
       estimate: form.estimate.trim() || undefined,
       stage: form.stage,
@@ -663,6 +680,9 @@ export default function TodoPage() {
                       const isDragging = draggingTaskId === task.id;
                       const isBeforeTarget = dragTarget?.stage === stage.id && dragTarget.beforeTaskId === task.id;
                       const isSelected = selectedTaskIds.has(task.id);
+                      const doneMessage = getTaskDoneMessage(task);
+                      const whatsappUrl = task.clientWhatsapp ? getWhatsAppUrl(task.clientWhatsapp, doneMessage) : "";
+                      const hasDoneActions = task.stage === "done" && Boolean(task.clientEmail || whatsappUrl || task.deliveryLink);
 
                       return (
                         <div key={task.id} className="relative">
@@ -686,7 +706,7 @@ export default function TodoPage() {
                                 toggleSelectTask(task.id);
                               }
                             }}
-                            className={`rounded-xl border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
+                            className={`relative overflow-hidden rounded-xl border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
                               isDragging ? "opacity-50 scale-[0.98] border-[var(--card-border)]" : ""
                             } ${
                               isSelected
@@ -694,12 +714,18 @@ export default function TodoPage() {
                                 : "border-[var(--card-border)] bg-[var(--background)]/45 hover:border-[var(--foreground)]/15"
                             }`}
                           >
+                            {task.jobColor && <span className="absolute bottom-3 left-0 top-3 w-1 rounded-r-full" style={{ backgroundColor: task.jobColor }} />}
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap gap-1.5 mb-2">
                                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ${getTodoPriorityStyles(task.priority)}`}>
                                     {task.priority}
                                   </span>
+                                  {task.invoiceId && (
+                                    <span className="px-2 py-0.5 rounded-full bg-[var(--foreground)]/[0.06] text-[10px] font-semibold text-[var(--foreground)]/60 tracking-wide uppercase">
+                                      {task.invoiceId}
+                                    </span>
+                                  )}
                                   {task.tags.slice(0, 2).map((tag) => (
                                     <span key={tag} className="px-2 py-0.5 rounded-full bg-[var(--foreground)]/[0.04] text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">
                                       {tag}
@@ -737,6 +763,45 @@ export default function TodoPage() {
                                 </span>
                               )}
                             </div>
+
+                            {hasDoneActions && (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {task.clientEmail && (
+                                  <a
+                                    href={`mailto:${task.clientEmail}?subject=${encodeURIComponent(`${task.invoiceId || "Finished work"} is done`)}&body=${encodeURIComponent(doneMessage)}`}
+                                    onClick={(event) => event.stopPropagation()}
+                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
+                                  >
+                                    <span className="material-symbols-outlined text-[13px]">mail</span>
+                                    Email
+                                  </a>
+                                )}
+                                {whatsappUrl && (
+                                  <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
+                                  >
+                                    <span className="material-symbols-outlined text-[13px]">chat</span>
+                                    WhatsApp
+                                  </a>
+                                )}
+                                {task.deliveryLink && (
+                                  <a
+                                    href={task.deliveryLink}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
+                                  >
+                                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                                    Upload
+                                  </a>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

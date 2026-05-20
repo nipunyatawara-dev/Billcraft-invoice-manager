@@ -11,6 +11,7 @@ import {
   type Invoice,
   type InvoiceItem,
   type InvoiceStatus,
+  type InvoiceWorkflowStatus,
   type OutsourcingInvoice,
   type PaymentAttachment,
   type PaymentRecord,
@@ -42,6 +43,7 @@ export type ProfileDraft = {
   email?: string;
   phone?: string;
   businessName?: string;
+  defaultDeliveryLink?: string;
   profilePic?: string;
   signature?: string;
   password?: string;
@@ -53,8 +55,10 @@ export type ClientDraft = {
   name: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   company?: string;
   address?: string;
+  deliveryLink?: string;
   avatar?: string;
   notes?: string;
 };
@@ -76,12 +80,15 @@ export type InvoiceDraft = {
   client: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   company?: string;
   address?: string;
+  deliveryLink?: string;
   avatar?: string;
   date: string;
   dueDate?: string;
   status: InvoiceStatus;
+  workflowStatus?: InvoiceWorkflowStatus;
   templateId: string;
   templateName: string;
   items: InvoiceItem[];
@@ -511,8 +518,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       client: draft.client.trim(),
       email: draft.email?.trim() || "",
       phone: draft.phone?.trim() || "",
+      whatsapp: draft.whatsapp?.trim() || undefined,
       company: draft.company?.trim() || undefined,
       address: draft.address?.trim() || undefined,
+      deliveryLink: draft.deliveryLink?.trim() || undefined,
       avatar: draft.avatar || createAvatar(draft.client.trim()),
       date: formatDisplayDate(draft.date),
       dueDate: draft.dueDate ? formatDisplayDate(draft.dueDate) : undefined,
@@ -529,6 +538,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       receiptAttachments: draft.receiptAttachments || [],
       payments: draft.payments || [],
       status: draft.status,
+      workflowStatus: draft.workflowStatus || "Draft",
       statusColor: getStatusColor(draft.status),
       clientColor: "bg-[var(--foreground)]/10",
     };
@@ -546,8 +556,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
           name: draft.client,
           email: draft.email,
           phone: draft.phone,
+          whatsapp: draft.whatsapp,
           company: draft.company,
           address: draft.address,
+          deliveryLink: draft.deliveryLink,
           avatar: draft.avatar,
         }
         : undefined,

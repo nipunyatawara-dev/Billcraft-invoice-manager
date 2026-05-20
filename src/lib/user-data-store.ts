@@ -37,6 +37,7 @@ type ProfileDraft = {
   email?: string;
   phone?: string;
   businessName?: string;
+  defaultDeliveryLink?: string;
   profilePic?: string;
   signature?: string;
   password?: string;
@@ -55,8 +56,10 @@ type ClientDraft = {
   name: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   company?: string;
   address?: string;
+  deliveryLink?: string;
   avatar?: string;
   notes?: string;
 };
@@ -331,6 +334,7 @@ async function normalizeProfileAssets(profileId: string, draft: ProfileDraft, ex
     email: draft.email?.trim() || undefined,
     phone: draft.phone?.trim() || undefined,
     businessName: draft.businessName?.trim() || undefined,
+    defaultDeliveryLink: draft.defaultDeliveryLink?.trim() || undefined,
     profilePic: await saveDataUrlAsset(profileId, "profile-picture", draft.profilePic || existingProfile?.profilePic),
     signature: await saveDataUrlAsset(profileId, "signature", draft.signature || existingProfile?.signature),
     analyticsPreferences: existingProfile?.analyticsPreferences
@@ -371,6 +375,8 @@ function hydrateClient(client: Client): Client {
     name: client.name || "Unnamed Client",
     email: client.email || "",
     phone: client.phone || "",
+    whatsapp: client.whatsapp || undefined,
+    deliveryLink: client.deliveryLink || undefined,
     avatar: client.avatar || createAvatar(client.name),
   };
 }
@@ -417,6 +423,9 @@ function hydrateInvoice(invoice: Invoice): Invoice {
     avatar: invoice.avatar || createAvatar(invoice.client),
     templateId: invoice.templateId || "classic",
     templateName: invoice.templateName || "Classic Invoice",
+    workflowStatus: invoice.workflowStatus || "Draft",
+    whatsapp: invoice.whatsapp?.trim() || undefined,
+    deliveryLink: invoice.deliveryLink?.trim() || undefined,
   };
 }
 
@@ -466,6 +475,13 @@ function hydrateTodoTask(task: TodoTask, index: number): TodoTask {
     title,
     description: task.description?.trim() || undefined,
     client: task.client?.trim() || undefined,
+    clientId: task.clientId?.trim() || undefined,
+    clientEmail: task.clientEmail?.trim() || undefined,
+    clientPhone: task.clientPhone?.trim() || undefined,
+    clientWhatsapp: task.clientWhatsapp?.trim() || undefined,
+    invoiceId: task.invoiceId?.trim() || undefined,
+    jobColor: task.jobColor?.trim() || undefined,
+    deliveryLink: task.deliveryLink?.trim() || undefined,
     dueDate: task.dueDate || undefined,
     estimate: task.estimate?.trim() || undefined,
     stage: stageIds.has(task.stage) ? task.stage : "backlog",
@@ -797,8 +813,10 @@ export async function saveClient(profileId: string, originalClientId: string | n
     name: draft.name.trim(),
     email: draft.email?.trim() || "",
     phone: draft.phone?.trim() || "",
+    whatsapp: draft.whatsapp?.trim() || undefined,
     company: draft.company?.trim() || undefined,
     address: draft.address?.trim() || undefined,
+    deliveryLink: draft.deliveryLink?.trim() || undefined,
     avatar: avatar || createAvatar(draft.name.trim()),
     notes: draft.notes?.trim() || undefined,
     createdAt: existingClient?.createdAt || now,
@@ -822,8 +840,10 @@ export async function saveClient(profileId: string, originalClientId: string | n
       client: client.name,
       email: client.email,
       phone: client.phone,
+      whatsapp: client.whatsapp,
       company: client.company,
       address: client.address,
+      deliveryLink: client.deliveryLink,
       avatar: client.avatar,
     });
   });
