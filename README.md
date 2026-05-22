@@ -70,6 +70,14 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
   <img src="./public/screenshots/todo.png" width="700" alt="BillCraft to-do board screenshot">
 </p>
 
+## Bulk Invoice Actions
+
+Select multiple invoices at once using circular checkboxes and trigger bulk operations via a premium glassmorphic bottom actions bar. Supports staggered multi-PDF downloads to bypass browser popup block warnings, bulk status transitions, and bulk deletions with instant synchronization.
+
+## Fluid Page-Specific Skeletons
+
+To deliver an instantaneous, high-fidelity experience, BillCraft implements custom, native route-specific skeleton loading screens for all major views. Layout shifts are eliminated, and tab transitions feel smooth and responsive.
+
 ---
 
 ## All Features
@@ -100,6 +108,10 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 - Upload client avatars while creating invoice contacts
 - Preview invoice profile, client details, line items, and totals before export
 - Export invoices as `.pdf` files
+- **Bulk actions bar** (with circular selection checkboxes and a glassmorphic quick-action menu):
+  - Intelligent staggered multi-PDF exports (avoiding browser pop-up blocks)
+  - Bulk status updates (Paid, Unpaid, Overdue)
+  - Bulk invoice deletions with instant local synchronization
 
 ### Clients
 
@@ -156,6 +168,12 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 - Require profile password confirmation before export when a profile is password-protected
 - Delete the current profile or all local profiles from settings
 
+### Premium UX & Fluid Animations
+
+- **Circular Reveal Transitions**: Immersive clip-path reveal animations when toggling between light and dark themes
+- **Page-Specific Route Skeletons**: Dedicated, custom React loading skeleton fallbacks for the Dashboard, Invoices, Clients, Outsourcing, To-Do, and Settings segments to eliminate page layout shifts
+- **Glassmorphic Floating Components**: Premium blurred background action bars, modals, and drop-ups styled with curated micro-animations
+
 ---
 
 # Tech Stack
@@ -171,6 +189,7 @@ Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, 
 | Animation | Motion |
 | UI utilities | Base UI, lucide-react, shadcn, class-variance-authority, tailwind-merge |
 | Toasts | Sileo |
+| Cross-Platform | cross-env for seamless multi-platform development environment setup |
 | Data | Local JSON files through Next.js API routes |
 | Persistence | `User data/` profile folders |
 | Assets | Local profile asset storage served through `/api/user-data/asset` |
