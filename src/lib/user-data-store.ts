@@ -12,6 +12,8 @@ import {
   type AnalyticsPreferences,
   type Client,
   type Invoice,
+  type InvoiceStatus,
+  type InvoiceWorkflowStatus,
   type PaymentAttachment,
   type PaymentRecord,
   type OutsourcingInvoice,
@@ -1051,4 +1053,41 @@ export async function deleteAllProfiles() {
   } catch {
     // ignore
   }
+}
+
+export async function deleteInvoices(profileId: string, invoiceIds: string[]) {
+  await ensureProfileDir(profileId);
+  const invoices = await readInvoices(profileId);
+  const idsSet = new Set(invoiceIds);
+  const nextInvoices = invoices.filter((inv) => !idsSet.has(inv.id));
+  await writeInvoices(profileId, nextInvoices);
+  return nextInvoices;
+}
+
+export async function updateInvoicesStatus(
+  profileId: string,
+  invoiceIds: string[],
+  status: InvoiceStatus,
+  workflowStatus?: InvoiceWorkflowStatus
+) {
+  await ensureProfileDir(profileId);
+  const invoices = await readInvoices(profileId);
+  const idsSet = new Set(invoiceIds);
+  const now = new Date().toISOString();
+  
+  const nextInvoices = invoices.map((inv) => {
+    if (idsSet.has(inv.id)) {
+      return hydrateInvoice({
+        ...inv,
+        status,
+        statusColor: getStatusColor(status),
+        workflowStatus: workflowStatus !== undefined ? workflowStatus : inv.workflowStatus,
+        updatedAt: now,
+      });
+    }
+    return inv;
+  });
+
+  await writeInvoices(profileId, nextInvoices);
+  return nextInvoices;
 }

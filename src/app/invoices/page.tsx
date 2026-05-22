@@ -207,7 +207,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
 }
 
 export default function Invoices() {
-  const { invoices, clientRecords, saveInvoice, exportInvoice } = useInvoices();
+  const { invoices, clientRecords, saveInvoice, exportInvoice, deleteInvoices, updateInvoicesStatus } = useInvoices();
   const { activeProfile, todoTasks = [], saveTodoTasks } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
@@ -220,7 +220,18 @@ export default function Invoices() {
   const [pendingTaskInvoice, setPendingTaskInvoice] = useState<Invoice | null>(null);
   const [isCreatingTasks, setIsCreatingTasks] = useState(false);
 
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
+  const [isBulkExporting, setIsBulkExporting] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isBulkUpdatingStatus, setIsBulkUpdatingStatus] = useState(false);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
+
+  // Reset selection state when filters or search queries change
+  useEffect(() => {
+    setSelectedInvoiceIds([]);
+  }, [activeFilter, searchQuery]);
 
   useEffect(() => {
     setImportedTaskIds([]);
@@ -708,6 +719,81 @@ export default function Invoices() {
     }
   }
 
+  async function handleBulkExport() {
+    if (selectedInvoiceIds.length === 0) return;
+    setIsBulkExporting(true);
+    try {
+      const selectedInvoices = invoices.filter((inv) => selectedInvoiceIds.includes(inv.id));
+      for (let i = 0; i < selectedInvoices.length; i++) {
+        const invoice = selectedInvoices[i];
+        await exportInvoice(invoice);
+        notify.success({
+          title: `Download started (${i + 1}/${selectedInvoices.length})`,
+          description: `${invoice.id} exported successfully.`,
+        });
+        if (i < selectedInvoices.length - 1) {
+          // Stagger exports to prevent browser popup block
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+      }
+      setSelectedInvoiceIds([]);
+    } catch (error) {
+      notify.error({
+        title: "Bulk export failed",
+        description: getToastErrorMessage(error, "Unable to export selected invoices."),
+      });
+    } finally {
+      setIsBulkExporting(false);
+    }
+  }
+
+  async function handleBulkDelete() {
+    const count = selectedInvoiceIds.length;
+    if (count === 0) return;
+
+    const confirmed = window.confirm(`Are you sure you want to delete the ${count} selected invoice${count > 1 ? "s" : ""}? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+    try {
+      await deleteInvoices(selectedInvoiceIds);
+      notify.success({
+        title: "Invoices deleted",
+        description: `Successfully deleted ${count} invoice${count > 1 ? "s" : ""}.`,
+      });
+      setSelectedInvoiceIds([]);
+    } catch (error) {
+      notify.error({
+        title: "Bulk deletion failed",
+        description: getToastErrorMessage(error, "Unable to delete selected invoices."),
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }
+
+  async function handleBulkStatusChange(status: InvoiceStatus) {
+    const count = selectedInvoiceIds.length;
+    if (count === 0) return;
+
+    setIsBulkUpdatingStatus(true);
+    try {
+      await updateInvoicesStatus(selectedInvoiceIds, status);
+      notify.success({
+        title: "Status updated",
+        description: `Successfully set status of ${count} invoice${count > 1 ? "s" : ""} to ${status}.`,
+      });
+      setSelectedInvoiceIds([]);
+    } catch (error) {
+      notify.error({
+        title: "Bulk status update failed",
+        description: getToastErrorMessage(error, "Unable to update selected invoices."),
+      });
+    } finally {
+      setIsBulkUpdatingStatus(false);
+    }
+  }
+
   return (
     <>
       <main className="app-main flex-1">
@@ -776,20 +862,88 @@ export default function Invoices() {
           </div>
         </div>
 
+        {filteredInvoices.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-2.5 mb-2 bg-[var(--card)]/40 border border-[var(--card-border)]/40 rounded-xl">
+            <div className="flex items-center gap-3">
+              <label 
+                className="relative flex items-center justify-center size-5 rounded-full border-2 border-[var(--card-border)] hover:border-[var(--accent)] cursor-pointer transition-smooth shrink-0 bg-[var(--field)] shadow-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={filteredInvoices.length > 0 && selectedInvoiceIds.length === filteredInvoices.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedInvoiceIds(filteredInvoices.map((inv) => inv.id));
+                    } else {
+                      setSelectedInvoiceIds([]);
+                    }
+                  }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent)] opacity-0 scale-0 peer-checked:opacity-100 peer-checked:scale-100 transition-all duration-200">
+                  <span className="material-symbols-outlined text-[12px] text-white font-extrabold select-none">check</span>
+                </span>
+              </label>
+              <span className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase select-none">
+                Select All ({filteredInvoices.length})
+              </span>
+            </div>
+            {selectedInvoiceIds.length > 0 && (
+              <button
+                onClick={() => setSelectedInvoiceIds([])}
+                className="text-[11px] font-bold text-[var(--muted)] hover:text-[var(--foreground)] tracking-wider uppercase transition-smooth"
+              >
+                Clear Selection ({selectedInvoiceIds.length})
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2">
           {filteredInvoices.map((invoice) => (
             (() => {
               const balanceDue = getBalanceDue(invoice);
               const paymentState = getPaymentState(invoice);
+              const isChecked = selectedInvoiceIds.includes(invoice.id);
 
               return (
-            <button
-              type="button"
+            <div
               key={invoice.id}
               onClick={() => openViewModal(invoice)}
-              className="surface-card w-full text-left p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
+              className="surface-card w-full cursor-pointer p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openViewModal(invoice);
+                }
+              }}
             >
               <div className="flex items-center gap-4">
+                {/* Checkbox Selector */}
+                <label 
+                  className="relative flex items-center justify-center size-5 rounded-full border-2 border-[var(--card-border)] hover:border-[var(--accent)] cursor-pointer transition-smooth shrink-0 bg-[var(--field)] shadow-xs"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedInvoiceIds((prev) => [...prev, invoice.id]);
+                      } else {
+                        setSelectedInvoiceIds((prev) => prev.filter((id) => id !== invoice.id));
+                      }
+                    }}
+                  />
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent)] opacity-0 scale-0 peer-checked:opacity-100 peer-checked:scale-100 transition-all duration-200">
+                    <span className="material-symbols-outlined text-[12px] text-white font-extrabold select-none">check</span>
+                  </span>
+                </label>
+
                 <div className="size-10 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
                   <img className="w-full h-full object-cover" alt={invoice.client} src={invoice.avatar} />
                 </div>
@@ -831,7 +985,7 @@ export default function Invoices() {
                 <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
                 <p className="text-[11px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
               </div>
-            </button>
+            </div>
               );
             })()
           ))}
@@ -1379,6 +1533,96 @@ export default function Invoices() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Glassmorphic Bulk Actions Bar */}
+      {selectedInvoiceIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] flex items-center justify-between gap-4 md:gap-6 px-4 md:px-6 py-3.5 max-w-[92vw] md:max-w-2xl bg-[var(--card)]/85 backdrop-blur-xl border border-[var(--card-border)]/70 shadow-[0_12px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] rounded-2xl animate-in slide-in-from-bottom duration-300">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center size-6 rounded-full bg-[var(--accent)] text-white text-[12px] font-bold shadow-sm">
+              {selectedInvoiceIds.length}
+            </div>
+            <span className="text-[12px] font-semibold text-[var(--foreground)] tracking-wide whitespace-nowrap hidden sm:inline">
+              Selected
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-[var(--card-border)] hidden sm:block" />
+
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {/* Download PDFs button */}
+            <button
+              onClick={handleBulkExport}
+              disabled={isBulkExporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] active:scale-[0.97] transition-smooth disabled:opacity-50"
+              title="Download PDFs"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              <span className="hidden md:inline">{isBulkExporting ? "Exporting..." : "Download PDFs"}</span>
+            </button>
+
+            {/* Change Status Dropdown Trigger */}
+            <div className="relative">
+              <button
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                disabled={isBulkUpdatingStatus}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] active:scale-[0.97] transition-smooth disabled:opacity-50 ${isStatusDropdownOpen ? "bg-[var(--foreground)]/[0.05]" : ""}`}
+                title="Change Status"
+              >
+                <span className="material-symbols-outlined text-[16px]">change_circle</span>
+                <span>Status</span>
+                <span className="material-symbols-outlined text-[12px] transition-transform duration-200" style={{ transform: isStatusDropdownOpen ? 'rotate(180deg)' : 'none' }}>
+                  keyboard_arrow_up
+                </span>
+              </button>
+
+              {/* Elegant floating dropup menu */}
+              {isStatusDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)} />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20 min-w-[140px] bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-lg p-1.5 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <p className="text-[9px] font-semibold text-[var(--muted)] tracking-wider uppercase px-2 py-1 select-none">Update to</p>
+                    {STATUSES.map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setIsStatusDropdownOpen(false);
+                          void handleBulkStatusChange(status);
+                        }}
+                        className="flex items-center gap-2 w-full text-left px-2.5 py-1.5 text-[11px] font-bold rounded-lg text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] transition-smooth"
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status === "Paid" ? "var(--positive)" : status === "Overdue" ? "var(--accent)" : "var(--muted)" }} />
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Delete button */}
+            <button
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-[var(--negative)] hover:bg-[var(--negative)]/10 active:scale-[0.97] transition-smooth disabled:opacity-50"
+              title="Delete Selected"
+            >
+              <span className="material-symbols-outlined text-[16px]">delete</span>
+              <span className="hidden md:inline">{isBulkDeleting ? "Deleting..." : "Delete"}</span>
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-[var(--card-border)]" />
+
+          {/* Clear button */}
+          <button
+            onClick={() => setSelectedInvoiceIds([])}
+            className="size-8 flex items-center justify-center rounded-lg text-[var(--foreground)]/40 hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] active:scale-[0.92] transition-smooth"
+            title="Deselect All"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
         </div>
       )}
 

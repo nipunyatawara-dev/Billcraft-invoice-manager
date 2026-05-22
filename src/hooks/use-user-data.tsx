@@ -149,6 +149,8 @@ type UserDataContextValue = LocalDataSnapshot & {
   updateProfilePasswordHint: (hint: ProfilePasswordHintDraft) => Promise<void>;
   deleteProfile: () => Promise<void>;
   deleteAllProfiles: () => Promise<void>;
+  deleteInvoices: (invoiceIds: string[]) => Promise<void>;
+  updateInvoicesStatus: (invoiceIds: string[], status: InvoiceStatus, workflowStatus?: InvoiceWorkflowStatus) => Promise<void>;
   saveClient: (originalClientId: string | null, client: ClientDraft) => Promise<Client | null>;
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
@@ -698,6 +700,50 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     await exportOutsourcingInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
 
+  const deleteInvoices = useCallback(async (invoiceIds: string[]) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "deleteInvoices",
+        profileId: snapshot.activeProfileId,
+        invoiceIds,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to delete invoices.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const updateInvoicesStatus = useCallback(async (
+    invoiceIds: string[],
+    status: InvoiceStatus,
+    workflowStatus?: InvoiceWorkflowStatus
+  ) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "updateInvoicesStatus",
+        profileId: snapshot.activeProfileId,
+        invoiceIds,
+        status,
+        workflowStatus,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to update invoices status.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
   const value = useMemo<UserDataContextValue>(() => ({
     ...snapshot,
     loading,
@@ -713,6 +759,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     updateProfilePasswordHint,
     deleteProfile,
     deleteAllProfiles,
+    deleteInvoices,
+    updateInvoicesStatus,
     saveClient,
     saveInvoice,
     saveVendor,
@@ -744,6 +792,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     switchProfile,
     deleteProfile,
     deleteAllProfiles,
+    deleteInvoices,
+    updateInvoicesStatus,
     unlockProfile,
     updateProfile,
     updateProfilePasswordHint,

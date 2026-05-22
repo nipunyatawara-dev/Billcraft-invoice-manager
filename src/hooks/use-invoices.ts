@@ -11,6 +11,8 @@ export function useInvoices() {
     saveInvoice: userData.saveInvoice,
     saveClient: userData.saveClient,
     exportInvoice: userData.exportInvoice,
+    deleteInvoices: userData.deleteInvoices,
+    updateInvoicesStatus: userData.updateInvoicesStatus,
     resetInvoices: userData.refresh,
   };
 }
