@@ -11,6 +11,7 @@ import {
   getInvoiceTotal,
   getInvoiceTotals,
   getPaymentState,
+  CURRENCY_RATES,
   type Client,
   type Invoice,
   type InvoiceItem,
@@ -64,6 +65,8 @@ type InvoiceForm = {
   payments: PaymentRecord[];
   receiptAttachments: PaymentAttachment[];
   saveClientMode: SaveClientMode | null;
+  currency?: string;
+  discount?: number;
 };
 
 function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
@@ -101,6 +104,8 @@ function createEmptyForm(): InvoiceForm {
     payments: [],
     receiptAttachments: [],
     saveClientMode: null,
+    currency: "",
+    discount: 0,
   };
 }
 
@@ -203,6 +208,8 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
     payments: invoice.payments || [],
     receiptAttachments: invoice.receiptAttachments || [],
     saveClientMode: null,
+    currency: invoice.currency || "",
+    discount: invoice.discount || 0,
   };
 }
 
@@ -227,6 +234,11 @@ export default function Invoices() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
+  const [shareInvoice, setShareInvoice] = useState<Invoice | null>(null);
+
+  function openShareModal(invoice: Invoice) {
+    setShareInvoice(invoice);
+  }
 
   // Reset selection state when filters or search queries change
   useEffect(() => {
@@ -338,7 +350,8 @@ export default function Invoices() {
   const totals = getInvoiceTotals(invoices);
   const isFormMode = modalMode === "create" || modalMode === "edit";
   const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];
-  const invoiceTotal = getInvoiceItemsTotal(form.items);
+  const invoiceSubtotal = getInvoiceItemsTotal(form.items);
+  const invoiceTotal = Math.max(0, invoiceSubtotal - (Number(form.discount) || 0));
   const modalTitle = modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id || "Invoice";
 
   function openCreateModal(prefillClient?: Client) {
@@ -452,7 +465,20 @@ export default function Invoices() {
   function updateItem(index: number, updates: Partial<InvoiceItem>) {
     setForm((currentForm) => ({
       ...currentForm,
-      items: currentForm.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...updates } : item),
+      items: currentForm.items.map((item, itemIndex) => {
+        if (itemIndex === index) {
+          const nextItem = { ...item, ...updates };
+          if (
+            updates.quantity !== undefined &&
+            (item.quantity === 1 || item.quantity === 0 || !item.quantity) &&
+            item.price > 0
+          ) {
+            nextItem.price = item.price * updates.quantity;
+          }
+          return nextItem;
+        }
+        return item;
+      }),
     }));
   }
 
@@ -527,6 +553,8 @@ export default function Invoices() {
         receiptAttachments: form.receiptAttachments,
         payments: form.payments,
         saveClientMode: form.clientMode === "new" ? saveClientMode || form.saveClientMode || "onetime" : "onetime",
+        currency: form.currency || undefined,
+        discount: Number(form.discount) || 0,
       }).then((savedInvoice) => {
         if (!savedInvoice) {
           throw new Error("Create a profile before saving invoices.");
@@ -973,6 +1001,9 @@ export default function Invoices() {
                   <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
+                  <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Send/Share">
+                    <span className="material-symbols-outlined text-[16px]">send</span>
+                  </span>
                   <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Export PDF">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
@@ -1237,7 +1268,7 @@ export default function Invoices() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-date">Date</label>
                     <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-2" />
@@ -1277,6 +1308,47 @@ export default function Invoices() {
                       {WORKFLOW_STATUSES.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-currency">Currency</label>
+                    <select
+                      id="invoice-currency"
+                      value={form.currency || ""}
+                      onChange={(event) => {
+                        const newCurrency = event.target.value;
+                        const oldCurrency = form.currency || currency;
+                        
+                        setForm((currentForm) => {
+                          const currencyMode = window.localStorage.getItem("billcraft.currency-mode.v1") || "visual";
+                          let nextItems = currentForm.items;
+                          let nextDiscount = currentForm.discount || 0;
+                          
+                          if (currencyMode === "convert" && newCurrency && oldCurrency) {
+                            const rate = (CURRENCY_RATES[newCurrency] || 1.0) / (CURRENCY_RATES[oldCurrency] || 1.0);
+                            nextItems = currentForm.items.map((item) => ({
+                              ...item,
+                              price: Math.round(item.price * rate * 100) / 100,
+                            }));
+                            nextDiscount = Math.round(nextDiscount * rate * 100) / 100;
+                          }
+                          
+                          return {
+                            ...currentForm,
+                            currency: newCurrency,
+                            items: nextItems,
+                            discount: nextDiscount,
+                          };
+                        });
+                      }}
+                      className="field-control px-3 py-2"
+                    >
+                      <option value="">Global ({currency})</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                      <option value="LKR">LKR (Rs)</option>
+                      <option value="INR">INR (₹)</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="surface-card overflow-hidden">
@@ -1296,11 +1368,17 @@ export default function Invoices() {
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-quantity-${item.id}`}>Qty</label>
-                          <input id={`item-quantity-${item.id}`} type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => updateItem(index, { quantity: Number(event.target.value) })} className="field-control px-3 py-2" />
+                          <input id={`item-quantity-${item.id}`} type="number" min="0" step="1" value={item.quantity} onChange={(event) => {
+                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                            updateItem(index, { quantity: Number(cleanVal) });
+                          }} className="field-control px-3 py-2" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-price-${item.id}`}>Price</label>
-                          <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateItem(index, { price: Number(event.target.value) })} className="field-control px-3 py-2" />
+                          <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => {
+                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                            updateItem(index, { price: Number(cleanVal) });
+                          }} className="field-control px-3 py-2" />
                         </div>
                         <div className="flex md:items-end">
                           <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">
@@ -1310,9 +1388,35 @@ export default function Invoices() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between gap-3 px-4 py-4 bg-[var(--foreground)]/[0.03]">
-                    <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Invoice Total</span>
-                    <span className="text-2xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(invoiceTotal, currency)} /></span>
+                  <div className="space-y-2 border-t border-[var(--card-border)] px-4 py-3 bg-[var(--foreground)]/[0.01]">
+                    <div className="flex items-center justify-between text-[13px] font-medium text-[var(--muted)]">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(invoiceSubtotal, form.currency || currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Discount</span>
+                      <div className="flex items-center gap-1.5 max-w-[130px]">
+                        <span className="text-[12px] font-medium text-[var(--muted)]">{form.currency || currency}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={form.discount || ""}
+                          onChange={(event) => {
+                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                            setForm({ ...form, discount: Number(cleanVal) || 0 });
+                          }}
+                          className="field-control px-2 py-1 text-right text-[13px]"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--card-border)]/50">
+                      <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Invoice Total</span>
+                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display">
+                        {formatCurrency(invoiceTotal, form.currency || currency)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1410,17 +1514,44 @@ export default function Invoices() {
                       <span className="text-right">Qty</span>
                       <span className="text-right">Amount</span>
                     </div>
-                    {(selectedInvoice.items || []).map((item) => (
-                      <div key={item.id} className="grid grid-cols-[1fr_70px_110px] gap-3 border-t border-[var(--card-border)] px-4 py-3 text-[13px]">
-                        <span className="font-medium text-[var(--foreground)]">{item.description}</span>
-                        <span className="text-right text-[var(--muted)]"><AnimatedNumber value={item.quantity} /></span>
-                        <span className="text-right font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(item.quantity * item.price, currency)} /></span>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between border-t border-[var(--card-border)] px-4 py-4">
-                      <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Total</span>
-                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(selectedInvoice), currency)} /></span>
-                    </div>
+                    {(selectedInvoice.items || []).map((item) => {
+                      const activeInvoiceCurrency = selectedInvoice.currency || currency;
+                      return (
+                        <div key={item.id} className="grid grid-cols-[1fr_70px_110px] gap-3 border-t border-[var(--card-border)] px-4 py-3 text-[13px]">
+                          <span className="font-medium text-[var(--foreground)]">{item.description}</span>
+                          <span className="text-right text-[var(--muted)]"><AnimatedNumber value={item.quantity} /></span>
+                          <span className="text-right font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(item.quantity * item.price, activeInvoiceCurrency)} /></span>
+                        </div>
+                      );
+                    })}
+                    {(() => {
+                      const activeInvoiceCurrency = selectedInvoice.currency || currency;
+                      const invoiceViewSubtotal = (selectedInvoice.items || []).reduce((sum, item) => sum + item.quantity * item.price, 0);
+                      const invoiceViewDiscount = selectedInvoice.discount || 0;
+                      const invoiceViewTotal = getInvoiceTotal(selectedInvoice);
+                      return (
+                        <>
+                          {invoiceViewDiscount > 0 && (
+                            <>
+                              <div className="flex items-center justify-between border-t border-[var(--card-border)] px-4 py-2 text-[13px]">
+                                <span className="text-[12px] text-[var(--muted)]">Subtotal</span>
+                                <span className="font-medium text-[var(--foreground)]">{formatCurrency(invoiceViewSubtotal, activeInvoiceCurrency)}</span>
+                              </div>
+                              <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                                <span className="text-[12px] text-[var(--muted)]">Discount</span>
+                                <span className="font-medium text-[var(--accent)]">-{formatCurrency(invoiceViewDiscount, activeInvoiceCurrency)}</span>
+                              </div>
+                            </>
+                          )}
+                          <div className="flex items-center justify-between border-t border-[var(--card-border)] px-4 py-4">
+                            <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Total</span>
+                            <span className="text-2xl font-semibold text-[var(--foreground)] font-display">
+                              {formatCurrency(invoiceViewTotal, activeInvoiceCurrency)}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {activeProfile?.signature && (
@@ -1448,18 +1579,10 @@ export default function Invoices() {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {selectedInvoice.email && (
-                        <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={`mailto:${selectedInvoice.email}?subject=${encodeURIComponent(`${selectedInvoice.id} finished work`)}&body=${encodeURIComponent(getInvoiceContactMessage(selectedInvoice))}`}>
-                          <span className="material-symbols-outlined text-[14px]">mail</span>
-                          Email
-                        </a>
-                      )}
-                      {selectedInvoice.whatsapp && getWhatsAppUrl(selectedInvoice.whatsapp, getInvoiceContactMessage(selectedInvoice)) && (
-                        <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={getWhatsAppUrl(selectedInvoice.whatsapp, getInvoiceContactMessage(selectedInvoice))} target="_blank" rel="noreferrer">
-                          <span className="material-symbols-outlined text-[14px]">chat</span>
-                          WhatsApp
-                        </a>
-                      )}
+                      <button type="button" onClick={() => openShareModal(selectedInvoice)} className="btn-primary min-h-8 px-3 py-1.5 text-[11px]">
+                        <span className="material-symbols-outlined text-[14px]">send</span>
+                        Send / Share
+                      </button>
                       {selectedInvoice.deliveryLink && (
                         <a className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]" href={selectedInvoice.deliveryLink} target="_blank" rel="noreferrer">
                           <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
@@ -1623,6 +1746,86 @@ export default function Invoices() {
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
+        </div>
+      )}
+
+      {shareInvoice && (
+        <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in duration-200">
+          <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] font-display flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-[var(--accent)]">send</span>
+                Send Invoice
+              </h3>
+              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              </button>
+            </div>
+            
+            <p className="text-[12px] text-[var(--muted)]">Select how you want to send <strong>{shareInvoice.id}</strong> to <strong>{shareInvoice.client}</strong>:</p>
+            
+            <div className="space-y-2">
+              {(() => {
+                const contactChannels = [];
+                if (shareInvoice.email) {
+                  contactChannels.push({
+                    id: "email",
+                    label: "Email",
+                    icon: "mail",
+                    href: `mailto:${shareInvoice.email}?subject=${encodeURIComponent(`${shareInvoice.id} finished work`)}&body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`,
+                    external: false,
+                  });
+                }
+                if (shareInvoice.whatsapp) {
+                  contactChannels.push({
+                    id: "whatsapp",
+                    label: "WhatsApp",
+                    icon: "chat",
+                    href: getWhatsAppUrl(shareInvoice.whatsapp, getInvoiceContactMessage(shareInvoice)),
+                    external: true,
+                  });
+                }
+                if (shareInvoice.phone && !shareInvoice.whatsapp) {
+                  contactChannels.push({
+                    id: "sms",
+                    label: "Normal Message (SMS)",
+                    icon: "sms",
+                    href: `sms:${shareInvoice.phone}?body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`,
+                    external: false,
+                  });
+                }
+                
+                return (
+                  <>
+                    {contactChannels.map((channel) => (
+                      <a
+                        key={channel.id}
+                        href={channel.href}
+                        target={channel.external ? "_blank" : undefined}
+                        rel={channel.external ? "noreferrer" : undefined}
+                        onClick={() => setShareInvoice(null)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--accent)]/55 hover:bg-[var(--accent)]/[0.03] transition-smooth group"
+                      >
+                        <span className="size-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-[var(--action-text)] flex items-center justify-center shrink-0 transition-smooth">
+                          <span className="material-symbols-outlined text-[18px]">{channel.icon}</span>
+                        </span>
+                        <div className="text-left">
+                          <span className="block text-[13px] font-semibold text-[var(--foreground)]">{channel.label}</span>
+                          <span className="block text-[10px] text-[var(--muted)]">Send instantly via {channel.label.toLowerCase()}</span>
+                        </div>
+                        <span className="ml-auto material-symbols-outlined text-[18px] text-[var(--muted)] group-hover:text-[var(--accent)] transition-smooth">chevron_right</span>
+                      </a>
+                    ))}
+                    {contactChannels.length === 0 && (
+                      <div className="text-center py-6 text-[12px] text-[var(--muted)]">
+                        No contact details found for this client. Please edit the client/invoice to add an email or phone number.
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
         </div>
       )}
 

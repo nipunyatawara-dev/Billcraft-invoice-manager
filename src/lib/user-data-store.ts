@@ -86,6 +86,7 @@ export type LocalDataSnapshot = {
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
   todoTasks: TodoTask[];
+  trash: any[];
   userDataPath: string;
 };
 
@@ -133,7 +134,7 @@ function getProfileDir(profileId: string) {
   return path.join(USER_DATA_DIR, profileId);
 }
 
-function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json") {
+function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json" | "trash.json") {
   return path.join(getProfileDir(profileId), fileName);
 }
 
@@ -555,6 +556,14 @@ async function writeTodoTasks(profileId: string, tasks: TodoTask[]) {
   await writeJson(getProfileDataPath(profileId, "todo-tasks.json"), normalizedTasks);
 }
 
+async function readTrash(profileId: string) {
+  return readJson<any[]>(getProfileDataPath(profileId, "trash.json"), []);
+}
+
+async function writeTrash(profileId: string, trash: any[]) {
+  await writeJson(getProfileDataPath(profileId, "trash.json"), trash);
+}
+
 async function saveProfileFile(profile: UserProfile) {
   await writeJson(getProfileDataPath(profile.id, "profile.json"), profile);
 }
@@ -583,6 +592,7 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
       vendors: [],
       outsourcingInvoices: [],
       todoTasks: [],
+      trash: [],
       userDataPath: USER_DATA_DIR,
     };
   }
@@ -598,6 +608,7 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
     vendors: await readVendors(activeProfileId),
     outsourcingInvoices: await readOutsourcingInvoices(activeProfileId),
     todoTasks: await readTodoTasks(activeProfileId),
+    trash: await readTrash(activeProfileId),
     userDataPath: USER_DATA_DIR,
   };
 }
@@ -1059,9 +1070,49 @@ export async function deleteInvoices(profileId: string, invoiceIds: string[]) {
   await ensureProfileDir(profileId);
   const invoices = await readInvoices(profileId);
   const idsSet = new Set(invoiceIds);
+  const deletedInvoices = invoices.filter((inv) => idsSet.has(inv.id));
   const nextInvoices = invoices.filter((inv) => !idsSet.has(inv.id));
+
+  if (deletedInvoices.length > 0) {
+    const trash = await readTrash(profileId);
+    const now = new Date().toISOString();
+    const newTrashItems = deletedInvoices.map((inv) => ({
+      id: inv.id,
+      deletedAt: now,
+      type: "invoice",
+      data: inv,
+    }));
+    await writeTrash(profileId, [...newTrashItems, ...trash]);
+  }
+
   await writeInvoices(profileId, nextInvoices);
   return nextInvoices;
+}
+
+export async function restoreInvoices(profileId: string, invoiceIds: string[]) {
+  await ensureProfileDir(profileId);
+  const trash = await readTrash(profileId);
+  const invoices = await readInvoices(profileId);
+  const idsSet = new Set(invoiceIds);
+
+  const restoredItems = trash.filter((item) => idsSet.has(item.id) && item.type === "invoice");
+  const nextTrash = trash.filter((item) => !(idsSet.has(item.id) && item.type === "invoice"));
+
+  if (restoredItems.length > 0) {
+    const restoredInvoices = restoredItems.map((item) => hydrateInvoice(item.data));
+    await writeInvoices(profileId, [...restoredInvoices, ...invoices]);
+  }
+  await writeTrash(profileId, nextTrash);
+  return {
+    invoices: await readInvoices(profileId),
+    trash: nextTrash,
+  };
+}
+
+export async function emptyTrash(profileId: string) {
+  await ensureProfileDir(profileId);
+  await writeTrash(profileId, []);
+  return [];
 }
 
 export async function updateInvoicesStatus(

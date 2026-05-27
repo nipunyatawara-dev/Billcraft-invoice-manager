@@ -151,7 +151,7 @@ function getTaskInsertionTarget(
 }
 
 export default function TodoPage() {
-  const { activeProfile, loading, todoTasks, saveTodoTasks } = useUserData();
+  const { activeProfile, loading, todoTasks, saveTodoTasks, clients, vendors, saveOutsourcingInvoice } = useUserData();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragTarget, setDragTarget] = useState<DragTarget>(null);
@@ -164,6 +164,22 @@ export default function TodoPage() {
   const [undoSnapshot, setUndoSnapshot] = useState<UndoSnapshot | null>(null);
   const didDragRef = useRef(false);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Inform Client modal states
+  const [informTask, setInformTask] = useState<TodoTask | null>(null);
+
+  // Outsource Task modal states
+  const [outsourcingTask, setOutsourcingTask] = useState<TodoTask | null>(null);
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("");
+  const [newVendorName, setNewVendorName] = useState<string>("");
+  const [newVendorEmail, setNewVendorEmail] = useState<string>("");
+  const [newVendorPhone, setNewVendorPhone] = useState<string>("");
+  const [outsourcePrice, setOutsourcePrice] = useState<string>("");
+  const [vendorMode, setVendorMode] = useState<"select" | "custom">("select");
+  const [saveVendorMode, setSaveVendorMode] = useState<"regular" | "onetime">("onetime");
+
+  // Task client selector mode
+  const [clientMode, setClientMode] = useState<"select" | "custom">("select");
 
   useEffect(() => {
     setTasks(normalizeStageOrder(todoTasks));
@@ -269,12 +285,15 @@ export default function TodoPage() {
   function openCreateModal(stage: TodoStageId = "backlog") {
     setEditingTaskId(null);
     setForm({ ...EMPTY_FORM, stage, dueDate: todayInputValue() });
+    setClientMode("select");
     setIsTaskModalOpen(true);
   }
 
   function openEditModal(task: TodoTask) {
     setEditingTaskId(task.id);
     setForm(getFormFromTask(task));
+    const matched = clients.some(c => c.name === task.client);
+    setClientMode(matched || !task.client ? "select" : "custom");
     setIsTaskModalOpen(true);
   }
 
@@ -381,18 +400,19 @@ export default function TodoPage() {
     const previousTasks = tasks;
     const existingTask = editingTaskId ? tasks.find((task) => task.id === editingTaskId) : null;
     const stageTasks = getStageTasks(tasks, form.stage);
+    const matchedClient = clients.find(c => c.name.toLowerCase() === form.client.trim().toLowerCase());
     const nextTask: TodoTask = {
       id: existingTask?.id || createTaskId(),
       title,
       description: form.description.trim() || undefined,
       client: form.client.trim() || undefined,
-      clientId: existingTask?.clientId,
-      clientEmail: existingTask?.clientEmail,
-      clientPhone: existingTask?.clientPhone,
-      clientWhatsapp: existingTask?.clientWhatsapp,
+      clientId: matchedClient?.id || existingTask?.clientId,
+      clientEmail: matchedClient?.email || existingTask?.clientEmail,
+      clientPhone: matchedClient?.phone || existingTask?.clientPhone,
+      clientWhatsapp: matchedClient?.whatsapp || existingTask?.clientWhatsapp,
       invoiceId: existingTask?.invoiceId,
       jobColor: existingTask?.jobColor,
-      deliveryLink: existingTask?.deliveryLink,
+      deliveryLink: existingTask?.deliveryLink || matchedClient?.deliveryLink,
       dueDate: form.dueDate || undefined,
       estimate: form.estimate.trim() || undefined,
       stage: form.stage,
@@ -547,12 +567,116 @@ export default function TodoPage() {
     }
   }
 
+  async function handleOutsourceSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!outsourcingTask) return;
+
+    let vendorName = "";
+    let vendorEmail = "";
+    let vendorPhone = "";
+    let vendorId: string | undefined = undefined;
+
+    if (vendorMode === "select") {
+      const v = vendors.find(x => x.id === selectedVendorId);
+      if (v) {
+        vendorName = v.name;
+        vendorEmail = v.email || "";
+        vendorPhone = v.phone || "";
+        vendorId = v.id;
+      }
+    } else {
+      vendorName = newVendorName.trim();
+      vendorEmail = newVendorEmail.trim();
+      vendorPhone = newVendorPhone.trim();
+    }
+
+    if (!vendorName) {
+      notify.warning({
+        title: "Subcontractor name required",
+        description: "Please select or enter a subcontractor name.",
+      });
+      return;
+    }
+
+    const price = parseFloat(outsourcePrice);
+    if (isNaN(price) || price <= 0) {
+      notify.warning({
+        title: "Invalid price",
+        description: "Please enter a valid price for outsourcing.",
+      });
+      return;
+    }
+
+    const draft = {
+      vendorId,
+      vendor: vendorName,
+      email: vendorEmail,
+      phone: vendorPhone,
+      date: todayInputValue(),
+      dueDate: todayInputValue(),
+      status: "Unpaid" as const,
+      templateId: "classic",
+      templateName: "Classic",
+      items: [
+        {
+          id: `item-${Date.now().toString(36)}-0`,
+          description: `Outsourced task: ${outsourcingTask.title}`,
+          quantity: 1,
+          price: price,
+        }
+      ],
+      saveVendorMode: vendorMode === "custom" ? saveVendorMode : undefined,
+    };
+
+    setIsSaving(true);
+
+    try {
+      await notifyPromise(saveOutsourcingInvoice(draft), {
+        loading: {
+          title: "Creating payable...",
+          description: "Generating subcontractor outsourcing invoice.",
+        },
+        success: {
+          title: "Outsourced successfully",
+          description: `Payable invoice created for ${vendorName}.`,
+        },
+        error: (error) => ({
+          title: "Outsourcing failed",
+          description: getToastErrorMessage(error, "Unable to outsource task."),
+        }),
+      });
+
+      // Update the task to add "Outsourced" tag
+      const updatedTask: TodoTask = {
+        ...outsourcingTask,
+        tags: Array.from(new Set([...(outsourcingTask.tags || []), "Outsourced"])),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      const nextTasks = tasks.map(t => t.id === outsourcingTask.id ? updatedTask : t);
+      await saveTodoTasks(nextTasks);
+
+      setOutsourcingTask(null);
+      setSelectedVendorId("");
+      setNewVendorName("");
+      setNewVendorEmail("");
+      setNewVendorPhone("");
+      setOutsourcePrice("");
+      setVendorMode("select");
+      setSaveVendorMode("onetime");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   const showTrashZone = draggingTaskId !== null || selectedTaskIds.size > 0;
   const taskModalTitle = editingTaskId ? "Update task" : "New task";
 
   return (
     <>
-      <main className="app-main flex-1">
+      <main className="app-main-wide flex-1">
         <div className="page-heading">
           <div>
             <AnimatedText as="p" text="Workspace" effect="micro-scale-fade" className="section-eyebrow" />
@@ -764,29 +888,36 @@ export default function TodoPage() {
                               )}
                             </div>
 
-                            {hasDoneActions && (
+                            {!task.tags.includes("Outsourced") && task.stage !== "done" && (
+                              <div className="mt-3 flex">
+                                <button
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setOutsourcingTask(task);
+                                    const parsedPrice = parseFloat(task.estimate ? task.estimate.replace(/[^\d.]/g, "") : "");
+                                    setOutsourcePrice(!isNaN(parsedPrice) ? parsedPrice.toString() : "");
+                                  }}
+                                  className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] border-[var(--accent)]/30 hover:border-[var(--accent)]/60 text-[var(--accent)] hover:bg-[var(--accent)]/5 flex items-center gap-1 active:scale-[0.98] transition-smooth"
+                                >
+                                  <span className="material-symbols-outlined text-[13px]">handshake</span>
+                                  Outsource
+                                </button>
+                              </div>
+                            )}
+
+                            {task.stage === "done" && (
                               <div className="mt-3 flex flex-wrap gap-2">
-                                {task.clientEmail && (
-                                  <a
-                                    href={`mailto:${task.clientEmail}?subject=${encodeURIComponent(`${task.invoiceId || "Finished work"} is done`)}&body=${encodeURIComponent(doneMessage)}`}
-                                    onClick={(event) => event.stopPropagation()}
-                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
+                                {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
+                                  <button
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setInformTask(task);
+                                    }}
+                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 active:scale-[0.98] transition-smooth"
                                   >
-                                    <span className="material-symbols-outlined text-[13px]">mail</span>
-                                    Email
-                                  </a>
-                                )}
-                                {whatsappUrl && (
-                                  <a
-                                    href={whatsappUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
-                                  >
-                                    <span className="material-symbols-outlined text-[13px]">chat</span>
-                                    WhatsApp
-                                  </a>
+                                    <span className="material-symbols-outlined text-[13px]">info</span>
+                                    Inform
+                                  </button>
                                 )}
                                 {task.deliveryLink && (
                                   <a
@@ -794,7 +925,7 @@ export default function TodoPage() {
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(event) => event.stopPropagation()}
-                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px]"
+                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 transition-smooth"
                                   >
                                     <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
                                     Upload
@@ -899,13 +1030,48 @@ export default function TodoPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-client">Client</label>
-                  <input
-                    id="task-client"
-                    value={form.client}
-                    onChange={(event) => setForm({ ...form, client: event.target.value })}
-                    placeholder="General"
-                    className="field-control px-3 py-2"
-                  />
+                  {clientMode === "select" ? (
+                    <select
+                      id="task-client-select"
+                      value={form.client}
+                      onChange={(event) => {
+                        const val = event.target.value;
+                        if (val === "__custom__") {
+                          setClientMode("custom");
+                          setForm({ ...form, client: "" });
+                        } else {
+                          setForm({ ...form, client: val });
+                        }
+                      }}
+                      className="field-control px-3 py-2 w-full"
+                    >
+                      <option value="">General</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                      <option value="__custom__">+ Add Custom Client...</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        id="task-client"
+                        value={form.client}
+                        onChange={(event) => setForm({ ...form, client: event.target.value })}
+                        placeholder="Client name"
+                        className="field-control px-3 py-2 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClientMode("select");
+                          setForm({ ...form, client: "" });
+                        }}
+                        className="btn-ghost px-2 text-[10px]"
+                      >
+                        Select Saved
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-due">Due</label>
@@ -963,6 +1129,222 @@ export default function TodoPage() {
               </div>
             </div>
           </form>
+        </div>
+      )}
+
+      {outsourcingTask && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <button
+            aria-label="Close outsource panel"
+            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
+            onClick={() => setOutsourcingTask(null)}
+          />
+          <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full p-5 sm:p-7 max-h-[92vh] overflow-y-auto space-y-4">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <p className="section-eyebrow">Outsource Task</p>
+                <h2 className="text-xl font-semibold text-[var(--foreground)] font-display truncate max-w-[280px]">
+                  {outsourcingTask.title}
+                </h2>
+              </div>
+              <button type="button" onClick={() => setOutsourcingTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Subcontractor Selection</label>
+                {vendorMode === "select" ? (
+                  <div className="space-y-2">
+                    <select
+                      value={selectedVendorId}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "__new__") {
+                          setVendorMode("custom");
+                          setSelectedVendorId("");
+                        } else {
+                          setSelectedVendorId(val);
+                        }
+                      }}
+                      className="field-control px-3 py-2 w-full"
+                    >
+                      <option value="">-- Select a Subcontractor --</option>
+                      {vendors.map((v) => (
+                        <option key={v.id} value={v.id}>{v.name} {v.company ? `(${v.company})` : ""}</option>
+                      ))}
+                      <option value="__new__">+ Add New Subcontractor...</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div className="space-y-3 border border-dashed border-[var(--card-border)] rounded-xl p-3 bg-[var(--foreground)]/[0.01]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-semibold text-[var(--accent)] font-medium">New Subcontractor Info</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVendorMode("select");
+                          setSelectedVendorId("");
+                        }}
+                        className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] transition-smooth font-medium"
+                      >
+                        Choose Saved
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <input
+                        placeholder="Subcontractor Name"
+                        value={newVendorName}
+                        onChange={(e) => setNewVendorName(e.target.value)}
+                        required
+                        className="field-control px-3 py-1.5 w-full text-[13px]"
+                      />
+                      <input
+                        type="email"
+                        placeholder="Email (optional)"
+                        value={newVendorEmail}
+                        onChange={(e) => setNewVendorEmail(e.target.value)}
+                        className="field-control px-3 py-1.5 w-full text-[13px]"
+                      />
+                      <input
+                        placeholder="Phone (optional)"
+                        value={newVendorPhone}
+                        onChange={(e) => setNewVendorPhone(e.target.value)}
+                        className="field-control px-3 py-1.5 w-full text-[13px]"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        id="save-vendor-checkbox"
+                        checked={saveVendorMode === "regular"}
+                        onChange={(e) => setSaveVendorMode(e.target.checked ? "regular" : "onetime")}
+                        className="rounded border-[var(--card-border)] text-[var(--accent)] focus:ring-[var(--accent)]"
+                      />
+                      <label htmlFor="save-vendor-checkbox" className="text-[11px] text-[var(--muted)] cursor-pointer">
+                        Save to Subcontractors directory
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Outsourcing Price</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-[var(--muted)] text-[13px] font-medium">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={outsourcePrice}
+                    onChange={(e) => setOutsourcePrice(e.target.value)}
+                    required
+                    className="field-control pl-7 pr-3 py-2 w-full text-[14px]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-[var(--card-border)]">
+              <button type="button" onClick={() => setOutsourcingTask(null)} className="btn-ghost" disabled={isSaving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                {isSaving ? "Outsourcing..." : "Outsource Task"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {informTask && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <button
+            aria-label="Close inform panel"
+            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
+            onClick={() => setInformTask(null)}
+          />
+          <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] font-display flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-[var(--accent)]">info</span>
+                Inform Client
+              </h3>
+              <button onClick={() => setInformTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              </button>
+            </div>
+            
+            <p className="text-[12px] text-[var(--muted)]">Select how you want to inform <strong>{informTask.client || "Client"}</strong> that <strong>{informTask.title}</strong> is completed:</p>
+            
+            <div className="space-y-2">
+              {(() => {
+                const doneMessage = getTaskDoneMessage(informTask);
+                const whatsappUrl = informTask.clientWhatsapp ? getWhatsAppUrl(informTask.clientWhatsapp, doneMessage) : "";
+                const contactChannels = [];
+                if (informTask.clientEmail) {
+                  contactChannels.push({
+                    id: "email",
+                    label: "Email",
+                    icon: "mail",
+                    href: `mailto:${informTask.clientEmail}?subject=${encodeURIComponent(`${informTask.invoiceId || "Finished work"} is done`)}&body=${encodeURIComponent(doneMessage)}`,
+                    external: false,
+                  });
+                }
+                if (informTask.clientWhatsapp) {
+                  contactChannels.push({
+                    id: "whatsapp",
+                    label: "WhatsApp",
+                    icon: "chat",
+                    href: getWhatsAppUrl(informTask.clientWhatsapp, doneMessage),
+                    external: true,
+                  });
+                }
+                if (informTask.clientPhone && !informTask.clientWhatsapp) {
+                  contactChannels.push({
+                    id: "sms",
+                    label: "Normal Message (SMS)",
+                    icon: "sms",
+                    href: `sms:${informTask.clientPhone}?body=${encodeURIComponent(doneMessage)}`,
+                    external: false,
+                  });
+                }
+                
+                return (
+                  <>
+                    {contactChannels.map((channel) => (
+                      <a
+                        key={channel.id}
+                        href={channel.href}
+                        target={channel.external ? "_blank" : undefined}
+                        rel={channel.external ? "noreferrer" : undefined}
+                        onClick={() => setInformTask(null)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--accent)]/55 hover:bg-[var(--accent)]/[0.03] transition-smooth group"
+                      >
+                        <span className="size-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-[var(--action-text)] flex items-center justify-center shrink-0 transition-smooth">
+                          <span className="material-symbols-outlined text-[18px]">{channel.icon}</span>
+                        </span>
+                        <div className="text-left">
+                          <span className="block text-[13px] font-semibold text-[var(--foreground)]">{channel.label}</span>
+                          <span className="block text-[10px] text-[var(--muted)]">Send instantly via {channel.label.toLowerCase()}</span>
+                        </div>
+                        <span className="ml-auto material-symbols-outlined text-[18px] text-[var(--muted)] group-hover:text-[var(--accent)] transition-smooth">chevron_right</span>
+                      </a>
+                    ))}
+                    {contactChannels.length === 0 && (
+                      <div className="text-center py-6 text-[12px] text-[var(--muted)]">
+                        No contact details found for this client. Please edit the client in directory to add an email or phone number.
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
         </div>
       )}
     </>

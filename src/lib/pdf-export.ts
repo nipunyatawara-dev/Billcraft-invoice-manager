@@ -288,9 +288,11 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
   addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
   y -= 78;
 
+  const activePdfCurrency = invoice.currency || currency;
+
   addRect(page, PAGE_MARGIN, y - 88, CONTENT_WIDTH, 88, ACCENT_SOFT);
   addText(page, fonts, "TOTAL INVOICE VALUE", PAGE_MARGIN + 20, y - 26, 8.5, "bold", ACCENT);
-  addText(page, fonts, formatPdfCurrency(invoiceTotal, currency), PAGE_MARGIN + 20, y - 57, 24, "bold", TEXT);
+  addText(page, fonts, formatPdfCurrency(invoiceTotal, activePdfCurrency), PAGE_MARGIN + 20, y - 57, 24, "bold", TEXT);
   addText(page, fonts, "Invoice date", PAGE_WIDTH - PAGE_MARGIN - 178, y - 25, 8.5, "bold", MUTED);
   addText(page, fonts, invoice.date || "Not set", PAGE_WIDTH - PAGE_MARGIN - 178, y - 43, 10, "bold", TEXT);
   addText(page, fonts, "Due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 25, 8.5, "bold", MUTED);
@@ -330,8 +332,8 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
       addText(page, fonts, line, PAGE_MARGIN + 14, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
     });
     addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 184, rowTop, 10, "regular", MUTED, "right");
-    addText(page, fonts, formatPdfCurrency(item.price, currency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
-    addText(page, fonts, formatPdfCurrency(item.quantity * item.price, currency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop, 10, "bold", TEXT, "right");
+    addText(page, fonts, formatPdfCurrency(item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
+    addText(page, fonts, formatPdfCurrency(item.quantity * item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop, 10, "bold", TEXT, "right");
     y -= rowHeight;
     addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.9, 0.91, 0.94));
   });
@@ -346,16 +348,34 @@ export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfil
 
   const summaryX = PAGE_WIDTH - PAGE_MARGIN - 220;
   const summaryTop = y + 44;
-  addRect(page, summaryX, summaryTop - 122, 220, 122, WHITE);
-  addStrokeRect(page, summaryX, summaryTop - 122, 220, 122);
-  addText(page, fonts, "Subtotal", summaryX + 16, summaryTop - 28, 10, "regular", MUTED);
-  addText(page, fonts, formatPdfCurrency(invoice.subtotal || invoiceTotal, currency), summaryX + 204, summaryTop - 28, 10, "regular", TEXT, "right");
-  addText(page, fonts, "Paid", summaryX + 16, summaryTop - 52, 10, "regular", MUTED);
-  addText(page, fonts, formatPdfCurrency(amountPaid, currency), summaryX + 204, summaryTop - 52, 10, "regular", TEXT, "right");
-  addLine(page, summaryX + 16, summaryTop - 72, summaryX + 204, summaryTop - 72);
-  addText(page, fonts, "Balance due", summaryX + 16, summaryTop - 97, 13, "bold", TEXT);
-  addText(page, fonts, formatPdfCurrency(balanceDue, currency), summaryX + 204, summaryTop - 97, 13, "bold", TEXT, "right");
-  y = summaryTop - 146;
+  const discountAmount = invoice.discount || 0;
+  const hasDiscount = discountAmount > 0;
+  const cardH = hasDiscount ? 144 : 122;
+
+  addRect(page, summaryX, summaryTop - cardH, 220, cardH, WHITE);
+  addStrokeRect(page, summaryX, summaryTop - cardH, 220, cardH);
+  
+  let currentY = summaryTop - 28;
+  addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "regular", MUTED);
+  addText(page, fonts, formatPdfCurrency(invoice.subtotal || invoiceTotal, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+  
+  if (hasDiscount) {
+    currentY -= 22;
+    addText(page, fonts, "Discount", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "regular", WARNING, "right");
+  }
+  
+  currentY -= 24;
+  addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "regular", MUTED);
+  addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+  
+  currentY -= 20;
+  addLine(page, summaryX + 16, currentY, summaryX + 204, currentY);
+  
+  currentY -= 25;
+  addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", TEXT);
+  addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
+  y = currentY - 49;
 
   if (profile?.signature) {
     addText(page, fonts, "Signature on file", summaryX + 204, y, 9, "bold", MUTED, "right");

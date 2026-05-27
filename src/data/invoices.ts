@@ -8,6 +8,8 @@ export interface Invoice {
   amount: string;
   subtotal?: number;
   total?: number;
+  discount?: number;
+  currency?: string;
   templateId?: string;
   templateName?: string;
   items?: InvoiceItem[];
@@ -189,6 +191,8 @@ export interface OutsourcingInvoice {
   amount: string;
   subtotal?: number;
   total?: number;
+  discount?: number;
+  currency?: string;
   templateId?: string;
   templateName?: string;
   items?: InvoiceItem[];
@@ -325,6 +329,25 @@ export function getLatestPayment(payments: PaymentRecord[] = []) {
     .sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime())[0];
 }
 
+export const CURRENCY_RATES: Record<string, number> = {
+  USD: 1.0,
+  LKR: 300.0,
+  EUR: 0.92,
+  GBP: 0.78,
+  INR: 83.5,
+  AUD: 1.55,
+  CAD: 1.37,
+  JPY: 156.0,
+  SGD: 1.35,
+  AED: 3.67,
+};
+
+export function convertCurrency(amount: number, from: string, to: string): number {
+  const rateFrom = CURRENCY_RATES[from] || 1.0;
+  const rateTo = CURRENCY_RATES[to] || 1.0;
+  return (amount / rateFrom) * rateTo;
+}
+
 export function formatCurrency(value: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -361,15 +384,40 @@ export function createAvatar(name: string) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-export function getInvoiceTotals(invoices: Invoice[]) {
-  const totalAmount = invoices.reduce((sum, invoice) => sum + getInvoiceTotal(invoice), 0);
-  const paidAmount = invoices.reduce((sum, invoice) => sum + getAmountPaid(invoice), 0);
+export function getInvoiceTotals(
+  invoices: Invoice[],
+  globalCurrency = "USD",
+  currencyMode: "visual" | "convert" = "visual"
+) {
+  const isConvert = currencyMode === "convert";
+
+  const totalAmount = invoices.reduce((sum, invoice) => {
+    const amt = getInvoiceTotal(invoice);
+    const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+    return sum + converted;
+  }, 0);
+
+  const paidAmount = invoices.reduce((sum, invoice) => {
+    const amt = getAmountPaid(invoice);
+    const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+    return sum + converted;
+  }, 0);
+
   const pendingAmount = invoices
     .filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice))
-    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+    .reduce((sum, invoice) => {
+      const amt = getBalanceDue(invoice);
+      const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+      return sum + converted;
+    }, 0);
+
   const overdueAmount = invoices
     .filter(isRecordOverdue)
-    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+    .reduce((sum, invoice) => {
+      const amt = getBalanceDue(invoice);
+      const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+      return sum + converted;
+    }, 0);
 
   return {
     totalAmount,
@@ -382,15 +430,40 @@ export function getInvoiceTotals(invoices: Invoice[]) {
   };
 }
 
-export function getOutsourcingTotals(invoices: OutsourcingInvoice[]) {
-  const totalAmount = invoices.reduce((sum, invoice) => sum + getOutsourcingInvoiceTotal(invoice), 0);
-  const paidAmount = invoices.reduce((sum, invoice) => sum + getAmountPaid(invoice), 0);
+export function getOutsourcingTotals(
+  invoices: OutsourcingInvoice[],
+  globalCurrency = "USD",
+  currencyMode: "visual" | "convert" = "visual"
+) {
+  const isConvert = currencyMode === "convert";
+
+  const totalAmount = invoices.reduce((sum, invoice) => {
+    const amt = getOutsourcingInvoiceTotal(invoice);
+    const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+    return sum + converted;
+  }, 0);
+
+  const paidAmount = invoices.reduce((sum, invoice) => {
+    const amt = getAmountPaid(invoice);
+    const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+    return sum + converted;
+  }, 0);
+
   const pendingAmount = invoices
     .filter((invoice) => getBalanceDue(invoice) > 0 && !isRecordOverdue(invoice))
-    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+    .reduce((sum, invoice) => {
+      const amt = getBalanceDue(invoice);
+      const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+      return sum + converted;
+    }, 0);
+
   const overdueAmount = invoices
     .filter(isRecordOverdue)
-    .reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+    .reduce((sum, invoice) => {
+      const amt = getBalanceDue(invoice);
+      const converted = isConvert ? convertCurrency(amt, invoice.currency || "USD", globalCurrency) : amt;
+      return sum + converted;
+    }, 0);
 
   return {
     totalAmount,

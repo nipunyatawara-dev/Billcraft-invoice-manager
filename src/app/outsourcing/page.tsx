@@ -259,7 +259,20 @@ export default function Outsourcing() {
   function updateItem(index: number, updates: Partial<InvoiceItem>) {
     setForm((currentForm) => ({
       ...currentForm,
-      items: currentForm.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...updates } : item),
+      items: currentForm.items.map((item, itemIndex) => {
+        if (itemIndex === index) {
+          const nextItem = { ...item, ...updates };
+          if (
+            updates.quantity !== undefined &&
+            (item.quantity === 1 || item.quantity === 0 || !item.quantity) &&
+            item.price > 0
+          ) {
+            nextItem.price = item.price * updates.quantity;
+          }
+          return nextItem;
+        }
+        return item;
+      }),
     }));
   }
 
@@ -709,11 +722,17 @@ export default function Outsourcing() {
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`outsourcing-item-quantity-${item.id}`}>Qty</label>
-                          <input id={`outsourcing-item-quantity-${item.id}`} type="number" min="0" step="0.01" value={item.quantity} onChange={(event) => updateItem(index, { quantity: Number(event.target.value) })} className="field-control px-3 py-2" />
+                          <input id={`outsourcing-item-quantity-${item.id}`} type="number" min="0" step="1" value={item.quantity} onChange={(event) => {
+                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                            updateItem(index, { quantity: Number(cleanVal) });
+                          }} className="field-control px-3 py-2" />
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`outsourcing-item-price-${item.id}`}>Price</label>
-                          <input id={`outsourcing-item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => updateItem(index, { price: Number(event.target.value) })} className="field-control px-3 py-2" />
+                          <input id={`outsourcing-item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => {
+                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                            updateItem(index, { price: Number(cleanVal) });
+                          }} className="field-control px-3 py-2" />
                         </div>
                         <div className="flex md:items-end">
                           <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">

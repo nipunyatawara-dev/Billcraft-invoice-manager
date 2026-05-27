@@ -738,8 +738,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </p>
             )}
 
-            {!isFirstRun && !showCreateProfileForm && !isProfileLocked && (canLogoutActiveProfile || profiles.length < 5) && (
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            {!isFirstRun && !showCreateProfileForm && (
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end mt-4">
                 {canLogoutActiveProfile && (
                   <button
                     type="button"
@@ -750,16 +750,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     Log Out
                   </button>
                 )}
-                {profiles.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateProfileForm(true)}
-                    className="btn-primary active:scale-[0.97]"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">add</span>
-                    Create New Profile
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowCreateProfileForm(true)}
+                  disabled={profiles.length >= 5}
+                  className="btn-primary active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  {profiles.length >= 5 ? "Create Limit Reached (Max 5)" : "Create New Profile"}
+                </button>
               </div>
             )}
 

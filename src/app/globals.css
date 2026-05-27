@@ -325,6 +325,13 @@ html.dark {
     padding: 1.25rem;
   }
 
+  .app-main-wide {
+    width: 100%;
+    max-width: 1450px;
+    margin-inline: auto;
+    padding: 1.25rem;
+  }
+
   .app-shell {
     min-height: 100vh;
     background: var(--background);

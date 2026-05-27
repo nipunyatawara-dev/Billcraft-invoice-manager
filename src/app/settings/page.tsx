@@ -10,7 +10,7 @@ import { useTheme } from "next-themes";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark";
-type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security";
+type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security" | "trash";
 type ExportFormat = "json" | "csv";
 
 type ExportRow = Record<string, string | number | null | undefined>;
@@ -75,7 +75,7 @@ function fileSafeName(value?: string | null) {
 }
 
 export default function Settings() {
-  const { currency, setCurrency } = useCurrency();
+  const { currency, setCurrency, currencyMode, setCurrencyMode } = useCurrency();
   const { resolvedTheme, setTheme } = useTheme();
   const { lightPalette, darkPalette, setLightPalette, setDarkPalette } = useModePalettes();
   const { toastPosition, setToastPosition } = useToastPosition();
@@ -96,6 +96,9 @@ export default function Settings() {
     updateProfilePasswordHint,
     verifyProfilePassword,
     vendors,
+    trash,
+    restoreInvoices,
+    emptyTrash,
   } = useUserData();
   const [invoiceReminders, setInvoiceReminders] = useState(true);
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
@@ -157,6 +160,7 @@ export default function Settings() {
     { id: "appearance" as const, label: "Appearance", icon: "palette" },
     { id: "notifications" as const, label: "Notifications", icon: "notifications" },
     { id: "data" as const, label: "Your Data", icon: "database" },
+    { id: "trash" as const, label: "Trash Bin", icon: "delete" },
     { id: "security" as const, label: "Security", icon: "shield" },
   ];
 
@@ -756,6 +760,30 @@ export default function Settings() {
                   </select>
                 </div>
 
+                <div className="surface-card p-5 space-y-1.5">
+                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="currency-mode">Currency Conversion Mode</label>
+                  <select
+                    id="currency-mode"
+                    value={currencyMode}
+                    onChange={(event) => {
+                      const nextMode = event.target.value as "visual" | "convert";
+
+                      setCurrencyMode(nextMode);
+                      notify.info({
+                        title: "Currency mode updated",
+                        description: `Exchange rates will now be ${nextMode === "convert" ? "dynamically calculated" : "ignored (visual only)"}.`,
+                      });
+                    }}
+                    className="field-control px-3 py-2 text-base font-semibold font-display"
+                  >
+                    <option value="visual">Visual Change Only (Keep values identical)</option>
+                    <option value="convert">Convert Values (Dynamic Exchange Rate Conversion)</option>
+                  </select>
+                  <p className="text-[11px] text-[var(--muted)] mt-1">
+                    Visual Change keeps numbers the same and changes the prefix sign. Convert Mode scales totals and line item costs by exchange rates.
+                  </p>
+                </div>
+
                 <div className="flex justify-end pt-1">
                   <button onClick={handleSaveProfile} className="btn-primary active:scale-[0.97]" disabled={isSavingProfile}>
                     {isSavingProfile ? "Saving..." : "Save Changes"}
@@ -1157,6 +1185,105 @@ export default function Settings() {
                       Delete all profiles
                     </button>
                   </div>
+                </div>
+              </>
+            )}
+
+            {/* Trash Bin Tab */}
+            {activeTab === "trash" && (
+              <>
+                <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
+                  <div className="relative z-10 max-w-xl">
+                    <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">System Storage</p>
+                    <AnimatedText
+                      as="h2"
+                      text="Trash Bin"
+                      effect="mask-reveal-up"
+                      className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
+                      replayKey="trash-bin"
+                    />
+                    <p className="text-[12px] text-[var(--featured-text)]/50">
+                      Recover soft-deleted invoices or permanently wipe them to free up profile slot space.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="surface-card p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Wipe Deleted Items</h3>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">
+                        Wiping the trash permanently destroys all deleted items.
+                      </p>
+                    </div>
+                    {trash.length > 0 && (
+                      <button
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to permanently delete all items in the Trash Bin? This action cannot be undone.")) {
+                            await notifyPromise(emptyTrash(), {
+                              loading: { title: "Emptying trash...", description: "Wiping deleted items." },
+                              success: { title: "Trash emptied", description: "All deleted invoices were permanently removed." },
+                              error: (e) => ({ title: "Wipe failed", description: getToastErrorMessage(e, "Unable to empty trash.") })
+                            });
+                          }
+                        }}
+                        className="px-4 py-2 border border-red-500/30 rounded-xl text-[12px] font-semibold text-red-500 hover:bg-red-500/10 active:scale-[0.97] transition-smooth flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                        Empty Trash Bin
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  {trash.length > 0 ? (
+                    trash.map((item) => (
+                      <div
+                        key={item.id}
+                        className="surface-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-[var(--card-border)] bg-[var(--background)]/35 hover:border-[var(--foreground)]/15 transition-smooth rounded-xl"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] text-[10px] font-semibold tracking-wide uppercase">
+                              {item.id}
+                            </span>
+                            <span className="text-[10px] text-[var(--muted)]">
+                              Deleted: {item.deletedAt ? new Date(item.deletedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recently"}
+                            </span>
+                          </div>
+                          <h4 className="text-[13.5px] font-semibold text-[var(--foreground)] truncate">
+                            Client: {item.client || "Unknown Client"}
+                          </h4>
+                          <p className="text-[11.5px] text-[var(--muted)] mt-0.5">
+                            Original Date: {item.date || "N/A"} • Amount: <strong className="text-[var(--foreground)]">{item.amount || "N/A"}</strong>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={async () => {
+                              await notifyPromise(restoreInvoices([item.id]), {
+                                loading: { title: "Restoring invoice...", description: "Moving item back to your active list." },
+                                success: { title: "Invoice restored", description: `${item.id} is now back in your invoices.` },
+                                error: (e) => ({ title: "Restore failed", description: getToastErrorMessage(e, "Unable to restore invoice.") })
+                              });
+                            }}
+                            className="btn-secondary min-h-8 px-3 text-[11.5px] flex items-center gap-1 active:scale-[0.97]"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">restore_from_trash</span>
+                            Restore
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-[var(--card-border)] bg-[var(--foreground)]/[0.01] p-8 text-center flex flex-col items-center justify-center min-h-[180px]">
+                      <span className="material-symbols-outlined text-[36px] text-[var(--foreground)]/12 mb-3">delete_outline</span>
+                      <p className="text-[13px] font-semibold text-[var(--muted)]">Your Trash Bin is empty</p>
+                      <p className="text-[11px] text-[var(--muted)]/60 mt-1">Deleted invoices will show up here for recovery.</p>
+                    </div>
+                  )}
                 </div>
               </>
             )}

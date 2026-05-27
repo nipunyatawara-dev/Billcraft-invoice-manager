@@ -194,6 +194,8 @@ export function ProfileCreateOnboarding({
   const completedSet = useMemo(() => new Set(completedStepIds), [completedStepIds]);
   const isFinalStep = activeStepIndex === STEPS.length - 1;
   const progressDegrees = Math.max(12, Math.round(((activeStepIndex + 1) / STEPS.length) * 360));
+  const isBusinessDirty = Boolean(profileForm.businessName?.trim() || profileForm.email?.trim() || profileForm.phone?.trim());
+  const isBrandDirty = Boolean(profileForm.profilePic || profileForm.signature);
   const canContinue = activeStep.id === "identity"
     ? isProfileStepValid
     : activeStep.id === "security"
@@ -428,9 +430,9 @@ export function ProfileCreateOnboarding({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[0.88fr_1.12fr]">
-        <div className="min-h-[210px] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_82%,white)_0%,color-mix(in_srgb,var(--chart-soft)_72%,var(--background))_100%)] px-5 py-4 text-[var(--action-text)]">
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[var(--action-text)]/80">
-            <button type="button" onClick={goBack} disabled={activeStepIndex === 0} className="grid size-7 place-items-center rounded-full transition-smooth hover:bg-[var(--action-text)]/10 disabled:opacity-35">
+        <div className="min-h-[210px] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_15%,#0d0e12)_0%,#15161c_100%)] p-6 sm:p-8 text-white border-b lg:border-b-0 lg:border-r border-[var(--card-border)]">
+          <div className="mb-2 flex items-center gap-2 text-white/80 text-[11px] font-semibold">
+            <button type="button" onClick={goBack} disabled={activeStepIndex === 0} className="grid size-7 place-items-center rounded-full transition-smooth hover:bg-white/10 disabled:opacity-35">
               <span className="material-symbols-outlined text-[15px]">arrow_back_ios_new</span>
             </button>
             <span><AnimatedNumber value={activeStepIndex + 1} /> of <AnimatedNumber value={STEPS.length} /></span>
@@ -449,7 +451,7 @@ export function ProfileCreateOnboarding({
           </AnimatePresence>
         </div>
 
-        <div className="px-5 py-5 sm:px-6">
+        <div className="p-6 sm:p-8">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`${activeStep.id}-fields`}
@@ -480,7 +482,12 @@ export function ProfileCreateOnboarding({
 
               <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 {activeStep.optional && !isFinalStep && (
-                  <button type="button" onClick={goNext} className="btn-secondary active:scale-[0.97]">
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    className="btn-secondary active:scale-[0.97]"
+                    disabled={activeStep.id === "business" ? isBusinessDirty : activeStep.id === "brand" ? isBrandDirty : false}
+                  >
                     Skip
                   </button>
                 )}
@@ -495,7 +502,17 @@ export function ProfileCreateOnboarding({
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </button>
                 ) : (
-                  <button type="button" onClick={goNext} className="btn-primary active:scale-[0.97]" disabled={!canContinue}>
+                  <button
+                    type="button"
+                    onClick={goNext}
+                    className="btn-primary active:scale-[0.97]"
+                    disabled={
+                      !canContinue ||
+                      (activeStep.optional && (
+                        activeStep.id === "business" ? !isBusinessDirty : activeStep.id === "brand" ? !isBrandDirty : false
+                      ))
+                    }
+                  >
                     Continue
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </button>

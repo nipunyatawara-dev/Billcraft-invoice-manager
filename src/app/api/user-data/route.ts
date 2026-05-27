@@ -17,6 +17,8 @@ import {
   deleteAllProfiles,
   deleteInvoices,
   updateInvoicesStatus,
+  restoreInvoices,
+  emptyTrash,
   type SaveInvoicePayload,
   type SaveOutsourcingInvoicePayload,
 } from "@/lib/user-data-store";
@@ -40,7 +42,9 @@ type UserDataAction =
   | { action: "deleteProfile"; profileId: string }
   | { action: "deleteAllProfiles" }
   | { action: "deleteInvoices"; profileId: string; invoiceIds: string[] }
-  | { action: "updateInvoicesStatus"; profileId: string; invoiceIds: string[]; status: InvoiceStatus; workflowStatus?: InvoiceWorkflowStatus };
+  | { action: "updateInvoicesStatus"; profileId: string; invoiceIds: string[]; status: InvoiceStatus; workflowStatus?: InvoiceWorkflowStatus }
+  | { action: "restoreInvoices"; profileId: string; invoiceIds: string[] }
+  | { action: "emptyTrash"; profileId: string };
 
 function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "Unable to update local user data.";
@@ -140,6 +144,16 @@ export async function POST(request: NextRequest) {
 
     if (body.action === "updateInvoicesStatus") {
       await updateInvoicesStatus(body.profileId, body.invoiceIds, body.status, body.workflowStatus);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "restoreInvoices") {
+      await restoreInvoices(body.profileId, body.invoiceIds);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "emptyTrash") {
+      await emptyTrash(body.profileId);
       activeProfileId = body.profileId;
     }
 

@@ -371,14 +371,14 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                   <>
                     {selectedStep && (
                       <div className="border-b border-[var(--card-border)]">
-                        <div className="h-[180px] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_82%,white)_0%,color-mix(in_srgb,var(--chart-soft)_72%,var(--background))_100%)] px-5 py-4 text-[var(--action-text)]">
-                          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[var(--action-text)]/80">
+                        <div className="h-[180px] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_15%,#0d0e12)_0%,#15161c_100%)] p-6 sm:p-8 text-white border-b border-[var(--card-border)]">
+                          <div className="mb-2 flex items-center gap-2 text-white/80 text-[11px] font-semibold">
                             <span className="material-symbols-outlined text-[15px]">arrow_back_ios_new</span>
                             <span><AnimatedNumber value={selectedStepIndex + 1} /> of <AnimatedNumber value={totalSteps} /></span>
                           </div>
                           <StepPreview step={selectedStep} />
                         </div>
-                        <div className="relative bg-[var(--card)] px-4 py-4">
+                        <div className="relative bg-[var(--card)] p-6 sm:p-8">
                           <h3 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">{selectedStep.title}</h3>
                           <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--muted)]">{selectedStep.description}</p>
                           <div className="mt-4 flex gap-2">

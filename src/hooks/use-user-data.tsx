@@ -34,6 +34,7 @@ type LocalDataSnapshot = {
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
   todoTasks: TodoTask[];
+  trash: any[];
   userDataPath: string;
 };
 
@@ -99,6 +100,8 @@ export type InvoiceDraft = {
   receiptAttachments?: PaymentAttachment[];
   payments?: PaymentRecord[];
   saveClientMode?: "regular" | "onetime";
+  currency?: string;
+  discount?: number;
 };
 
 export type OutsourcingInvoiceDraft = {
@@ -151,6 +154,8 @@ type UserDataContextValue = LocalDataSnapshot & {
   deleteAllProfiles: () => Promise<void>;
   deleteInvoices: (invoiceIds: string[]) => Promise<void>;
   updateInvoicesStatus: (invoiceIds: string[], status: InvoiceStatus, workflowStatus?: InvoiceWorkflowStatus) => Promise<void>;
+  restoreInvoices: (invoiceIds: string[]) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   saveClient: (originalClientId: string | null, client: ClientDraft) => Promise<Client | null>;
   saveInvoice: (invoice: InvoiceDraft) => Promise<Invoice | null>;
   saveVendor: (originalVendorId: string | null, vendor: VendorDraft) => Promise<Vendor | null>;
@@ -172,6 +177,7 @@ const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   vendors: [],
   outsourcingInvoices: [],
   todoTasks: [],
+  trash: [],
   userDataPath: "",
 };
 
@@ -249,6 +255,7 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
       items: invoice.items || [],
     })),
     todoTasks: snapshot.todoTasks || [],
+    trash: snapshot.trash || [],
   };
 }
 
@@ -513,7 +520,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }
 
     const items = normalizeLineItems(draft.items);
-    const total = getInvoiceItemsTotal(items);
+    const subtotal = getInvoiceItemsTotal(items);
+    const discount = Number(draft.discount) || 0;
+    const total = Math.max(0, subtotal - discount);
+    const activeCurrency = draft.currency || currency;
     const invoice: Invoice = {
       id: draft.id || getNextInvoiceId(snapshot.invoices),
       clientId: draft.clientId,
@@ -527,9 +537,11 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       avatar: draft.avatar || createAvatar(draft.client.trim()),
       date: formatDisplayDate(draft.date),
       dueDate: draft.dueDate ? formatDisplayDate(draft.dueDate) : undefined,
-      amount: formatCurrency(total, currency),
-      subtotal: total,
+      amount: formatCurrency(total, activeCurrency),
+      subtotal,
+      discount,
       total,
+      currency: draft.currency || undefined,
       templateId: draft.templateId,
       templateName: draft.templateName,
       items,
@@ -744,6 +756,43 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [postAction, snapshot.activeProfileId]);
 
+  const restoreInvoices = useCallback(async (invoiceIds: string[]) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "restoreInvoices",
+        profileId: snapshot.activeProfileId,
+        invoiceIds,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to restore invoices.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const emptyTrash = useCallback(async () => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "emptyTrash",
+        profileId: snapshot.activeProfileId,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to empty trash.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
   const value = useMemo<UserDataContextValue>(() => ({
     ...snapshot,
     loading,
@@ -761,6 +810,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     deleteAllProfiles,
     deleteInvoices,
     updateInvoicesStatus,
+    restoreInvoices,
+    emptyTrash,
     saveClient,
     saveInvoice,
     saveVendor,
@@ -794,6 +845,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     deleteAllProfiles,
     deleteInvoices,
     updateInvoicesStatus,
+    restoreInvoices,
+    emptyTrash,
     unlockProfile,
     updateProfile,
     updateProfilePasswordHint,
