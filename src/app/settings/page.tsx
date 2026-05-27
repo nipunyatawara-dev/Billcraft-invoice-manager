@@ -858,7 +858,13 @@ export default function Settings() {
                       </div>
 
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" role="radiogroup" aria-label={setting.title}>
-                        {COLOR_PALETTES.map((palette) => {
+                        {COLOR_PALETTES.filter((palette) => {
+                          if (setting.mode === "light") {
+                            return palette.id !== "palette-7";
+                          } else {
+                            return palette.id !== "palette-6";
+                          }
+                        }).map((palette) => {
                           const isSelected = setting.selectedPalette === palette.id;
 
                           return (
