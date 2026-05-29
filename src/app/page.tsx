@@ -68,14 +68,19 @@ export default function Home() {
         <div className="page-heading">
           <div>
             <AnimatedText as="p" text="Dashboard" effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text={greetingText}
-              effect={hasSyncedGreeting ? "fade-through" : "soft-blur-in"}
-              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
-              delayMs={70}
-              replayKey={greetingText}
-            />
+            {hasSyncedGreeting ? (
+              <AnimatedText
+                as="h1"
+                text={greetingText}
+                effect="soft-blur-in"
+                className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+                delayMs={70}
+              />
+            ) : (
+              <h1 className="text-3xl lg:text-[40px] font-semibold text-transparent leading-[1.1] select-none pointer-events-none">
+                Good Morning
+              </h1>
+            )}
           </div>
           <div className="hidden md:flex gap-2.5">
             <Link href="/invoices" className="btn-primary active:scale-[0.97]">

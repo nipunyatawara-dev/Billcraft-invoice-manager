@@ -28,6 +28,9 @@ const paletteBootstrapScript = `
   const paletteIds = new Set(["palette-1", "palette-2", "palette-3", "palette-4", "palette-5", "palette-6", "palette-7"]);
   const lightKey = "billcraft.light-palette.v1";
   const darkKey = "billcraft.dark-palette.v1";
+  const fontKey = "billcraft.font.v1";
+  const fontIds = new Set(["inter", "open-sans", "google-sans-flex", "outfit", "plus-jakarta-sans"]);
+
   const readPalette = (key, fallback) => {
     try {
       const storedPalette = window.localStorage.getItem(key);
@@ -37,8 +40,18 @@ const paletteBootstrapScript = `
     }
   };
 
+  const readFont = (key, fallback) => {
+    try {
+      const storedFont = window.localStorage.getItem(key);
+      return fontIds.has(storedFont) ? storedFont : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-6");
   document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-7");
+  document.documentElement.dataset.font = readFont(fontKey, "inter");
 })();
 `;
 
@@ -52,7 +65,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,100..1000&family=Inter:wght@300;400;500;600;700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet" />
         <link 
           rel="stylesheet" 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" 

@@ -255,7 +255,7 @@ export default function TodoPage() {
 
     return {
       active: tasks.filter((task) => task.stage !== "done").length,
-      inProgress: tasks.filter((task) => task.stage === "in-progress").length,
+      inProgress: tasks.filter((task) => task.stage === "in-progress" || task.stage === "review").length,
       dueSoon: tasks.filter((task) => {
         if (!task.dueDate || task.stage === "done") {
           return false;
@@ -809,8 +809,8 @@ export default function TodoPage() {
                       const hasDoneActions = task.stage === "done" && Boolean(task.clientEmail || whatsappUrl || task.deliveryLink);
 
                       return (
-                        <div key={task.id} className="relative">
-                          {isBeforeTarget && <div className="absolute -top-1 left-0 right-0 h-0.5 rounded-full bg-[var(--accent)]" />}
+                        <div key={task.id} className="relative group/tile">
+                          {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-1 rounded-full bg-[var(--accent)] animate-pulse" />}
                           <div
                             draggable
                             onDragStart={(event) => {
@@ -830,66 +830,78 @@ export default function TodoPage() {
                                 toggleSelectTask(task.id);
                               }
                             }}
-                            className={`relative overflow-hidden rounded-xl border p-3 cursor-grab active:cursor-grabbing transition-smooth hover:-translate-y-0.5 ${
-                              isDragging ? "opacity-50 scale-[0.98] border-[var(--card-border)]" : ""
+                            className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 cursor-grab active:cursor-grabbing transition-all duration-300 ${
+                              isDragging ? "opacity-40 scale-[0.96] border-[var(--card-border)]" : ""
                             } ${
                               isSelected
-                                ? "border-[var(--accent)] bg-[var(--accent)]/[0.04] ring-1 ring-[var(--accent)]/30"
-                                : "border-[var(--card-border)] bg-[var(--background)]/45 hover:border-[var(--foreground)]/15"
+                                ? "border-[var(--accent)] bg-gradient-to-br from-[var(--accent)]/[0.06] to-[var(--accent)]/[0.01] ring-2 ring-[var(--accent)]/45 shadow-[0_8px_30px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
+                                : "border-[var(--card-border)] bg-[var(--card)]/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-[var(--foreground)]/20 hover:-translate-y-1"
                             }`}
                           >
-                            {task.jobColor && <span className="absolute bottom-3 left-0 top-3 w-1 rounded-r-full" style={{ backgroundColor: task.jobColor }} />}
+                            {task.jobColor && (
+                              <span 
+                                className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl transition-all duration-300 group-hover/tile:w-2" 
+                                style={{ backgroundColor: task.jobColor }} 
+                              />
+                            )}
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <div className="flex flex-wrap gap-1.5 mb-2">
-                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ${getTodoPriorityStyles(task.priority)}`}>
+                                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                                  <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-bold tracking-wider uppercase shadow-[0_1px_2px_rgba(0,0,0,0.03)] ${getTodoPriorityStyles(task.priority)}`}>
                                     {task.priority}
                                   </span>
                                   {task.invoiceId && (
-                                    <span className="px-2 py-0.5 rounded-full bg-[var(--foreground)]/[0.06] text-[10px] font-semibold text-[var(--foreground)]/60 tracking-wide uppercase">
+                                    <span className="px-2 py-0.5 rounded-md bg-[var(--foreground)]/[0.06] text-[9.5px] font-bold text-[var(--foreground)]/60 tracking-wider uppercase">
                                       {task.invoiceId}
                                     </span>
                                   )}
                                   {task.tags.slice(0, 2).map((tag) => (
-                                    <span key={tag} className="px-2 py-0.5 rounded-full bg-[var(--foreground)]/[0.04] text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">
+                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-[var(--foreground)]/[0.04] text-[9.5px] font-bold text-[var(--muted)] tracking-wider uppercase">
                                       {tag}
                                     </span>
                                   ))}
                                 </div>
-                                <h3 className="text-[14px] font-semibold text-[var(--foreground)] leading-snug">{task.title}</h3>
+                                <h3 className="text-[14.5px] font-bold text-[var(--foreground)] leading-snug tracking-tight group-hover/tile:text-[var(--accent)] transition-colors duration-200">
+                                  {task.title}
+                                </h3>
                               </div>
                               <button
-                                onClick={() => openEditModal(task)}
-                                className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditModal(task);
+                                }}
+                                className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95"
                                 aria-label={`Edit ${task.title}`}
                               >
-                                <span className="material-symbols-outlined text-[14px]">edit</span>
+                                <span className="material-symbols-outlined text-[15px]">edit</span>
                               </button>
                             </div>
 
                             {task.description && (
-                              <p className="mt-2 text-[12px] leading-relaxed text-[var(--muted)]">{task.description}</p>
+                              <p className="mt-2 text-[12px] leading-relaxed text-[var(--foreground)]/70 font-medium">
+                                {task.description}
+                              </p>
                             )}
 
-                            <div className="mt-3 pt-3 border-t border-[var(--card-border)] flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium">
-                              <span className="inline-flex items-center gap-1 text-[var(--muted)] min-w-0">
-                                <span className="material-symbols-outlined text-[14px]">business_center</span>
+                            <div className="mt-3.5 pt-3.5 border-t border-[var(--card-border)]/65 flex flex-wrap items-center gap-x-3.5 gap-y-2 text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1.5 text-[var(--muted)] min-w-0">
+                                <span className="material-symbols-outlined text-[14px] text-[var(--muted)]/75">business_center</span>
                                 <span className="truncate">{task.client || "General"}</span>
                               </span>
-                              <span className={`inline-flex items-center gap-1 ${getDueTone(task.dueDate, task.stage)}`}>
-                                <span className="material-symbols-outlined text-[14px]">event</span>
+                              <span className={`inline-flex items-center gap-1.5 ${getDueTone(task.dueDate, task.stage)}`}>
+                                <span className="material-symbols-outlined text-[14px] opacity-75">event</span>
                                 {formatDueDate(task.dueDate)}
                               </span>
                               {task.estimate && (
-                                <span className="inline-flex items-center gap-1 text-[var(--muted)]">
-                                  <span className="material-symbols-outlined text-[14px]">timer</span>
+                                <span className="inline-flex items-center gap-1.5 text-[var(--muted)]">
+                                  <span className="material-symbols-outlined text-[14px] text-[var(--muted)]/75">timer</span>
                                   {task.estimate}
                                 </span>
                               )}
                             </div>
 
                             {!task.tags.includes("Outsourced") && task.stage !== "done" && (
-                              <div className="mt-3 flex">
+                              <div className="mt-4 pt-1 flex">
                                 <button
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -897,25 +909,25 @@ export default function TodoPage() {
                                     const parsedPrice = parseFloat(task.estimate ? task.estimate.replace(/[^\d.]/g, "") : "");
                                     setOutsourcePrice(!isNaN(parsedPrice) ? parsedPrice.toString() : "");
                                   }}
-                                  className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] border-[var(--accent)]/30 hover:border-[var(--accent)]/60 text-[var(--accent)] hover:bg-[var(--accent)]/5 flex items-center gap-1 active:scale-[0.98] transition-smooth"
+                                  className="w-full btn-secondary min-h-8 rounded-xl px-3 py-1.5 text-[11px] border-[var(--accent)]/20 hover:border-[var(--accent)]/50 text-[var(--accent)] bg-[var(--accent)]/[0.01] hover:bg-[var(--accent)]/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
                                 >
-                                  <span className="material-symbols-outlined text-[13px]">handshake</span>
-                                  Outsource
+                                  <span className="material-symbols-outlined text-[14px]">handshake</span>
+                                  Outsource Task
                                 </button>
                               </div>
                             )}
 
                             {task.stage === "done" && (
-                              <div className="mt-3 flex flex-wrap gap-2">
+                              <div className="mt-4 pt-1 grid grid-cols-2 gap-2">
                                 {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
                                   <button
                                     onClick={(event) => {
                                       event.stopPropagation();
                                       setInformTask(task);
                                     }}
-                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 active:scale-[0.98] transition-smooth"
+                                    className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
                                   >
-                                    <span className="material-symbols-outlined text-[13px]">info</span>
+                                    <span className="material-symbols-outlined text-[14px]">info</span>
                                     Inform
                                   </button>
                                 )}
@@ -925,9 +937,9 @@ export default function TodoPage() {
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(event) => event.stopPropagation()}
-                                    className="btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 transition-smooth"
+                                    className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-[var(--positive)] hover:text-[var(--positive)]"
                                   >
-                                    <span className="material-symbols-outlined text-[13px]">cloud_upload</span>
+                                    <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
                                     Upload
                                   </a>
                                 )}

@@ -128,6 +128,29 @@ export default function Settings() {
   const [exportPassword, setExportPassword] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const activeTheme = resolvedTheme === "dark" ? "dark" : "light";
+  const [activeFont, setActiveFont] = useState<string>("inter");
+  const [isPalettesCollapsed, setIsPalettesCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedFont = window.localStorage.getItem("billcraft.font.v1");
+      if (storedFont) {
+        setActiveFont(storedFont);
+      }
+    }
+  }, []);
+
+  const handleFontChange = (fontId: string) => {
+    setActiveFont(fontId);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("billcraft.font.v1", fontId);
+      document.documentElement.dataset.font = fontId;
+      notify.success({
+        title: "Font style updated",
+        description: `Font style set to ${fontId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}.`,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!activeProfile) {
@@ -796,20 +819,32 @@ export default function Settings() {
             {activeTab === "appearance" && (
               <>
                 <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="relative z-10 max-w-xl">
-                    <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Theme Palettes</p>
-                    <AnimatedText
-                      as="h2"
-                      text="Choose palettes for each mode"
-                      effect="mask-reveal-up"
-                      className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
-                      replayKey="appearance-palettes"
-                    />
-                    <p className="text-[12px] text-[var(--featured-text)]/50">Light and dark mode each use the palette you assign here.</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                    <div className="max-w-xl">
+                      <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Theme Palettes</p>
+                      <AnimatedText
+                        as="h2"
+                        text="Choose palettes for each mode"
+                        effect="mask-reveal-up"
+                        className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
+                        replayKey="appearance-palettes"
+                      />
+                      <p className="text-[12px] text-[var(--featured-text)]/50">Light and dark mode each use the palette you assign here.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPalettesCollapsed(!isPalettesCollapsed)}
+                      className="btn-secondary bg-[var(--featured-text)]/10 border-[var(--featured-text)]/10 text-[var(--featured-text)] hover:bg-[var(--featured-text)]/15 hover:text-[var(--featured-text)] cursor-pointer flex items-center gap-1.5 min-h-9 px-4 rounded-xl text-[12px] font-semibold active:scale-[0.97] transition-smooth shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-[18px] transition-transform duration-300" style={{ transform: isPalettesCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>keyboard_arrow_down</span>
+                      {isPalettesCollapsed ? "Expand Palettes" : "Collapse Palettes"}
+                    </button>
                   </div>
                 </div>
 
-                <div className="surface-card p-5">
+                {!isPalettesCollapsed && (
+                  <>
+                    <div className="surface-card p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Current Mode</h3>
@@ -921,6 +956,63 @@ export default function Settings() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </>
+            )}
+
+            <div className="surface-card p-5 mt-3">
+                  <div className="mb-5">
+                    <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Typography Settings</h3>
+                    <p className="text-[11px] text-[var(--muted)] mt-0.5">Customize the typeface used across the BillCraft platform.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Typography settings">
+                    {[
+                      { id: "inter", name: "Inter", desc: "Universal, highly readable geometric sans-serif, standard for modern SaaS.", family: "'Inter', sans-serif" },
+                      { id: "open-sans", name: "Open Sans", desc: "Friendly, neutral, and warm sans-serif with excellent on-screen legibility.", family: "'Open Sans', sans-serif" },
+                      { id: "google-sans-flex", name: "Google Sans Flex", desc: "Premium, state-of-the-art variable geometric face with flawless hierarchy.", family: "'Google Sans Flex', sans-serif" },
+                      { id: "outfit", name: "Outfit", desc: "Elegant geometric design inspired by high-end brand identity systems.", family: "'Outfit', sans-serif" },
+                      { id: "plus-jakarta-sans", name: "Plus Jakarta Sans", desc: "Sleek and vibrant geometric face with a highly modern visual feel.", family: "'Plus Jakarta Sans', sans-serif" }
+                    ].map((font) => {
+                      const isSelected = activeFont === font.id;
+                      
+                      return (
+                        <button
+                          key={font.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          onClick={() => handleFontChange(font.id)}
+                          className={`rounded-xl border bg-[var(--background)]/35 p-4 text-left transition-smooth hover:border-[var(--accent)]/50 flex flex-col justify-between ${
+                            isSelected
+                              ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
+                              : "border-[var(--card-border)]"
+                          }`}
+                        >
+                          <div className="w-full flex items-start justify-between gap-3 mb-2">
+                            <div className="min-w-0">
+                              <span className="block text-[13.5px] font-semibold text-[var(--foreground)]">{font.name}</span>
+                              <span className="block text-[10.5px] text-[var(--muted)] mt-0.5 leading-normal">{font.desc}</span>
+                            </div>
+                            <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center ${
+                              isSelected
+                                ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)]"
+                                : "border-[var(--card-border)] text-transparent"
+                            }`}>
+                              <span className="material-symbols-outlined text-[15px]">check</span>
+                            </span>
+                          </div>
+                          
+                          <div 
+                            className="mt-2 w-full p-2.5 rounded-lg bg-[var(--foreground)]/[0.02] border border-[var(--card-border)] text-center text-[15px] font-semibold"
+                            style={{ fontFamily: font.family }}
+                          >
+                            Abc 123 • {font.name}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             )}
