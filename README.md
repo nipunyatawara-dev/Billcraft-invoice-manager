@@ -54,17 +54,17 @@ Review revenue flow, paid ratio, average invoice value, average client value, to
   <img src="./public/screenshots/analytics.png" width="700" alt="BillCraft analytics screenshot">
 </p>
 
-## Theme customization
+## Theme & Typography Customization
 
-Switch between light and dark modes, choose separate palettes for each mode, and keep the workspace visually aligned with the way you like to work.
+Switch between light and dark modes, choose separate palettes for each mode, and collapse the color selectors to keep settings tidy. BillCraft features an advanced **Typography Settings** engine allowing you to switch typefaces across the platform (Inter, Open Sans, Google Sans Flex, Outfit, or Plus Jakarta Sans) to customize your workspace style.
 
 <p align="center">
-  <img src="./public/screenshots/theme-customization.png" width="700" alt="BillCraft theme customization screenshot">
+  <img src="./public/screenshots/theme-customization.png" width="700" alt="BillCraft theme & typography customization screenshot">
 </p>
 
-## Kanban-style billing tasks
+## Redesigned Kanban Tasks
 
-Plan invoice work with a local to-do board. Tasks support drag-and-drop stages, priorities, due dates, client labels, estimates, and tags.
+Plan invoice work with a local to-do board. Cards have been completely redesigned for a premium look with custom interactive hover states, full-width "Outsource Task" action controls, dual-action completed flows (Inform/Upload grid), estimates, and custom tags.
 
 <p align="center">
   <img src="./public/screenshots/todo.png" width="700" alt="BillCraft to-do board screenshot">
@@ -154,19 +154,23 @@ To deliver an instantaneous, high-fidelity experience, BillCraft implements cust
 - Delete tasks
 - Set priority, due date, estimate, tags, and client/vendor context
 - Persist task order per profile
+- **Redesigned premium kanban tiles** with modern borders, transition effects, and larger typographic scales
+- **Full-width outsource button** with premium styling and micro-interaction scale feedback
+- **Crisp dual column footer action controls** (Inform/Upload) for completed tasks
 
 ### Settings, Appearance, and Data Export
 
 - Update profile details
 - Choose currency
 - Toggle light and dark modes
-- Select separate palettes for light and dark mode
 - Configure toast notification position
 - Toggle invoice reminder notification preference
 - Export profile data as JSON
 - Export profile data as CSV
 - Require profile password confirmation before export when a profile is password-protected
 - Delete the current profile or all local profiles from settings
+- **Collapse & Expand theme palettes** to keep color customization dashboard tidy
+- **Premium Font Selector engine** allowing users to choose their typeface across the platform, dynamically supporting *Inter*, *Open Sans*, *Google Sans Flex*, *Outfit*, and *Plus Jakarta Sans*
 
 ### Premium UX & Fluid Animations
 
@@ -253,8 +257,6 @@ npm run lint     # Run ESLint
 ---
 
 # Local Data Model
-
-BillCraft stores runtime data under:
 
 ```text
 User data/
