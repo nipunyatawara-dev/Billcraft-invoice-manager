@@ -29,6 +29,7 @@ export interface Invoice {
   company?: string;
   address?: string;
   deliveryLink?: string;
+  paymentLink?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -41,6 +42,29 @@ export interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  category: "Travel" | "Software" | "Office Supplies" | "Meals" | "Marketing" | "Tax/Legal" | "Other";
+  date: string;
+  merchant: string;
+  notes?: string;
+  isTaxDeductible: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CatalogItem {
+  id: string;
+  name: string;
+  description: string;
+  defaultPrice: number;
+  unit: "hour" | "flat" | "day" | "unit";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PaymentAttachment {

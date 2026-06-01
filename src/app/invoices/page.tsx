@@ -33,11 +33,11 @@ const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
 const WORKFLOW_STATUSES: InvoiceWorkflowStatus[] = ["Draft", "Sent", "Work Confirmed", "Delivered"];
 const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
 const TEMPLATES = [
-  {
-    id: "classic",
-    name: "Classic Invoice",
-    description: "A clean one-page invoice with profile, client, work, and total.",
-  },
+  { id: "classic", name: "Classic Invoice", description: "A clean one-page invoice with profile, client, work, and total." },
+  { id: "minimal", name: "Minimalist Style", description: "A simple, light layout with high whitespace, clean typography, and subtle borders." },
+  { id: "bold", name: "Bold Modern", description: "Strong high-contrast header blocks, solid borders, and striking emphasis." },
+  { id: "branded", name: "Palette Accent", description: "Dynamic branded accent colors and borders matched to your profile theme." },
+  { id: "detailed", name: "Detailed Grid", description: "A double-bordered grid structure perfect for itemized work and tax breakdowns." },
 ] as const;
 
 type ModalMode = "create" | "edit" | "view" | null;
@@ -55,6 +55,7 @@ type InvoiceForm = {
   company: string;
   address: string;
   deliveryLink: string;
+  paymentLink?: string;
   avatar: string;
   date: string;
   dueDate: string;
@@ -94,6 +95,7 @@ function createEmptyForm(): InvoiceForm {
     company: "",
     address: "",
     deliveryLink: "",
+    paymentLink: "",
     avatar: "",
     date: todayInputValue(),
     dueDate: "",
@@ -198,6 +200,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
     company: invoice.company || matchingClient?.company || "",
     address: invoice.address || matchingClient?.address || "",
     deliveryLink: invoice.deliveryLink || matchingClient?.deliveryLink || "",
+    paymentLink: invoice.paymentLink || "",
     avatar: invoice.avatar,
     date: toDateInputValue(invoice.date) || todayInputValue(),
     dueDate: toDateInputValue(invoice.dueDate),
@@ -215,7 +218,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
 
 export default function Invoices() {
   const { invoices, clientRecords, saveInvoice, exportInvoice, deleteInvoices, updateInvoicesStatus } = useInvoices();
-  const { activeProfile, todoTasks = [], saveTodoTasks } = useUserData();
+  const { activeProfile, todoTasks = [], saveTodoTasks, catalogItems = [] } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -235,6 +238,15 @@ export default function Invoices() {
 
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
   const [shareInvoice, setShareInvoice] = useState<Invoice | null>(null);
+
+  // Task-to-invoice automation state
+  const [linkedTaskId, setLinkedTaskId] = useState<string | null>(null);
+
+  // Integration simulator states
+  const [isSimulatingStripe, setIsSimulatingStripe] = useState(false);
+  const [stripeStep, setStripeStep] = useState<string>("");
+  const [webhookLogs, setWebhookLogs] = useState<string[]>([]);
+  const [emailSendingStatus, setEmailSendingStatus] = useState<"idle" | "generating" | "attaching" | "sending" | "sent">("idle");
 
   function openShareModal(invoice: Invoice) {
     setShareInvoice(invoice);
@@ -353,6 +365,162 @@ export default function Invoices() {
   const invoiceSubtotal = getInvoiceItemsTotal(form.items);
   const invoiceTotal = Math.max(0, invoiceSubtotal - (Number(form.discount) || 0));
   const modalTitle = modalMode === "create" ? "New Invoice" : modalMode === "edit" ? "Edit Invoice" : selectedInvoice?.id || "Invoice";
+
+  // Prefill invoice creation modal when task-to-invoice automation query parameter is set
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const taskId = params.get("prefillTaskId");
+      if (taskId && todoTasks.length > 0 && !modalMode) {
+        const task = todoTasks.find((t) => t.id === taskId);
+        if (task && !task.invoiceId) {
+          // Clear query parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          const parsedHours = parseEstimateToHours(task.estimate);
+          const hourlyRate = getProfileHourlyRate(activeProfile);
+          const price = hourlyRate || 50;
+          const quantity = parsedHours || 1;
+
+          const prefillForm = createEmptyForm();
+          prefillForm.clientMode = "new";
+          prefillForm.client = task.client || "";
+          prefillForm.email = task.clientEmail || "";
+          prefillForm.phone = task.clientPhone || "";
+          prefillForm.whatsapp = task.clientWhatsapp || "";
+          prefillForm.deliveryLink = task.deliveryLink || "";
+          prefillForm.items = [{
+            id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            description: task.title + (task.description ? `: ${task.description}` : ""),
+            quantity,
+            price
+          }];
+          
+          // Match existing client record if possible
+          const matchingClient = clientRecords.find(c => c.name.toLowerCase() === (task.client || "").toLowerCase());
+          if (matchingClient) {
+            prefillForm.clientMode = "saved";
+            prefillForm.clientId = matchingClient.id;
+            prefillForm.email = matchingClient.email || prefillForm.email;
+            prefillForm.phone = matchingClient.phone || prefillForm.phone;
+            prefillForm.whatsapp = matchingClient.whatsapp || prefillForm.whatsapp;
+            prefillForm.deliveryLink = matchingClient.deliveryLink || prefillForm.deliveryLink;
+          }
+
+          setForm(prefillForm);
+          setModalMode("create");
+          setLinkedTaskId(taskId);
+        }
+      }
+    }
+  }, [todoTasks, activeProfile, clientRecords, modalMode]);
+
+  // Handle sandbox logs initialization when viewing an invoice
+  useEffect(() => {
+    if (selectedInvoice) {
+      setWebhookLogs([
+        `[${new Date().toLocaleTimeString()}] [SYSTEM] Webhook listener initialized for ${selectedInvoice.id}`,
+        `[${new Date().toLocaleTimeString()}] [SYSTEM] Listening for Stripe/PayPal payment webhooks...`
+      ]);
+      setIsSimulatingStripe(false);
+      setStripeStep("");
+      setEmailSendingStatus("idle");
+    }
+  }, [selectedInvoice]);
+
+  // Stripe Checkout simulator
+  const simulateStripeCheckout = async () => {
+    if (!selectedInvoice) return;
+    setIsSimulatingStripe(true);
+    setStripeStep("Initiating Stripe Checkout...");
+    
+    const addLog = (log: string) => {
+      setWebhookLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${log}`]);
+    };
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setStripeStep("Redirecting to Stripe sandbox...");
+    addLog("[STRIPE] checkout.session.created: session_id = cs_test_" + Math.random().toString(36).slice(2, 10));
+    
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    setStripeStep("Processing secure card payment...");
+    addLog("[STRIPE] payment_intent.succeeded: intent_id = pi_test_" + Math.random().toString(36).slice(2, 10));
+    
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setStripeStep("Payment confirmed by network!");
+    addLog("[STRIPE] event: checkout.session.completed (verified signature)");
+    
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    try {
+      const paymentTotal = getInvoiceTotal(selectedInvoice);
+      const newPayment = {
+        id: `payment-${Date.now().toString(36)}`,
+        amount: paymentTotal,
+        paidAt: new Date().toISOString(),
+        method: "Stripe Simulation",
+        notes: "Automated simulation via checkout portal"
+      };
+      
+      const updatedInvoice = await saveInvoice({
+        ...selectedInvoice,
+        templateId: selectedInvoice.templateId || "classic",
+        templateName: selectedInvoice.templateName || "Classic Invoice",
+        items: selectedInvoice.items || [],
+        status: "Paid",
+        amountPaid: paymentTotal,
+        payments: [...(selectedInvoice.payments || []), newPayment],
+        paidAt: newPayment.paidAt,
+        paymentMethod: newPayment.method,
+      });
+      
+      if (updatedInvoice) {
+        setSelectedInvoice(updatedInvoice);
+        addLog(`[BILLCRAFT] Webhook handler updated ${selectedInvoice.id} status to PAID`);
+        notify.success({
+          title: "Payment simulated successfully",
+          description: "Stripe checkout completed and status updated to Paid.",
+        });
+      }
+    } catch (err) {
+      addLog(`[ERROR] Failed to save simulated status: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsSimulatingStripe(false);
+      setStripeStep("");
+    }
+  };
+
+  // Email Reminder simulator
+  const simulateEmailReminder = async () => {
+    if (!selectedInvoice) return;
+    setEmailSendingStatus("generating");
+    
+    const addLog = (log: string) => {
+      setWebhookLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${log}`]);
+    };
+    
+    addLog("[MAILER] Starting email reminder compilation...");
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    setEmailSendingStatus("attaching");
+    addLog("[MAILER] Generating invoice PDF attachment...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    setEmailSendingStatus("sending");
+    addLog(`[MAILER] Dispatching reminder mail to client ${selectedInvoice.email || "billing@example.com"}...`);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    setEmailSendingStatus("sent");
+    addLog(`[MAILER] Reminder email successfully delivered to client SMTP server.`);
+    
+    notify.success({
+      title: "Reminder email sent!",
+      description: `Payment notification email sent to ${selectedInvoice.client}.`,
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setEmailSendingStatus("idle");
+  };
 
   function openCreateModal(prefillClient?: Client) {
     const initialForm = createEmptyForm();
@@ -538,6 +706,7 @@ export default function Invoices() {
         company: form.company,
         address: form.address,
         deliveryLink: form.deliveryLink,
+        paymentLink: form.paymentLink || undefined,
         avatar: form.avatar,
         date: form.date,
         dueDate: form.dueDate,
@@ -576,17 +745,26 @@ export default function Invoices() {
         }),
       });
 
-      if (importedTaskIds.length > 0) {
+      // Link tasks to the newly created invoice!
+      const tasksToUpdate = [...importedTaskIds];
+      if (linkedTaskId) {
+        tasksToUpdate.push(linkedTaskId);
+      }
+
+      if (tasksToUpdate.length > 0 && savedInvoice) {
         const nextTasks = todoTasks.map(task => {
-          if (importedTaskIds.includes(task.id)) {
+          if (tasksToUpdate.includes(task.id)) {
             const tags = task.tags || [];
-            if (!tags.includes("Billed")) {
-              return {
-                ...task,
-                tags: [...tags, "Billed"],
-                updatedAt: new Date().toISOString(),
-              };
+            const nextTags = [...tags];
+            if (!nextTags.includes("Billed")) {
+              nextTags.push("Billed");
             }
+            return {
+              ...task,
+              invoiceId: savedInvoice.id,
+              tags: nextTags,
+              updatedAt: new Date().toISOString(),
+            };
           }
           return task;
         });
@@ -598,6 +776,7 @@ export default function Invoices() {
       setNeedsClientSaveChoice(false);
       setForm(createEmptyForm());
       setImportedTaskIds([]);
+      setLinkedTaskId(null);
       if (!isEditing && savedInvoice.items && savedInvoice.items.length > 0) {
         setPendingTaskInvoice(savedInvoice);
       }
@@ -1221,6 +1400,49 @@ export default function Invoices() {
                   />
                 </div>
 
+                <div className="surface-card p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Payment Gateway Link</p>
+                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Embed a Stripe or PayPal payment link in the invoice PDF.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const mockId = Math.random().toString(36).slice(2, 10);
+                          const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
+                          setForm({ ...form, paymentLink: `https://checkout.stripe.com/c/pay/${mockId}#amount=${total}` });
+                        }}
+                        className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">bolt</span>
+                        Mock Stripe Link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const email = form.email || "merchant@example.com";
+                          const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
+                          setForm({ ...form, paymentLink: `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(email)}&amount=${total}&item_name=Invoice` });
+                        }}
+                        className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">payments</span>
+                        Mock PayPal Link
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    id="invoice-payment-link"
+                    type="url"
+                    value={form.paymentLink || ""}
+                    onChange={(event) => setForm({ ...form, paymentLink: event.target.value })}
+                    placeholder="https://checkout.stripe.com/pay/..."
+                    className="field-control px-3 py-2"
+                  />
+                </div>
+
                 {importableTasks.length > 0 && (
                   <div className="surface-card overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01]">
@@ -1363,7 +1585,35 @@ export default function Invoices() {
                     {form.items.map((item, index) => (
                       <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_90px_130px_40px] gap-3 p-4">
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-description-${item.id}`}>Work Done</label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-description-${item.id}`}>Work Done</label>
+                            {catalogItems.length > 0 && (
+                              <select
+                                className="text-[10px] bg-transparent border-0 text-[var(--accent)] font-semibold cursor-pointer outline-none max-w-[170px] truncate"
+                                onChange={(e) => {
+                                  const selectedId = e.target.value;
+                                  if (selectedId) {
+                                    const catItem = catalogItems.find(c => c.id === selectedId);
+                                    if (catItem) {
+                                      updateItem(index, {
+                                        description: catItem.description || catItem.name,
+                                        price: catItem.defaultPrice
+                                      });
+                                    }
+                                    e.target.value = "";
+                                  }
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="" disabled className="text-[var(--foreground)] bg-[var(--background)]">⚡ Catalog Fill</option>
+                                {catalogItems.map(cat => (
+                                  <option key={cat.id} value={cat.id} className="text-[var(--foreground)] bg-[var(--background)]">
+                                    {cat.name} ({formatCurrency(cat.defaultPrice, form.currency || currency)})
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
                           <input id={`item-description-${item.id}`} required value={item.description} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="Logo design, consultation, repair work..." className="field-control px-3 py-2" />
                         </div>
                         <div className="space-y-1.5">
@@ -1565,6 +1815,164 @@ export default function Invoices() {
                 </div>
 
                 <PaymentSummary currency={currency} record={selectedInvoice} />
+
+                {/* Glassmorphic Simulated Integrations & Webhooks Panel */}
+                <div className="surface-card p-5 border border-dashed border-[var(--accent)]/[0.25] bg-[var(--accent)]/[0.01] rounded-2xl relative overflow-hidden backdrop-blur-md">
+                  <div className="absolute top-0 right-0 p-3 flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[9px] font-semibold tracking-wider text-emerald-500 uppercase">Live Sandbox Simulator</span>
+                  </div>
+
+                  <h4 className="text-[13px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-1.5 mb-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">sync_alt</span>
+                    Integration Simulations
+                  </h4>
+                  <p className="text-[11px] text-[var(--muted)] mb-4">
+                    Trigger sandbox simulations to test custom client flows, Stripe checkouts, email reminder automations, and live webhook events.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Simulator Action Controls */}
+                    <div className="space-y-3">
+                      {/* Stripe simulation */}
+                      <div className="surface-card p-3.5 bg-[var(--foreground)]/[0.01] border border-[var(--card-border)] rounded-xl flex flex-col justify-between min-h-[110px]">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="material-symbols-outlined text-[16px] text-[#635bff]">payments</span>
+                            <h5 className="text-[12px] font-semibold text-[var(--foreground)]">Stripe Payment Gateway</h5>
+                          </div>
+                          <p className="text-[11px] text-[var(--muted)]">
+                            {selectedInvoice.status === "Paid" 
+                              ? "This invoice is already fully paid." 
+                              : selectedInvoice.paymentLink
+                                ? `Configured with link: ${selectedInvoice.paymentLink.slice(0, 30)}...`
+                                : "Simulate payment checkout matching invoice balance."}
+                          </p>
+                        </div>
+                        
+                        <div className="mt-3">
+                          {selectedInvoice.status !== "Paid" ? (
+                            <button
+                              type="button"
+                              onClick={simulateStripeCheckout}
+                              disabled={isSimulatingStripe}
+                              className="btn-primary w-full text-[11px] min-h-8 py-1.5 bg-[#635bff] hover:bg-[#544ec9] border-0 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(99,91,255,0.2)]"
+                            >
+                              {isSimulatingStripe ? (
+                                <>
+                                  <span className="animate-spin size-3.5 border-2 border-white/30 border-t-white rounded-full"></span>
+                                  {stripeStep}
+                                </>
+                              ) : (
+                                <>
+                                  <span className="material-symbols-outlined text-[14px]">bolt</span>
+                                  Pay via Stripe Simulation
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            <div className="text-[11px] font-semibold text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-lg flex items-center justify-center gap-1.5 border border-emerald-500/25">
+                              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                              Paid via Stripe Simulator
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Email simulation */}
+                      <div className="surface-card p-3.5 bg-[var(--foreground)]/[0.01] border border-[var(--card-border)] rounded-xl flex flex-col justify-between min-h-[110px]">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="material-symbols-outlined text-[16px] text-sky-500">mail</span>
+                            <h5 className="text-[12px] font-semibold text-[var(--foreground)]">Client Reminder dispatch</h5>
+                          </div>
+                          <p className="text-[11px] text-[var(--muted)]">
+                            Compile PDF attachment and dispatch automated remind notification to {selectedInvoice.email || "client email"}.
+                          </p>
+                        </div>
+                        
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={simulateEmailReminder}
+                            disabled={emailSendingStatus !== "idle"}
+                            className="btn-secondary w-full text-[11px] min-h-8 py-1.5 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          >
+                            {emailSendingStatus === "idle" && (
+                              <>
+                                <span className="material-symbols-outlined text-[14px]">send</span>
+                                Send Payment Reminder
+                              </>
+                            )}
+                            {emailSendingStatus === "generating" && (
+                              <>
+                                <span className="animate-spin size-3.5 border-2 border-current/30 border-t-current rounded-full"></span>
+                                Compiling Email template...
+                              </>
+                            )}
+                            {emailSendingStatus === "attaching" && (
+                              <>
+                                <span className="animate-spin size-3.5 border-2 border-current/30 border-t-current rounded-full"></span>
+                                Generating PDF copy...
+                              </>
+                            )}
+                            {emailSendingStatus === "sending" && (
+                              <>
+                                <span className="animate-spin size-3.5 border-2 border-current/30 border-t-current rounded-full"></span>
+                                Connecting to client mail...
+                              </>
+                            )}
+                            {emailSendingStatus === "sent" && (
+                              <>
+                                <span className="material-symbols-outlined text-[14px] text-emerald-500">check</span>
+                                Delivered Successfully!
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Webhook logs terminal console */}
+                    <div className="flex flex-col h-full min-h-[235px] surface-card bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden font-mono text-[10px] text-zinc-300">
+                      <div className="bg-zinc-900 px-3 py-2 border-b border-zinc-800 flex items-center justify-between">
+                        <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="size-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                          Webhook Event Logs (Terminal)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setWebhookLogs([])}
+                          className="text-zinc-500 hover:text-zinc-300 transition-colors text-[9px]"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="p-3 flex-1 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent max-h-[190px]">
+                        {webhookLogs.length === 0 ? (
+                          <div className="text-zinc-600 italic">No webhook events logged yet. Trigger Stripe checkout or send email to log events...</div>
+                        ) : (
+                          webhookLogs.map((log, index) => {
+                            let colorClass = "text-zinc-300";
+                            if (log.includes("[STRIPE]")) colorClass = "text-[#8a85ff]";
+                            else if (log.includes("[BILLCRAFT]")) colorClass = "text-emerald-400 font-semibold";
+                            else if (log.includes("[SYSTEM]")) colorClass = "text-amber-400/80";
+                            else if (log.includes("[MAILER]")) colorClass = "text-sky-400";
+                            else if (log.includes("[ERROR]")) colorClass = "text-rose-400 font-bold";
+                            return (
+                              <div key={index} className={`leading-relaxed whitespace-pre-wrap ${colorClass}`}>
+                                {log}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="surface-card p-4">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

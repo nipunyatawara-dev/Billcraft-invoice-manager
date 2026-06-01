@@ -19,6 +19,10 @@ import {
   updateInvoicesStatus,
   restoreInvoices,
   emptyTrash,
+  saveExpense,
+  deleteExpense,
+  saveCatalogItem,
+  deleteCatalogItem,
   type SaveInvoicePayload,
   type SaveOutsourcingInvoicePayload,
 } from "@/lib/user-data-store";
@@ -39,6 +43,10 @@ type UserDataAction =
   | { action: "saveVendor"; profileId: string; originalVendorId: string | null; vendor: Parameters<typeof saveVendor>[2] }
   | ({ action: "saveOutsourcingInvoice" } & SaveOutsourcingInvoicePayload)
   | { action: "saveTodoTasks"; profileId: string; tasks: Parameters<typeof saveTodoTasks>[1] }
+  | { action: "saveExpense"; profileId: string; expense: Parameters<typeof saveExpense>[1] }
+  | { action: "deleteExpense"; profileId: string; expenseId: string }
+  | { action: "saveCatalogItem"; profileId: string; item: Parameters<typeof saveCatalogItem>[1] }
+  | { action: "deleteCatalogItem"; profileId: string; itemId: string }
   | { action: "deleteProfile"; profileId: string }
   | { action: "deleteAllProfiles" }
   | { action: "deleteInvoices"; profileId: string; invoiceIds: string[] }
@@ -124,6 +132,26 @@ export async function POST(request: NextRequest) {
 
     if (body.action === "saveTodoTasks") {
       await saveTodoTasks(body.profileId, body.tasks);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "saveExpense") {
+      await saveExpense(body.profileId, body.expense);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "deleteExpense") {
+      await deleteExpense(body.profileId, body.expenseId);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "saveCatalogItem") {
+      await saveCatalogItem(body.profileId, body.item);
+      activeProfileId = body.profileId;
+    }
+
+    if (body.action === "deleteCatalogItem") {
+      await deleteCatalogItem(body.profileId, body.itemId);
       activeProfileId = body.profileId;
     }
 

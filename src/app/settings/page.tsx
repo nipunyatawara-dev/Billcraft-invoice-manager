@@ -129,7 +129,8 @@ export default function Settings() {
   const [isExporting, setIsExporting] = useState(false);
   const activeTheme = resolvedTheme === "dark" ? "dark" : "light";
   const [activeFont, setActiveFont] = useState<string>("inter");
-  const [isPalettesCollapsed, setIsPalettesCollapsed] = useState(false);
+  const [isLightPaletteCollapsed, setIsLightPaletteCollapsed] = useState(false);
+  const [isDarkPaletteCollapsed, setIsDarkPaletteCollapsed] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -139,6 +140,16 @@ export default function Settings() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (activeTheme === "light") {
+      setIsLightPaletteCollapsed(false);
+      setIsDarkPaletteCollapsed(true);
+    } else {
+      setIsLightPaletteCollapsed(true);
+      setIsDarkPaletteCollapsed(false);
+    }
+  }, [activeTheme]);
 
   const handleFontChange = (fontId: string) => {
     setActiveFont(fontId);
@@ -193,6 +204,8 @@ export default function Settings() {
     description: string;
     selectedPalette: ColorPaletteId;
     setPalette: (palette: ColorPaletteId) => void;
+    isCollapsed: boolean;
+    toggleCollapse: () => void;
   }[] = [
     {
       mode: "light",
@@ -200,6 +213,8 @@ export default function Settings() {
       description: "Used whenever the site is in light mode.",
       selectedPalette: lightPalette,
       setPalette: setLightPalette,
+      isCollapsed: isLightPaletteCollapsed,
+      toggleCollapse: () => setIsLightPaletteCollapsed(!isLightPaletteCollapsed),
     },
     {
       mode: "dark",
@@ -207,6 +222,8 @@ export default function Settings() {
       description: "Used whenever the site is in dark mode.",
       selectedPalette: darkPalette,
       setPalette: setDarkPalette,
+      isCollapsed: isDarkPaletteCollapsed,
+      toggleCollapse: () => setIsDarkPaletteCollapsed(!isDarkPaletteCollapsed),
     },
   ];
 
@@ -818,200 +835,335 @@ export default function Settings() {
             {/* Appearance Tab */}
             {activeTab === "appearance" && (
               <>
-                <div className="surface-featured p-6 sm:p-7 relative overflow-hidden">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-                    <div className="max-w-xl">
-                      <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Theme Palettes</p>
-                      <AnimatedText
-                        as="h2"
-                        text="Choose palettes for each mode"
-                        effect="mask-reveal-up"
-                        className="text-2xl font-semibold text-[var(--featured-text)] font-display mb-1"
-                        replayKey="appearance-palettes"
-                      />
-                      <p className="text-[12px] text-[var(--featured-text)]/50">Light and dark mode each use the palette you assign here.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsPalettesCollapsed(!isPalettesCollapsed)}
-                      className="btn-secondary bg-[var(--featured-text)]/10 border-[var(--featured-text)]/10 text-[var(--featured-text)] hover:bg-[var(--featured-text)]/15 hover:text-[var(--featured-text)] cursor-pointer flex items-center gap-1.5 min-h-9 px-4 rounded-xl text-[12px] font-semibold active:scale-[0.97] transition-smooth shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-[18px] transition-transform duration-300" style={{ transform: isPalettesCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>keyboard_arrow_down</span>
-                      {isPalettesCollapsed ? "Expand Palettes" : "Collapse Palettes"}
-                    </button>
-                  </div>
-                </div>
-
-                {!isPalettesCollapsed && (
-                  <>
-                    <div className="surface-card p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Current Mode</h3>
-                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Switch modes to preview the saved light or dark palette.</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1" role="radiogroup" aria-label="Theme mode">
-                      {[
-                        { id: "light" as const, label: "Light", icon: "light_mode" },
-                        { id: "dark" as const, label: "Dark", icon: "dark_mode" },
-                      ].map((themeMode) => {
-                        const isSelected = activeTheme === themeMode.id;
-
-                        return (
-                          <button
-                            key={themeMode.id}
-                            type="button"
-                            role="radio"
-                            aria-checked={isSelected}
-                            onClick={() => selectThemeMode(themeMode.id)}
-                            className={`flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
-                              isSelected
-                                ? "bg-[var(--action)] text-[var(--action-text)]"
-                                : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]"
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-[16px]">{themeMode.icon}</span>
-                            {themeMode.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {modePaletteSettings.map((setting) => (
-                    <div key={setting.mode} className="surface-card p-5">
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-[14px] font-semibold text-[var(--foreground)]">{setting.title}</h3>
-                          <p className="text-[11px] text-[var(--muted)] mt-0.5">{setting.description}</p>
+                <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                  {/* Left & Center Settings Panel (takes 3 cols on xl) */}
+                  <div className="xl:col-span-3 space-y-6">
+                    {/* Header Banner */}
+                    <div className="surface-featured p-4 sm:p-4.5 relative overflow-hidden">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                        <div className="max-w-xl">
+                          <p className="text-[10px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-1.5">Theme & Customization</p>
+                          <AnimatedText
+                            as="h2"
+                            text="Personalize your workspace"
+                            effect="mask-reveal-up"
+                            className="text-xl font-semibold text-[var(--featured-text)] font-display mb-0.5"
+                            replayKey="appearance-palettes"
+                          />
+                          <p className="text-[11px] text-[var(--featured-text)]/50">Assign custom color palettes, switch between light and dark visual modes, and pick your typography.</p>
                         </div>
-                        <span className="rounded-full border border-[var(--card-border)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-                          {setting.mode}
-                        </span>
+                      </div>
+                    </div>
+
+                    {/* Mode Cards Card */}
+                    <div className="surface-card p-4 space-y-3">
+                      <div>
+                        <h3 className="text-[13px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[15px] text-[var(--accent)]">visibility</span>
+                          Theme Mode
+                        </h3>
+                        <p className="text-[10.5px] text-[var(--muted)] mt-0.5">Switch between dynamic Light or Dark mode.</p>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" role="radiogroup" aria-label={setting.title}>
-                        {COLOR_PALETTES.filter((palette) => {
-                          if (setting.mode === "light") {
-                            return palette.id !== "palette-7";
-                          } else {
-                            return palette.id !== "palette-6";
-                          }
-                        }).map((palette) => {
-                          const isSelected = setting.selectedPalette === palette.id;
-
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { id: "light" as const, label: "Light Mode", desc: "Clean and airy", icon: "light_mode" },
+                          { id: "dark" as const, label: "Dark Mode", desc: "Sleek and dim", icon: "dark_mode" },
+                        ].map((mode) => {
+                          const isSelected = activeTheme === mode.id;
                           return (
                             <button
-                              key={`${setting.mode}-${palette.id}`}
+                              key={mode.id}
                               type="button"
-                              role="radio"
-                              aria-checked={isSelected}
-                              onClick={() => selectPalette(setting.mode, palette.id, palette.name)}
-                              className={`rounded-xl border bg-[var(--background)]/35 p-3 text-left transition-smooth hover:border-[var(--accent)]/50 ${
+                              onClick={() => selectThemeMode(mode.id)}
+                              className={`relative overflow-hidden p-3.5 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col justify-between h-[90px] active:scale-[0.98] ${
                                 isSelected
-                                  ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
-                                  : "border-[var(--card-border)]"
+                                  ? "border-[var(--accent)] shadow-[0_4px_24px_rgba(var(--accent-rgb),0.15)] ring-2 ring-[var(--accent)]/10"
+                                  : "border-[var(--card-border)] hover:border-[var(--accent)]/50"
                               }`}
                             >
-                              <div className="mb-3 flex items-center justify-between gap-2">
-                                <span>
-                                  <span className="block text-[12px] font-semibold text-[var(--foreground)]">{palette.name}</span>
-                                  <span className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">{palette.label}</span>
+                              <div className="flex items-center justify-between w-full">
+                                <span className={`size-7 rounded-xl flex items-center justify-center ${isSelected ? "bg-[var(--action)] text-[var(--action-text)]" : "bg-[var(--foreground)]/[0.04]"}`}>
+                                  <span className="material-symbols-outlined text-[14px]">{mode.icon}</span>
                                 </span>
-                                <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center ${
-                                  isSelected
-                                    ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)]"
-                                    : "border-[var(--card-border)] text-transparent"
-                                }`}>
-                                  <span className="material-symbols-outlined text-[15px]">check</span>
-                                </span>
+                                {isSelected && (
+                                  <span className="bg-[var(--action)] text-[var(--action-text)] text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Active</span>
+                                )}
                               </div>
-
-                              <div
-                                className="grid gap-1.5"
-                                style={{ gridTemplateColumns: `repeat(${palette.colors.length}, minmax(0, 1fr))` }}
-                                aria-hidden="true"
-                              >
-                                {palette.colors.map((color) => (
-                                  <span
-                                    key={color}
-                                    className="h-10 rounded-xl border border-[var(--foreground)]/10"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                ))}
-                              </div>
-
-                              <div className="mt-3 flex flex-wrap gap-x-2 gap-y-1">
-                                {palette.colors.map((color) => (
-                                  <span key={color} className="text-[9px] font-semibold text-[var(--muted)]">
-                                    {color.replace("#", "")}
-                                  </span>
-                                ))}
+                              
+                              <div>
+                                <span className="block text-[12.5px] font-bold text-[var(--foreground)] leading-tight">{mode.label}</span>
+                                <span className="block text-[9.5px] text-[var(--muted)] mt-0">{mode.desc}</span>
                               </div>
                             </button>
                           );
                         })}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </>
-            )}
 
-            <div className="surface-card p-5 mt-3">
-                  <div className="mb-5">
-                    <h3 className="text-[14px] font-semibold text-[var(--foreground)]">Typography Settings</h3>
-                    <p className="text-[11px] text-[var(--muted)] mt-0.5">Customize the typeface used across the BillCraft platform.</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Typography settings">
-                    {[
-                      { id: "inter", name: "Inter", desc: "Universal, highly readable geometric sans-serif, standard for modern SaaS.", family: "'Inter', sans-serif" },
-                      { id: "open-sans", name: "Open Sans", desc: "Friendly, neutral, and warm sans-serif with excellent on-screen legibility.", family: "'Open Sans', sans-serif" },
-                      { id: "google-sans-flex", name: "Google Sans Flex", desc: "Premium, state-of-the-art variable geometric face with flawless hierarchy.", family: "'Google Sans Flex', sans-serif" },
-                      { id: "outfit", name: "Outfit", desc: "Elegant geometric design inspired by high-end brand identity systems.", family: "'Outfit', sans-serif" },
-                      { id: "plus-jakarta-sans", name: "Plus Jakarta Sans", desc: "Sleek and vibrant geometric face with a highly modern visual feel.", family: "'Plus Jakarta Sans', sans-serif" }
-                    ].map((font) => {
-                      const isSelected = activeFont === font.id;
-                      
-                      return (
-                        <button
-                          key={font.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelected}
-                          onClick={() => handleFontChange(font.id)}
-                          className={`rounded-xl border bg-[var(--background)]/35 p-4 text-left transition-smooth hover:border-[var(--accent)]/50 flex flex-col justify-between ${
-                            isSelected
-                              ? "border-[var(--accent)] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_16%,transparent)]"
-                              : "border-[var(--card-border)]"
-                          }`}
-                        >
-                          <div className="w-full flex items-start justify-between gap-3 mb-2">
-                            <div className="min-w-0">
-                              <span className="block text-[13.5px] font-semibold text-[var(--foreground)]">{font.name}</span>
-                              <span className="block text-[10.5px] text-[var(--muted)] mt-0.5 leading-normal">{font.desc}</span>
-                            </div>
-                            <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center ${
-                              isSelected
-                                ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)]"
-                                : "border-[var(--card-border)] text-transparent"
-                            }`}>
-                              <span className="material-symbols-outlined text-[15px]">check</span>
-                            </span>
-                          </div>
-                          
-                          <div 
-                            className="mt-2 w-full p-2.5 rounded-lg bg-[var(--foreground)]/[0.02] border border-[var(--card-border)] text-center text-[15px] font-semibold"
-                            style={{ fontFamily: font.family }}
+                    {/* Palette Switchers */}
+                    <div className="space-y-4">
+                      {modePaletteSettings.map((setting) => (
+                        <div key={setting.mode} className="surface-card p-5 space-y-4 transition-all duration-300">
+                          <button
+                            type="button"
+                            onClick={setting.toggleCollapse}
+                            className="flex items-start justify-between gap-3 w-full text-left focus:outline-none hover:opacity-95 transition-opacity"
                           >
-                            Abc 123 • {font.name}
+                            <div className="pr-4">
+                              <h3 className="text-[14px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-1.5 select-none">
+                                <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">palette</span>
+                                {setting.title}
+                              </h3>
+                              <p className="text-[11px] text-[var(--muted)] mt-0.5 leading-normal">{setting.description}</p>
+                            </div>
+                            <div className="flex items-center gap-2.5 shrink-0">
+                              <span className="rounded-full border border-[var(--card-border)] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[var(--muted)] bg-[var(--foreground)]/[0.02]">
+                                {setting.mode}
+                              </span>
+                              <span className="material-symbols-outlined text-[18px] text-[var(--muted)] transition-transform duration-300" style={{ transform: setting.isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}>
+                                keyboard_arrow_down
+                              </span>
+                            </div>
+                          </button>
+
+                          <div 
+                            className={`grid transition-all duration-300 ease-in-out ${
+                              setting.isCollapsed 
+                                ? "grid-rows-[0fr] opacity-0 mt-0 pointer-events-none" 
+                                : "grid-rows-[1fr] opacity-100 mt-4"
+                            }`}
+                          >
+                            <div className="overflow-hidden">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1 pb-1">
+                                {COLOR_PALETTES.filter((palette) => {
+                                  if (setting.mode === "light") {
+                                    return palette.id !== "palette-7";
+                                  } else {
+                                    return palette.id !== "palette-6";
+                                  }
+                                }).map((palette) => {
+                                  const isSelected = setting.selectedPalette === palette.id;
+
+                                  return (
+                                    <button
+                                      key={`${setting.mode}-${palette.id}`}
+                                      type="button"
+                                      onClick={() => selectPalette(setting.mode, palette.id, palette.name)}
+                                      className={`group relative overflow-hidden rounded-2xl border bg-[var(--background)]/35 p-4 text-left transition-all duration-300 flex flex-col justify-between h-[155px] active:scale-[0.98] ${
+                                        isSelected
+                                          ? "border-[var(--accent)] shadow-[0_8px_30px_rgba(var(--accent-rgb),0.06)] ring-2 ring-[var(--accent)]/10"
+                                          : "border-[var(--card-border)] hover:border-[var(--accent)]/40"
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between w-full mb-3">
+                                        <div>
+                                          <span className="block text-[12.5px] font-bold text-[var(--foreground)] leading-tight">{palette.name}</span>
+                                          <span className="block text-[9.5px] font-bold uppercase tracking-wider text-[var(--muted)] mt-0.5">{palette.label}</span>
+                                        </div>
+                                        <span className={`size-5 rounded-full border flex shrink-0 items-center justify-center transition-all ${
+                                          isSelected
+                                            ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)] scale-110"
+                                            : "border-[var(--card-border)] text-transparent"
+                                        }`}>
+                                          <span className="material-symbols-outlined text-[12px]">check</span>
+                                        </span>
+                                      </div>
+
+                                      <div className="flex gap-1.5 w-full overflow-hidden mb-2.5">
+                                        {palette.colors.map((color, colorIdx) => (
+                                          <span
+                                            key={colorIdx}
+                                            className="h-7 flex-1 rounded-lg border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:scale-[1.03]"
+                                            style={{ 
+                                              backgroundColor: color,
+                                              boxShadow: isSelected ? `0 2px 8px ${color}22` : "none"
+                                            }}
+                                          />
+                                        ))}
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[8.5px] font-mono text-[var(--muted)] leading-none">
+                                        {palette.colors.map((color, idx) => (
+                                          <span key={idx} className="transition-colors group-hover:text-[var(--foreground)]">
+                                            {color.replace("#", "")}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           </div>
-                        </button>
-                      );
-                    })}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Typography Box */}
+                    <div className="surface-card p-5 space-y-4">
+                      <div>
+                        <h3 className="text-[14px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">font_download</span>
+                          Typography settings
+                        </h3>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Customize the default platform font-family.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          { id: "inter", name: "Inter", desc: "Universal, modern sans-serif, standard for SaaS", family: "'Inter', sans-serif", previewText: "Abc 123 • Pure & Universal" },
+                          { id: "open-sans", name: "Open Sans", desc: "Friendly and highly readable screen interface", family: "'Open Sans', sans-serif", previewText: "Abc 123 • Warm & Legible" },
+                          { id: "google-sans-flex", name: "Google Sans Flex", desc: "Premium variable geometric with flawless hierarchy", family: "'Google Sans Flex', sans-serif", previewText: "Abc 123 • Sleek & Variable" },
+                          { id: "outfit", name: "Outfit", desc: "Elegant geometric inspired by premium branding", family: "'Outfit', sans-serif", previewText: "Abc 123 • Elegant & Brand" },
+                          { id: "plus-jakarta-sans", name: "Plus Jakarta Sans", desc: "Sleek and vibrant modern geometric visual feel", family: "'Plus Jakarta Sans', sans-serif", previewText: "Abc 123 • Vibrant & Modern" }
+                        ].map((font) => {
+                          const isSelected = activeFont === font.id;
+                          
+                          return (
+                            <button
+                              key={font.id}
+                              type="button"
+                              onClick={() => handleFontChange(font.id)}
+                              className={`rounded-2xl border bg-[var(--background)]/35 p-4 text-left transition-all duration-300 flex flex-col justify-between h-auto pb-4 gap-4 hover:border-[var(--accent)]/50 active:scale-[0.98] ${
+                                isSelected
+                                  ? "border-[var(--accent)] shadow-[0_8px_30px_rgba(var(--accent-rgb),0.06)] ring-2 ring-[var(--accent)]/10"
+                                  : "border-[var(--card-border)]"
+                              }`}
+                            >
+                              <div className="w-full flex items-start justify-between gap-3 mb-2">
+                                <div className="min-w-0">
+                                  <span className="block text-[13px] font-bold text-[var(--foreground)]">{font.name}</span>
+                                  <span className="block text-[10px] text-[var(--muted)] mt-0.5 leading-snug">{font.desc}</span>
+                                </div>
+                                <span className={`size-5 rounded-full border flex shrink-0 items-center justify-center transition-all ${
+                                  isSelected
+                                    ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)] scale-110"
+                                    : "border-[var(--card-border)] text-transparent"
+                                }`}>
+                                  <span className="material-symbols-outlined text-[12px]">check</span>
+                                </span>
+                              </div>
+                              
+                              <div 
+                                className="mt-2 w-full py-3 px-4 rounded-xl bg-[var(--foreground)]/[0.02] border border-[var(--card-border)] text-center text-[13px] font-bold tracking-wide"
+                                style={{ fontFamily: font.family }}
+                              >
+                                {font.previewText}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Live Interactive UI Preview Playground */}
+                  <div className="xl:col-span-2">
+                    <div className="surface-card p-5 border border-[var(--card-border)] rounded-2xl relative overflow-hidden backdrop-blur-md space-y-4 xl:sticky xl:top-24">
+
+
+                      <div className="border-b border-[var(--card-border)] pb-3 flex justify-center text-center">
+                        <h4 className="text-[12.5px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center justify-center gap-1.5 w-full">
+                          <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">desktop_windows</span>
+                          UI Playground
+                        </h4>
+                      </div>
+
+                      {/* Simulated Web Application Screen */}
+                      <div 
+                        className="surface-card bg-[var(--background)] border border-[var(--card-border)] rounded-2xl shadow-xl transition-all duration-300 relative overflow-hidden"
+                        style={{ 
+                          fontFamily: activeFont === 'inter' 
+                            ? 'Inter, sans-serif' 
+                            : activeFont === 'outfit' 
+                              ? 'Outfit, sans-serif' 
+                              : activeFont === 'plus-jakarta-sans' 
+                                ? 'Plus Jakarta Sans, sans-serif' 
+                                : activeFont === 'open-sans' 
+                                  ? 'Open Sans, sans-serif' 
+                                  : 'Google Sans Flex, sans-serif',
+                          minHeight: "300px"
+                        }}
+                      >
+
+                        {/* Desktop App Mockup Layout */}
+                        <div className="flex flex-col h-[260px] text-[11px] overflow-hidden bg-[var(--background)]">
+                          {/* Desktop Top Header Bar */}
+                          <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01] shrink-0">
+                            <div className="flex items-center gap-3">
+                              <span className="size-6 rounded-lg bg-[var(--action)]/10 text-[var(--action)] flex items-center justify-center font-bold text-[11px]">B</span>
+                              <div className="flex items-center gap-2 text-[10px] font-semibold text-[var(--muted)]">
+                                <span className="text-[var(--action)]">Invoices</span>
+                                <span className="opacity-40">•</span>
+                                <span className="hover:text-[var(--foreground)] transition-colors">Clients</span>
+                              </div>
+                            </div>
+                            <span className="material-symbols-outlined text-[14px] text-[var(--muted)] opacity-60">account_circle</span>
+                          </div>
+
+                          {/* Desktop Main Content */}
+                          <div className="flex-1 p-3.5 space-y-3.5 overflow-y-auto">
+                            {/* Header row */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div>
+                                <h5 className="text-[12px] font-bold text-[var(--foreground)] tracking-tight leading-tight">Invoices</h5>
+                                <span className="text-[8.5px] text-[var(--muted)] tracking-wide font-semibold block uppercase">Active Profile</span>
+                              </div>
+                              <button type="button" className="btn-primary min-h-[22px] px-2 rounded-md py-0.5 text-[8.5px] font-bold shadow-md cursor-default pointer-events-none flex items-center gap-1 shrink-0">
+                                <span className="material-symbols-outlined text-[11px]">add</span>
+                                Create
+                              </button>
+                            </div>
+
+                            {/* Stats Row */}
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.01] space-y-0.5">
+                                <span className="text-[7.5px] font-bold text-[var(--muted)] uppercase tracking-wider block leading-none">Billed</span>
+                                <div className="text-[12px] font-black text-[var(--foreground)] leading-none">$14.2k</div>
+                              </div>
+                              <div className="p-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.01] space-y-0.5">
+                                <span className="text-[7.5px] font-bold text-[var(--muted)] uppercase tracking-wider block leading-none">Pending</span>
+                                <div className="text-[12px] font-black text-[var(--foreground)] leading-none">$3.2k</div>
+                              </div>
+                            </div>
+
+                            {/* Mini Invoices List */}
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between text-[7.5px] font-bold text-[var(--muted)] uppercase tracking-wider border-b border-[var(--card-border)] pb-1">
+                                <span>Client</span>
+                                <span className="text-right">Amount</span>
+                                <span className="text-right">Status</span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="font-semibold text-[var(--foreground)] truncate max-w-[80px]">Acme Corp</span>
+                                <span className="font-semibold text-[var(--foreground)]">$1.5k</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[var(--positive-soft)] text-[7px] font-bold text-[var(--positive)] tracking-wider uppercase border border-[var(--positive)]/10 leading-none">
+                                  Paid
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="font-semibold text-[var(--foreground)] truncate max-w-[80px]">Stark Labs</span>
+                                <span className="font-semibold text-[var(--foreground)]">$2.8k</span>
+                                <span className="px-1.5 py-0.5 rounded bg-[var(--action)]/12 text-[7px] font-bold text-[var(--action)] tracking-wider uppercase border border-[var(--action)]/10 leading-none">
+                                  Sent
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Info */}
+                      <div className="bg-[var(--foreground)]/[0.02] border border-[var(--card-border)] rounded-xl p-3 flex gap-2.5 items-start text-[10px] text-[var(--muted)]">
+                        <span className="material-symbols-outlined text-[16px] text-[var(--accent)] shrink-0">info</span>
+                        <p className="leading-normal">
+                          This canvas updates dynamically in real-time. Customize theme color styles or typography fonts to preview.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>

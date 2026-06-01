@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import {
   createAvatar,
   formatCurrency,
@@ -17,14 +17,16 @@ import {
   type PaymentRecord,
   type UserProfile,
   type Vendor,
+  type Expense,
+  type CatalogItem,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
 import { exportInvoicePdf, exportOutsourcingInvoicePdf } from "@/lib/pdf-export";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-
+ 
 const ACTIVE_PROFILE_KEY = "billcraft.active-profile.v1";
-
+ 
 type LocalDataSnapshot = {
   profiles: UserProfile[];
   activeProfileId: string | null;
@@ -34,10 +36,12 @@ type LocalDataSnapshot = {
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
   todoTasks: TodoTask[];
+  expenses: Expense[];
+  catalogItems: CatalogItem[];
   trash: any[];
   userDataPath: string;
 };
-
+ 
 export type ProfileDraft = {
   name: string;
   profession: string;
@@ -50,7 +54,7 @@ export type ProfileDraft = {
   password?: string;
   passwordHint?: string;
 };
-
+ 
 export type ClientDraft = {
   id?: string;
   name: string;
@@ -63,7 +67,7 @@ export type ClientDraft = {
   avatar?: string;
   notes?: string;
 };
-
+ 
 export type VendorDraft = {
   id?: string;
   name: string;
@@ -74,7 +78,7 @@ export type VendorDraft = {
   avatar?: string;
   notes?: string;
 };
-
+ 
 export type InvoiceDraft = {
   id?: string;
   clientId?: string;
@@ -102,8 +106,9 @@ export type InvoiceDraft = {
   saveClientMode?: "regular" | "onetime";
   currency?: string;
   discount?: number;
+  paymentLink?: string;
 };
-
+ 
 export type OutsourcingInvoiceDraft = {
   id?: string;
   vendorId?: string;
@@ -127,17 +132,17 @@ export type OutsourcingInvoiceDraft = {
   payments?: PaymentRecord[];
   saveVendorMode?: "regular" | "onetime";
 };
-
+ 
 export type ProfilePasswordDraft = {
   currentPassword?: string;
   password: string;
 };
-
+ 
 export type ProfilePasswordHintDraft = {
   currentPassword?: string;
   passwordHint?: string;
 };
-
+ 
 type UserDataContextValue = LocalDataSnapshot & {
   loading: boolean;
   error: string | null;
@@ -163,11 +168,15 @@ type UserDataContextValue = LocalDataSnapshot & {
   saveAnalyticsPreferences: (preferences: AnalyticsPreferences) => Promise<AnalyticsPreferences | null>;
   markProfileBackedUp: () => Promise<UserProfile | null>;
   saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
+  saveExpense: (expense: Expense) => Promise<Expense | null>;
+  deleteExpense: (expenseId: string) => Promise<void>;
+  saveCatalogItem: (item: CatalogItem) => Promise<CatalogItem | null>;
+  deleteCatalogItem: (itemId: string) => Promise<void>;
   exportInvoice: (invoice: Invoice) => Promise<void>;
   exportOutsourcingInvoice: (invoice: OutsourcingInvoice) => Promise<void>;
   refresh: () => Promise<void>;
 };
-
+ 
 const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   profiles: [],
   activeProfileId: null,
@@ -177,50 +186,52 @@ const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   vendors: [],
   outsourcingInvoices: [],
   todoTasks: [],
+  expenses: [],
+  catalogItems: [],
   trash: [],
   userDataPath: "",
 };
-
+ 
 const UserDataContext = createContext<UserDataContextValue | null>(null);
-
+ 
 function readActiveProfileId() {
   if (typeof window === "undefined") {
     return null;
   }
-
+ 
   return window.localStorage.getItem(ACTIVE_PROFILE_KEY);
 }
-
+ 
 function writeActiveProfileId(profileId: string | null) {
   if (typeof window === "undefined") {
     return;
   }
-
+ 
   if (profileId) {
     window.localStorage.setItem(ACTIVE_PROFILE_KEY, profileId);
   } else {
     window.localStorage.removeItem(ACTIVE_PROFILE_KEY);
   }
 }
-
+ 
 function getNextInvoiceId(invoices: Invoice[]) {
   const highestNumber = invoices.reduce((highest, invoice) => {
     const parsed = Number(invoice.id.replace(/\D/g, ""));
     return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
   }, 0);
-
+ 
   return `#INV-${String(highestNumber + 1).padStart(4, "0")}`;
 }
-
+ 
 function getNextOutsourcingInvoiceId(invoices: OutsourcingInvoice[]) {
   const highestNumber = invoices.reduce((highest, invoice) => {
     const parsed = Number(invoice.id.replace(/\D/g, ""));
     return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
   }, 0);
-
+ 
   return `#OUT-${String(highestNumber + 1).padStart(4, "0")}`;
 }
-
+ 
 function normalizeLineItems(items: InvoiceItem[]) {
   return items
     .map((item, index) => ({
@@ -231,7 +242,7 @@ function normalizeLineItems(items: InvoiceItem[]) {
     }))
     .filter((item) => item.description || item.quantity > 0 || item.price > 0);
 }
-
+ 
 function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
   return {
     ...snapshot,
@@ -255,6 +266,8 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
       items: invoice.items || [],
     })),
     todoTasks: snapshot.todoTasks || [],
+    expenses: snapshot.expenses || [],
+    catalogItems: snapshot.catalogItems || [],
     trash: snapshot.trash || [],
   };
 }
@@ -793,6 +806,86 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [postAction, snapshot.activeProfileId]);
 
+  const saveExpense = useCallback(async (expense: Expense) => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    setError(null);
+    try {
+      const nextSnapshot = await postAction({
+        action: "saveExpense",
+        profileId: snapshot.activeProfileId,
+        expense,
+      });
+
+      return nextSnapshot.expenses.find((e) => e.id === expense.id) || expense;
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to save expense.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const deleteExpense = useCallback(async (expenseId: string) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "deleteExpense",
+        profileId: snapshot.activeProfileId,
+        expenseId,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to delete expense.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const saveCatalogItem = useCallback(async (item: CatalogItem) => {
+    if (!snapshot.activeProfileId) {
+      return null;
+    }
+
+    setError(null);
+    try {
+      const nextSnapshot = await postAction({
+        action: "saveCatalogItem",
+        profileId: snapshot.activeProfileId,
+        item,
+      });
+
+      return nextSnapshot.catalogItems.find((c) => c.id === item.id) || item;
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to save catalog item.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
+  const deleteCatalogItem = useCallback(async (itemId: string) => {
+    if (!snapshot.activeProfileId) {
+      return;
+    }
+
+    setError(null);
+    try {
+      await postAction({
+        action: "deleteCatalogItem",
+        profileId: snapshot.activeProfileId,
+        itemId,
+      });
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : "Unable to delete catalog item.";
+      setError(message);
+      throw saveError;
+    }
+  }, [postAction, snapshot.activeProfileId]);
+
   const value = useMemo<UserDataContextValue>(() => ({
     ...snapshot,
     loading,
@@ -819,6 +912,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveAnalyticsPreferences,
     markProfileBackedUp,
     saveTodoTasks,
+    saveExpense,
+    deleteExpense,
+    saveCatalogItem,
+    deleteCatalogItem,
     exportInvoice,
     exportOutsourcingInvoice,
     refresh,
@@ -839,6 +936,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveAnalyticsPreferences,
     saveTodoTasks,
     saveVendor,
+    saveExpense,
+    deleteExpense,
+    saveCatalogItem,
+    deleteCatalogItem,
     snapshot,
     switchProfile,
     deleteProfile,

@@ -19,6 +19,8 @@ import {
   type OutsourcingInvoice,
   type UserProfile,
   type Vendor,
+  type Expense,
+  type CatalogItem,
 } from "@/data/invoices";
 import { createDefaultTodoTasks, TODO_PRIORITIES, TODO_STAGES, type TodoTask } from "@/data/todos";
 
@@ -86,6 +88,8 @@ export type LocalDataSnapshot = {
   vendors: Vendor[];
   outsourcingInvoices: OutsourcingInvoice[];
   todoTasks: TodoTask[];
+  expenses: Expense[];
+  catalogItems: CatalogItem[];
   trash: any[];
   userDataPath: string;
 };
@@ -134,7 +138,7 @@ function getProfileDir(profileId: string) {
   return path.join(USER_DATA_DIR, profileId);
 }
 
-function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json" | "trash.json") {
+function getProfileDataPath(profileId: string, fileName: "clients.json" | "invoices.json" | "profile.json" | "vendors.json" | "outsourcing-invoices.json" | "todo-tasks.json" | "trash.json" | "expenses.json" | "catalog.json") {
   return path.join(getProfileDir(profileId), fileName);
 }
 
@@ -576,6 +580,76 @@ function resolveActiveProfile(profiles: UserProfile[], requestedProfileId?: stri
   return profiles[0]?.id || null;
 }
 
+async function readExpenses(profileId: string): Promise<Expense[]> {
+  return readJson<Expense[]>(getProfileDataPath(profileId, "expenses.json"), []);
+}
+
+async function writeExpenses(profileId: string, expenses: Expense[]) {
+  await writeJson(getProfileDataPath(profileId, "expenses.json"), expenses);
+}
+
+async function readCatalog(profileId: string): Promise<CatalogItem[]> {
+  return readJson<CatalogItem[]>(getProfileDataPath(profileId, "catalog.json"), []);
+}
+
+async function writeCatalog(profileId: string, catalog: CatalogItem[]) {
+  await writeJson(getProfileDataPath(profileId, "catalog.json"), catalog);
+}
+
+export async function saveExpense(profileId: string, expense: Expense) {
+  await ensureProfileDir(profileId);
+  const expenses = await readExpenses(profileId);
+  const existingIndex = expenses.findIndex((e) => e.id === expense.id);
+  const now = new Date().toISOString();
+  
+  const updatedExpense: Expense = {
+    ...expense,
+    createdAt: existingIndex >= 0 ? expenses[existingIndex].createdAt : now,
+    updatedAt: now,
+  };
+
+  const nextExpenses = existingIndex >= 0
+    ? expenses.map((e) => e.id === expense.id ? updatedExpense : e)
+    : [updatedExpense, ...expenses];
+
+  await writeExpenses(profileId, nextExpenses);
+  return updatedExpense;
+}
+
+export async function deleteExpense(profileId: string, expenseId: string) {
+  await ensureProfileDir(profileId);
+  const expenses = await readExpenses(profileId);
+  const nextExpenses = expenses.filter((e) => e.id !== expenseId);
+  await writeExpenses(profileId, nextExpenses);
+}
+
+export async function saveCatalogItem(profileId: string, item: CatalogItem) {
+  await ensureProfileDir(profileId);
+  const catalog = await readCatalog(profileId);
+  const existingIndex = catalog.findIndex((c) => c.id === item.id);
+  const now = new Date().toISOString();
+
+  const updatedItem: CatalogItem = {
+    ...item,
+    createdAt: existingIndex >= 0 ? catalog[existingIndex].createdAt : now,
+    updatedAt: now,
+  };
+
+  const nextCatalog = existingIndex >= 0
+    ? catalog.map((c) => c.id === item.id ? updatedItem : c)
+    : [updatedItem, ...catalog];
+
+  await writeCatalog(profileId, nextCatalog);
+  return updatedItem;
+}
+
+export async function deleteCatalogItem(profileId: string, itemId: string) {
+  await ensureProfileDir(profileId);
+  const catalog = await readCatalog(profileId);
+  const nextCatalog = catalog.filter((c) => c.id !== itemId);
+  await writeCatalog(profileId, nextCatalog);
+}
+
 export async function loadLocalDataSnapshot(requestedProfileId?: string | null): Promise<LocalDataSnapshot> {
   const { profiles: storedProfiles } = await readProfileIndex();
   const profiles = await withProfilesSecurityMetadata(storedProfiles);
@@ -592,6 +666,8 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
       vendors: [],
       outsourcingInvoices: [],
       todoTasks: [],
+      expenses: [],
+      catalogItems: [],
       trash: [],
       userDataPath: USER_DATA_DIR,
     };
@@ -608,6 +684,8 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
     vendors: await readVendors(activeProfileId),
     outsourcingInvoices: await readOutsourcingInvoices(activeProfileId),
     todoTasks: await readTodoTasks(activeProfileId),
+    expenses: await readExpenses(activeProfileId),
+    catalogItems: await readCatalog(activeProfileId),
     trash: await readTrash(activeProfileId),
     userDataPath: USER_DATA_DIR,
   };
@@ -640,6 +718,8 @@ export async function createProfile(draft: ProfileDraft) {
   await writeVendors(profileId, []);
   await writeOutsourcingInvoices(profileId, []);
   await writeTodoTasks(profileId, createDefaultTodoTasks());
+  await writeExpenses(profileId, []);
+  await writeCatalog(profileId, []);
 
   return profile;
 }

@@ -19,6 +19,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "dashboard" },
   { href: "/invoices", label: "Invoices", icon: "receipt_long" },
+  { href: "/expenses", label: "Expenses", icon: "payments" },
   { href: "/clients", label: "Clients", icon: "group" },
   { href: "/analytics", label: "Analytics", icon: "bar_chart" },
 ];
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
 const WORK_NAV_ITEMS = [
   { href: "/outsourcing", label: "Outsourcing", icon: "engineering" },
   { href: "/todo", label: "To-Do", icon: "view_kanban" },
+  { href: "/catalog", label: "Catalog", icon: "inventory_2" },
 ];
 
 const BOTTOM_NAV = [

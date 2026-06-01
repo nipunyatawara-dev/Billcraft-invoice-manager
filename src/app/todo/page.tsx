@@ -900,8 +900,10 @@ export default function TodoPage() {
                               )}
                             </div>
 
-                            {!task.tags.includes("Outsourced") && task.stage !== "done" && (
-                              <div className="mt-4 pt-1 flex">
+                            {/* Card Actions Footer */}
+                            <div className="mt-4 pt-1 flex flex-col gap-2">
+                              {/* Non-done tasks optional Outsource action */}
+                              {!task.tags.includes("Outsourced") && task.stage !== "done" && (
                                 <button
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -914,37 +916,57 @@ export default function TodoPage() {
                                   <span className="material-symbols-outlined text-[14px]">handshake</span>
                                   Outsource Task
                                 </button>
-                              </div>
-                            )}
+                              )}
 
-                            {task.stage === "done" && (
-                              <div className="mt-4 pt-1 grid grid-cols-2 gap-2">
-                                {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
-                                  <button
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setInformTask(task);
-                                    }}
-                                    className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
-                                  >
-                                    <span className="material-symbols-outlined text-[14px]">info</span>
-                                    Inform
-                                  </button>
-                                )}
-                                {task.deliveryLink && (
-                                  <a
-                                    href={task.deliveryLink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                    className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-[var(--positive)] hover:text-[var(--positive)]"
-                                  >
-                                    <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
-                                    Upload
-                                  </a>
-                                )}
-                              </div>
-                            )}
+                              {/* Done tasks actions (Inform / Upload) */}
+                              {task.stage === "done" && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
+                                    <button
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        setInformTask(task);
+                                      }}
+                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">info</span>
+                                      Inform
+                                    </button>
+                                  )}
+                                  {task.deliveryLink && (
+                                    <a
+                                      href={task.deliveryLink}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(event) => event.stopPropagation()}
+                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-[var(--positive)] hover:text-[var(--positive)]"
+                                    >
+                                      <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
+                                      Upload
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Dynamic "Create Invoice" option for ANY task stage if not yet billed */}
+                              {!task.invoiceId ? (
+                                <button
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    window.location.href = `/invoices?prefillTaskId=${task.id}`;
+                                  }}
+                                  className="w-full btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] border-[var(--primary)]/20 hover:border-[var(--primary)]/50 text-[var(--primary)] bg-[var(--primary)]/[0.01] hover:bg-[var(--primary)]/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">receipt_long</span>
+                                  Create Invoice
+                                </button>
+                              ) : (
+                                <div className="text-[10.5px] font-semibold text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-xl flex items-center justify-center gap-1.5 border border-emerald-500/25">
+                                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                  Billed ({task.invoiceId})
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );

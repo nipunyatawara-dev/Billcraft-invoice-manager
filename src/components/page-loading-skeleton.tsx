@@ -22,7 +22,7 @@ export function getLoadingSkeletonVariant(pathname: string): SkeletonVariant {
     return "settings";
   }
 
-  if (pathname === "/invoices" || pathname === "/clients" || pathname === "/outsourcing") {
+  if (pathname === "/invoices" || pathname === "/clients" || pathname === "/outsourcing" || pathname === "/expenses" || pathname === "/catalog") {
     return "records";
   }
 
