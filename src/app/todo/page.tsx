@@ -181,6 +181,9 @@ export default function TodoPage() {
   // Task client selector mode
   const [clientMode, setClientMode] = useState<"select" | "custom">("select");
 
+  // Hovered invoice ID for interactive card highlighting
+  const [hoveredInvoiceId, setHoveredInvoiceId] = useState<string | null>(null);
+
   useEffect(() => {
     setTasks(normalizeStageOrder(todoTasks));
   }, [todoTasks]);
@@ -808,6 +811,9 @@ export default function TodoPage() {
                       const whatsappUrl = task.clientWhatsapp ? getWhatsAppUrl(task.clientWhatsapp, doneMessage) : "";
                       const hasDoneActions = task.stage === "done" && Boolean(task.clientEmail || whatsappUrl || task.deliveryLink);
 
+                      const isGroupHovered = hoveredInvoiceId !== null && task.invoiceId === hoveredInvoiceId;
+                      const isDimmed = hoveredInvoiceId !== null && task.invoiceId !== hoveredInvoiceId;
+
                       return (
                         <div key={task.id} className="relative group/tile">
                           {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-1 rounded-full bg-[var(--accent)] animate-pulse" />}
@@ -830,20 +836,32 @@ export default function TodoPage() {
                                 toggleSelectTask(task.id);
                               }
                             }}
+                            onMouseEnter={() => {
+                              if (task.invoiceId) {
+                                setHoveredInvoiceId(task.invoiceId);
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              if (task.invoiceId) {
+                                setHoveredInvoiceId(null);
+                              }
+                            }}
+                            style={{
+                              borderColor: isGroupHovered && task.jobColor ? task.jobColor : undefined,
+                              boxShadow: isGroupHovered && task.jobColor ? `0 8px 30px ${task.jobColor}25` : undefined,
+                            }}
                             className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 cursor-grab active:cursor-grabbing transition-all duration-300 ${
                               isDragging ? "opacity-40 scale-[0.96] border-[var(--card-border)]" : ""
                             } ${
+                              isDimmed ? "opacity-35 scale-[0.98] blur-[0.2px] border-[var(--card-border)]" : ""
+                            } ${
                               isSelected
                                 ? "border-[var(--accent)] bg-gradient-to-br from-[var(--accent)]/[0.06] to-[var(--accent)]/[0.01] ring-2 ring-[var(--accent)]/45 shadow-[0_8px_30px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
-                                : "border-[var(--card-border)] bg-[var(--card)]/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-[var(--foreground)]/20 hover:-translate-y-1"
+                                : !isDimmed
+                                  ? "border-[var(--card-border)] bg-[var(--card)]/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-[var(--foreground)]/20 hover:-translate-y-1"
+                                  : "bg-[var(--card)]/65 backdrop-blur-[6px]"
                             }`}
                           >
-                            {task.jobColor && (
-                              <span 
-                                className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl transition-all duration-300 group-hover/tile:w-2" 
-                                style={{ backgroundColor: task.jobColor }} 
-                              />
-                            )}
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap gap-1.5 mb-2.5">
@@ -851,7 +869,17 @@ export default function TodoPage() {
                                     {task.priority}
                                   </span>
                                   {task.invoiceId && (
-                                    <span className="px-2 py-0.5 rounded-md bg-[var(--foreground)]/[0.06] text-[9.5px] font-bold text-[var(--foreground)]/60 tracking-wider uppercase">
+                                    <span 
+                                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold tracking-wider uppercase border transition-all duration-200"
+                                      style={{
+                                        backgroundColor: task.jobColor ? `${task.jobColor}15` : "var(--foreground)/[0.06]",
+                                        borderColor: task.jobColor ? `${task.jobColor}35` : "transparent",
+                                        color: task.jobColor || "var(--foreground)/60"
+                                      }}
+                                    >
+                                      {task.jobColor && (
+                                        <span className="size-1.5 rounded-full shrink-0 animate-pulse" style={{ backgroundColor: task.jobColor }} />
+                                      )}
                                       {task.invoiceId}
                                     </span>
                                   )}
