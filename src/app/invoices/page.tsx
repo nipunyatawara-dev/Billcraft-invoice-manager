@@ -1207,507 +1207,617 @@ export default function Invoices() {
             </div>
           )}
         </div>
-
         <div className="flex items-center justify-between mt-6 pt-5 border-t border-[var(--card-border)]">
           <p className="text-[11px] text-[var(--muted)] font-medium">Showing <AnimatedNumber value={filteredInvoices.length} /> of <AnimatedNumber value={invoices.length} /> invoices</p>
         </div>
       </main>
-
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <AnimatedText
-                as="h2"
-                text={modalTitle}
-                effect="fade-through"
-                className="text-xl font-semibold text-[var(--foreground)] font-display"
-                replayKey={modalTitle}
-              />
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
-              </button>
-            </div>
-
-            {isFormMode ? (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {TEMPLATES.map((template) => {
-                    const isSelected = form.templateId === template.id;
-
-                    return (
-                      <button
-                        key={template.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={isSelected}
-                        onClick={() => setForm({ ...form, templateId: template.id })}
-                        className={`surface-card p-4 text-left transition-smooth ${
-                          isSelected ? "border-[var(--accent)]/55 shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_13%,transparent)]" : "hover:border-[var(--foreground)]/15"
-                        }`}
-                      >
-                        <span className="flex items-center justify-between gap-3">
-                          <span>
-                            <span className="block text-[13px] font-semibold text-[var(--foreground)]">{template.name}</span>
-                            <span className="block mt-1 text-[11px] text-[var(--muted)]">{template.description}</span>
-                          </span>
-                          <span className={`size-7 rounded-xl flex items-center justify-center ${isSelected ? "bg-[var(--action)] text-[var(--action-text)]" : "border border-[var(--card-border)] text-transparent"}`}>
-                            <span className="material-symbols-outlined text-[16px]">check</span>
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="surface-card p-4 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          {isFormMode ? (
+            <div role="dialog" aria-modal="true" className="modal-surface relative max-w-6xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+              <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+                {/* Visual Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
                     <div>
-                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Client</p>
-                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Select a saved client or enter a one-time client for this invoice.</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.04] p-1">
-                      <button
-                        type="button"
-                        onClick={() => setClientMode("saved")}
-                        disabled={clientRecords.length === 0}
-                        className={`min-h-8 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
-                          form.clientMode === "saved"
-                            ? "bg-[var(--action)] text-[var(--action-text)]"
-                            : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
-                        }`}
-                      >
-                        Saved
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setClientMode("new")}
-                        className={`min-h-8 rounded-full px-3 text-[12px] font-semibold transition-smooth ${
-                          form.clientMode === "new"
-                            ? "bg-[var(--action)] text-[var(--action-text)]"
-                            : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04]"
-                        }`}
-                      >
-                        New
-                      </button>
+                      <AnimatedText
+                        as="h2"
+                        text={modalTitle}
+                        effect="fade-through"
+                        className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                        replayKey={modalTitle}
+                      />
+                      <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mt-1.5">
+                        {modalMode === "edit" ? `Edit Session · ${selectedInvoice?.id}` : "Draft Workspace"}
+                      </p>
                     </div>
                   </div>
-
-                  {form.clientMode === "saved" && clientRecords.length > 0 ? (
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="saved-client">Saved Client</label>
-                      <select id="saved-client" required value={form.clientId} onChange={(event) => handleClientSelect(event.target.value)} className="field-control px-3 py-2">
-                        {clientRecords.map((client) => (
-                          <option key={client.id} value={client.id}>{client.name}</option>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider hidden sm:inline">Template:</span>
+                      <select
+                        value={form.templateId}
+                        onChange={(e) => setForm({ ...form, templateId: e.target.value })}
+                        className="text-[12px] font-semibold bg-[var(--foreground)]/[0.04] border border-[var(--card-border)] rounded-full px-3 py-1 text-[var(--foreground)] outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                      >
+                        {TEMPLATES.map((t) => (
+                          <option key={t.id} value={t.id} className="text-[var(--foreground)] bg-[var(--background)]">{t.name}</option>
                         ))}
                       </select>
-                      <div className="mt-3 flex items-start gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-3">
-                        {form.avatar ? (
-                          <img className="size-10 rounded-xl object-cover border border-[var(--card-border)]" alt={form.client} src={form.avatar} />
-                        ) : (
-                          <span className="size-10 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">person</span>
-                          </span>
-                        )}
-                        <div className="min-w-0 text-[12px] text-[var(--muted)]">
-                          <p className="font-semibold text-[var(--foreground)] truncate">{form.client}</p>
-                          <p className="truncate">{form.email || "No email saved"}</p>
-                          <p className="truncate">{form.phone || "No phone saved"}</p>
-                          <p className="truncate">{form.whatsapp || "No WhatsApp saved"}</p>
-                          {form.deliveryLink && <p className="mt-1 truncate text-[var(--accent)]">{form.deliveryLink}</p>}
-                          {form.address && <p className="mt-1 whitespace-pre-line">{form.address}</p>}
-                        </div>
-                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="size-12 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
-                          {form.avatar ? (
-                            <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
-                          ) : (
-                            <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
-                          )}
-                        </div>
-                        <label className="btn-secondary text-[12px] min-h-8 px-3 py-1.5 cursor-pointer">
-                          <span>{form.avatar ? "Change Image" : "Add Image"}</span>
-                          <input className="sr-only" type="file" accept="image/*" onChange={handleClientImageChange} />
-                        </label>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-client">Client Name</label>
-                          <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="field-control px-3 py-2" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-company">Company</label>
-                          <input id="invoice-company" value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="Company name" className="field-control px-3 py-2" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-email">Email</label>
-                          <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="field-control px-3 py-2" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-phone">Phone</label>
-                          <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-whatsapp">WhatsApp</label>
-                          <input id="invoice-whatsapp" value={form.whatsapp} onChange={(event) => setForm({ ...form, whatsapp: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-2" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-delivery-link-new">Finished Work Folder</label>
-                          <input id="invoice-delivery-link-new" type="url" value={form.deliveryLink} onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })} placeholder="https://drive.google.com/..." className="field-control px-3 py-2" />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-address">Address</label>
-                        <textarea id="invoice-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Billing address" className="field-control min-h-20 px-3 py-2 resize-none" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="surface-card p-4 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Delivery Location</p>
-                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Pick where the finished product should be uploaded after the work is done.</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={useClientDeliveryLocation} disabled={!clientRecords.find((client) => client.id === form.clientId)?.deliveryLink} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] disabled:opacity-50">
-                        <span className="material-symbols-outlined text-[14px]">folder_shared</span>
-                        Client location
-                      </button>
-                      <button type="button" onClick={useProfileDeliveryLocation} disabled={!activeProfile?.defaultDeliveryLink} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] disabled:opacity-50">
-                        <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
-                        My Drive location
-                      </button>
-                    </div>
-                  </div>
-                  <input
-                    id="invoice-delivery-link"
-                    type="url"
-                    value={form.deliveryLink}
-                    onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
-                    placeholder="https://drive.google.com/..."
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-
-                <div className="surface-card p-4 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Payment Gateway Link</p>
-                      <p className="text-[11px] text-[var(--muted)] mt-0.5">Embed a Stripe or PayPal payment link in the invoice PDF.</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const mockId = Math.random().toString(36).slice(2, 10);
-                          const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
-                          setForm({ ...form, paymentLink: `https://checkout.stripe.com/c/pay/${mockId}#amount=${total}` });
-                        }}
-                        className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">bolt</span>
-                        Mock Stripe Link
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const email = form.email || "merchant@example.com";
-                          const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
-                          setForm({ ...form, paymentLink: `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(email)}&amount=${total}&item_name=Invoice` });
-                        }}
-                        className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">payments</span>
-                        Mock PayPal Link
-                      </button>
-                    </div>
-                  </div>
-                  <input
-                    id="invoice-payment-link"
-                    type="url"
-                    value={form.paymentLink || ""}
-                    onChange={(event) => setForm({ ...form, paymentLink: event.target.value })}
-                    placeholder="https://checkout.stripe.com/pay/..."
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-
-                {importableTasks.length > 0 && (
-                  <div className="surface-card overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01]">
-                      <div>
-                        <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Unbilled Done Tasks</p>
-                        <p className="text-[11px] text-[var(--muted)] mt-0.5">Found completed tasks for {form.client}. Import them to line items.</p>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => importAllTasks(importableTasks)} 
-                        disabled={importableTasks.every(t => importedTaskIds.includes(t.id))}
-                        className="btn-secondary text-[11px] min-h-8 px-3 py-1.5 disabled:opacity-50"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">done_all</span>
-                        Import All
-                      </button>
-                    </div>
-                    <div className="divide-y divide-[var(--card-border)] max-h-48 overflow-y-auto">
-                      {importableTasks.map((task) => {
-                        const isImported = importedTaskIds.includes(task.id);
-                        const parsedHours = parseEstimateToHours(task.estimate);
-                        return (
-                          <div key={task.id} className="flex items-center justify-between gap-4 p-3 hover:bg-[var(--foreground)]/[0.01] transition-smooth">
-                            <div className="min-w-0">
-                              <p className="text-[12.5px] font-semibold text-[var(--foreground)] truncate">{task.title}</p>
-                              <p className="text-[11px] text-[var(--muted)] truncate">
-                                {task.estimate ? `Estimate: ${task.estimate}` : "No estimate"} · {parsedHours > 0 ? `${parsedHours} hours` : "1.00 hours"} billable
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => importTask(task)}
-                              disabled={isImported}
-                              className={`btn-secondary min-h-7 px-2.5 py-1 text-[10.5px] flex items-center gap-1 ${isImported ? "bg-[var(--positive)]/10 text-[var(--positive)] border-[var(--positive)]/20" : ""}`}
-                            >
-                              <span className="material-symbols-outlined text-[13px]">
-                                {isImported ? "check_circle" : "add"}
-                              </span>
-                              {isImported ? "Imported" : "Import"}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-date">Date</label>
-                    <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-2" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-due-date">Due Date</label>
-                    <input id="invoice-due-date" type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} className="field-control px-3 py-2" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-status">Status</label>
-                    <select
-                      id="invoice-status"
-                      value={form.status}
-                      onChange={(event) => {
-                        const status = event.target.value as InvoiceStatus;
-                        setForm((currentForm) => ({
-                          ...currentForm,
-                          status,
-                          payments: modalMode === "edit" && status === "Paid" && currentForm.payments.length === 0
-                            ? [createPaymentRecord(invoiceTotal)]
-                            : currentForm.payments,
-                        }));
-                      }}
-                      className="field-control px-3 py-2"
-                    >
-                      {STATUSES.map((status) => <option key={status}>{status}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-workflow-status">Work Status</label>
-                    <select
-                      id="invoice-workflow-status"
-                      value={form.workflowStatus}
-                      onChange={(event) => setForm({ ...form, workflowStatus: event.target.value as InvoiceWorkflowStatus })}
-                      className="field-control px-3 py-2"
-                    >
-                      {WORKFLOW_STATUSES.map((status) => <option key={status}>{status}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="invoice-currency">Currency</label>
-                    <select
-                      id="invoice-currency"
-                      value={form.currency || ""}
-                      onChange={(event) => {
-                        const newCurrency = event.target.value;
-                        const oldCurrency = form.currency || currency;
-                        
-                        setForm((currentForm) => {
-                          const currencyMode = window.localStorage.getItem("billcraft.currency-mode.v1") || "visual";
-                          let nextItems = currentForm.items;
-                          let nextDiscount = currentForm.discount || 0;
-                          
-                          if (currencyMode === "convert" && newCurrency && oldCurrency) {
-                            const rate = (CURRENCY_RATES[newCurrency] || 1.0) / (CURRENCY_RATES[oldCurrency] || 1.0);
-                            nextItems = currentForm.items.map((item) => ({
-                              ...item,
-                              price: Math.round(item.price * rate * 100) / 100,
-                            }));
-                            nextDiscount = Math.round(nextDiscount * rate * 100) / 100;
-                          }
-                          
-                          return {
-                            ...currentForm,
-                            currency: newCurrency,
-                            items: nextItems,
-                            discount: nextDiscount,
-                          };
-                        });
-                      }}
-                      className="field-control px-3 py-2"
-                    >
-                      <option value="">Global ({currency})</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                      <option value="LKR">LKR (Rs)</option>
-                      <option value="INR">INR (₹)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="surface-card overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)]">
-                    <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Work Items</p>
-                    <button type="button" onClick={() => setForm({ ...form, items: [...form.items, createItem()] })} className="btn-secondary text-[11px] min-h-8 px-3 py-1.5">
-                      <span className="material-symbols-outlined text-[14px]">add</span>
-                      Add Item
+                    <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+                      <span className="material-symbols-outlined text-[20px]">close</span>
                     </button>
                   </div>
-                  <div className="divide-y divide-[var(--card-border)]">
-                    {form.items.map((item, index) => (
-                      <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_90px_130px_40px] gap-3 p-4">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-description-${item.id}`}>Work Done</label>
-                            {catalogItems.length > 0 && (
-                              <select
-                                className="text-[10px] bg-transparent border-0 text-[var(--accent)] font-semibold cursor-pointer outline-none max-w-[170px] truncate"
-                                onChange={(e) => {
-                                  const selectedId = e.target.value;
-                                  if (selectedId) {
-                                    const catItem = catalogItems.find(c => c.id === selectedId);
-                                    if (catItem) {
-                                      updateItem(index, {
-                                        description: catItem.description || catItem.name,
-                                        price: catItem.defaultPrice
-                                      });
-                                    }
-                                    e.target.value = "";
-                                  }
-                                }}
-                                defaultValue=""
-                              >
-                                <option value="" disabled className="text-[var(--foreground)] bg-[var(--background)]">⚡ Catalog Fill</option>
-                                {catalogItems.map(cat => (
-                                  <option key={cat.id} value={cat.id} className="text-[var(--foreground)] bg-[var(--background)]">
-                                    {cat.name} ({formatCurrency(cat.defaultPrice, form.currency || currency)})
-                                  </option>
-                                ))}
-                              </select>
-                            )}
-                          </div>
-                          <input id={`item-description-${item.id}`} required value={item.description} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="Logo design, consultation, repair work..." className="field-control px-3 py-2" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-quantity-${item.id}`}>Qty</label>
-                          <input id={`item-quantity-${item.id}`} type="number" min="0" step="1" value={item.quantity} onChange={(event) => {
-                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                            updateItem(index, { quantity: Number(cleanVal) });
-                          }} className="field-control px-3 py-2" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor={`item-price-${item.id}`}>Price</label>
-                          <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => {
-                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                            updateItem(index, { price: Number(cleanVal) });
-                          }} className="field-control px-3 py-2" />
-                        </div>
-                        <div className="flex md:items-end">
-                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" aria-label="Remove item">
-                            <span className="material-symbols-outlined text-[17px]">delete</span>
+                </div>
+
+                {/* Workspace Split Body */}
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+                  {/* Left Column - Core Configs & Client Info (42% width) */}
+                  <div className="w-full md:w-[42%] border-r border-[var(--card-border)] bg-[var(--background)]/30 flex flex-col overflow-y-auto p-5 space-y-5">
+                    
+                    {/* Client Details Card */}
+                    <div className="surface-card p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[15px]">person</span>
+                          Client Information
+                        </h3>
+                        
+                        {/* Segment Selector */}
+                        <div className="flex gap-0.5 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setClientMode("saved")}
+                            disabled={clientRecords.length === 0}
+                            className={`rounded-full px-3 py-1 text-[11px] font-bold transition-smooth ${
+                              form.clientMode === "saved"
+                                ? "bg-[var(--action)] text-[var(--action-text)] shadow-xs"
+                                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                            }`}
+                          >
+                            Saved
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setClientMode("new")}
+                            className={`rounded-full px-3 py-1 text-[11px] font-bold transition-smooth ${
+                              form.clientMode === "new"
+                                ? "bg-[var(--action)] text-[var(--action-text)] shadow-xs"
+                                : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                            }`}
+                          >
+                            New
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="space-y-2 border-t border-[var(--card-border)] px-4 py-3 bg-[var(--foreground)]/[0.01]">
-                    <div className="flex items-center justify-between text-[13px] font-medium text-[var(--muted)]">
-                      <span>Subtotal</span>
-                      <span>{formatCurrency(invoiceSubtotal, form.currency || currency)}</span>
+
+                      {form.clientMode === "saved" && clientRecords.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <select
+                              id="saved-client"
+                              required
+                              value={form.clientId}
+                              onChange={(event) => handleClientSelect(event.target.value)}
+                              className="field-control px-3 py-2 text-[13px] appearance-none"
+                            >
+                              {clientRecords.map((client) => (
+                                <option key={client.id} value={client.id} className="text-[var(--foreground)] bg-[var(--background)]">{client.name}</option>
+                              ))}
+                            </select>
+                            <span className="material-symbols-outlined absolute right-3 top-2.5 text-[var(--muted)] pointer-events-none text-[16px]">expand_more</span>
+                          </div>
+                          
+                          {/* Client Detail Summary Card */}
+                          <div className="flex items-start gap-3 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.02] p-3 shadow-xs">
+                            {form.avatar ? (
+                              <img className="size-11 rounded-xl object-cover border border-[var(--card-border)] shrink-0" alt={form.client} src={form.avatar} />
+                            ) : (
+                              <div className="size-11 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center shrink-0 border border-[var(--card-border)]">
+                                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1 text-[12px] space-y-0.5">
+                              <p className="font-bold text-[var(--foreground)] truncate text-[13px]">{form.client}</p>
+                              {form.company && <p className="text-[var(--muted)] font-medium truncate">{form.company}</p>}
+                              {form.email && (
+                                <p className="text-[var(--muted)] truncate flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[12px]">mail</span> {form.email}
+                                </p>
+                              )}
+                              {(form.phone || form.whatsapp) && (
+                                <p className="text-[var(--muted)] truncate flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[12px]">phone</span> {form.phone || form.whatsapp}
+                                </p>
+                              )}
+                              {form.address && (
+                                <p className="text-[var(--muted)] truncate mt-1 bg-[var(--foreground)]/[0.01] px-1 py-0.5 rounded border border-[var(--card-border)]/20 whitespace-pre-line leading-normal line-clamp-2">
+                                  {form.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="size-12 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
+                              {form.avatar ? (
+                                <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
+                              ) : (
+                                <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
+                              )}
+                            </div>
+                            <label className="btn-secondary text-[11px] min-h-7 px-2.5 py-1 cursor-pointer hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                              <span>{form.avatar ? "Change Image" : "Add Image"}</span>
+                              <input className="sr-only" type="file" accept="image/*" onChange={handleClientImageChange} />
+                            </label>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-client">Client Name</label>
+                              <input id="invoice-client" required value={form.client} onChange={(event) => setForm({ ...form, client: event.target.value })} placeholder="Client or company name" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-company">Company</label>
+                              <input id="invoice-company" value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="Company name" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-email">Email</label>
+                              <input id="invoice-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="billing@example.com" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-phone">Phone</label>
+                              <input id="invoice-phone" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-whatsapp">WhatsApp</label>
+                              <input id="invoice-whatsapp" value={form.whatsapp} onChange={(event) => setForm({ ...form, whatsapp: event.target.value })} placeholder="+1 (555) 000-0000" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-delivery-link-new">Work Folder</label>
+                              <input id="invoice-delivery-link-new" type="url" value={form.deliveryLink} onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })} placeholder="https://drive.google.com/..." className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-address">Address</label>
+                            <textarea id="invoice-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Billing address" className="field-control min-h-16 px-3 py-1.5 text-[13px] resize-none" />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Discount</span>
-                      <div className="flex items-center gap-1.5 max-w-[130px]">
-                        <span className="text-[12px] font-medium text-[var(--muted)]">{form.currency || currency}</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={form.discount || ""}
-                          onChange={(event) => {
-                            const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                            setForm({ ...form, discount: Number(cleanVal) || 0 });
-                          }}
-                          className="field-control px-2 py-1 text-right text-[13px]"
-                        />
+
+                    {/* Dates & Workflow Metadata Card */}
+                    <div className="surface-card p-4 space-y-3">
+                      <h3 className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[15px]">date_range</span>
+                        Dates & Workflow
+                      </h3>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-date">Issue Date</label>
+                          <input id="invoice-date" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3 py-1.5 text-[13px]" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-due-date">Due Date</label>
+                          <input id="invoice-due-date" type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} className="field-control px-3 py-1.5 text-[13px]" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-1 col-span-1">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-currency">Currency</label>
+                          <select
+                            id="invoice-currency"
+                            value={form.currency || ""}
+                            onChange={(event) => {
+                              const newCurrency = event.target.value;
+                              const oldCurrency = form.currency || currency;
+                              
+                              setForm((currentForm) => {
+                                const currencyMode = window.localStorage.getItem("billcraft.currency-mode.v1") || "visual";
+                                let nextItems = currentForm.items;
+                                let nextDiscount = currentForm.discount || 0;
+                                
+                                if (currencyMode === "convert" && newCurrency && oldCurrency) {
+                                  const rate = (CURRENCY_RATES[newCurrency] || 1.0) / (CURRENCY_RATES[oldCurrency] || 1.0);
+                                  nextItems = currentForm.items.map((item) => ({
+                                    ...item,
+                                    price: Math.round(item.price * rate * 100) / 100,
+                                  }));
+                                  nextDiscount = Math.round(nextDiscount * rate * 100) / 100;
+                                }
+                                
+                                return {
+                                  ...currentForm,
+                                  currency: newCurrency,
+                                  items: nextItems,
+                                  discount: nextDiscount,
+                                };
+                              });
+                            }}
+                            className="field-control px-2 py-1.5 text-[13px]"
+                          >
+                            <option value="" className="text-[var(--foreground)] bg-[var(--background)]">Global ({currency})</option>
+                            <option value="USD" className="text-[var(--foreground)] bg-[var(--background)]">USD ($)</option>
+                            <option value="EUR" className="text-[var(--foreground)] bg-[var(--background)]">EUR (€)</option>
+                            <option value="GBP" className="text-[var(--foreground)] bg-[var(--background)]">GBP (£)</option>
+                            <option value="LKR" className="text-[var(--foreground)] bg-[var(--background)]">LKR (Rs)</option>
+                            <option value="INR" className="text-[var(--foreground)] bg-[var(--background)]">INR (₹)</option>
+                          </select>
+                        </div>
+                        
+                        <div className="space-y-1 col-span-1">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-status">Bill Status</label>
+                          <select
+                            id="invoice-status"
+                            value={form.status}
+                            onChange={(event) => {
+                              const status = event.target.value as InvoiceStatus;
+                              setForm((currentForm) => ({
+                                ...currentForm,
+                                status,
+                                payments: modalMode === "edit" && status === "Paid" && currentForm.payments.length === 0
+                                  ? [createPaymentRecord(invoiceTotal)]
+                                  : currentForm.payments,
+                              }));
+                            }}
+                            className="field-control px-2 py-1.5 text-[13px]"
+                          >
+                            {STATUSES.map((status) => <option key={status} value={status} className="text-[var(--foreground)] bg-[var(--background)]">{status}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1 col-span-1">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-workflow-status">Work Status</label>
+                          <select
+                            id="invoice-workflow-status"
+                            value={form.workflowStatus}
+                            onChange={(event) => setForm({ ...form, workflowStatus: event.target.value as InvoiceWorkflowStatus })}
+                            className="field-control px-2 py-1.5 text-[13px]"
+                          >
+                            {WORKFLOW_STATUSES.map((status) => <option key={status} value={status} className="text-[var(--foreground)] bg-[var(--background)]">{status}</option>)}
+                          </select>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--card-border)]/50">
-                      <span className="text-[12px] font-semibold text-[var(--muted)] tracking-wider uppercase">Invoice Total</span>
-                      <span className="text-2xl font-semibold text-[var(--foreground)] font-display">
-                        {formatCurrency(invoiceTotal, form.currency || currency)}
-                      </span>
+
+                    {/* Integrations Card */}
+                    <div className="surface-card p-4 space-y-3">
+                      <h3 className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[15px]">link</span>
+                        External Integrations
+                      </h3>
+
+                      {/* Delivery Link Input */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-delivery-link">Finished Product Folder</label>
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={useClientDeliveryLocation}
+                              disabled={!clientRecords.find((client) => client.id === form.clientId)?.deliveryLink}
+                              className="text-[9px] font-bold text-[var(--accent)] hover:text-[var(--accent)]/80 disabled:opacity-40 transition-smooth"
+                              title="Copy from Client records"
+                            >
+                              Client Loc
+                            </button>
+                            <span className="text-[9px] text-[var(--muted)]">|</span>
+                            <button
+                              type="button"
+                              onClick={useProfileDeliveryLocation}
+                              disabled={!activeProfile?.defaultDeliveryLink}
+                              className="text-[9px] font-bold text-[var(--accent)] hover:text-[var(--accent)]/80 disabled:opacity-40 transition-smooth"
+                              title="Copy from My Drive Profile"
+                            >
+                              My Drive
+                            </button>
+                          </div>
+                        </div>
+                        <div className="relative flex items-center">
+                          <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]">folder_shared</span>
+                          <input
+                            id="invoice-delivery-link"
+                            type="url"
+                            value={form.deliveryLink}
+                            onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
+                            placeholder="https://drive.google.com/..."
+                            className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Payment Link Input */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="invoice-payment-link">Stripe / PayPal Gateway Link</label>
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const mockId = Math.random().toString(36).slice(2, 10);
+                                const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
+                                setForm({ ...form, paymentLink: `https://checkout.stripe.com/c/pay/${mockId}#amount=${total}` });
+                              }}
+                              className="text-[9px] font-bold text-[#635bff] hover:opacity-80 transition-smooth"
+                            >
+                              + Stripe
+                            </button>
+                            <span className="text-[9px] text-[var(--muted)]">|</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const email = form.email || "merchant@example.com";
+                                const total = form.items.reduce((sum, item) => sum + (item.quantity * item.price), 0) - (form.discount || 0);
+                                setForm({ ...form, paymentLink: `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(email)}&amount=${total}&item_name=Invoice` });
+                              }}
+                              className="text-[9px] font-bold text-[#003087] hover:opacity-80 transition-smooth"
+                            >
+                              + PayPal
+                            </button>
+                          </div>
+                        </div>
+                        <div className="relative flex items-center">
+                          <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]">payments</span>
+                          <input
+                            id="invoice-payment-link"
+                            type="url"
+                            value={form.paymentLink || ""}
+                            onChange={(event) => setForm({ ...form, paymentLink: event.target.value })}
+                            placeholder="https://checkout.stripe.com/pay/..."
+                            className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                          />
+                        </div>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Right Column - Work Items Ledger & Calculations (58% width) */}
+                  <div className="w-full md:w-[58%] bg-[var(--card)] flex flex-col overflow-y-auto p-5 space-y-5">
+                    
+                    {/* Unbilled Done Tasks Notification Drawer */}
+                    {importableTasks.length > 0 && (
+                      <div className="rounded-xl border border-[var(--accent)]/20 bg-gradient-to-br from-[var(--accent)]/[0.05] to-transparent p-4 relative overflow-hidden shadow-xs">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="text-[11px] font-bold text-[var(--accent)] uppercase tracking-wider flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[16px] animate-pulse">playlist_add_check</span>
+                              Smart Task Automation
+                            </p>
+                            <p className="text-[10px] text-[var(--muted)] mt-0.5">Found completed tasks for {form.client}. Import them to line items.</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => importAllTasks(importableTasks)}
+                            disabled={importableTasks.every(t => importedTaskIds.includes(t.id))}
+                            className="btn-primary text-[10px] min-h-7 px-3 py-1 bg-[var(--accent)] hover:bg-[var(--accent)]/90 border-0 disabled:opacity-50 active:scale-[0.97]"
+                          >
+                            Import All
+                          </button>
+                        </div>
+                        
+                        <div className="divide-y divide-[var(--card-border)]/50 max-h-36 overflow-y-auto">
+                          {importableTasks.map((task) => {
+                            const isImported = importedTaskIds.includes(task.id);
+                            const parsedHours = parseEstimateToHours(task.estimate);
+                            return (
+                              <div key={task.id} className="flex items-center justify-between gap-4 py-2 first:pt-0 last:pb-0">
+                                <div className="min-w-0">
+                                  <p className="text-[12px] font-bold text-[var(--foreground)] truncate">{task.title}</p>
+                                  <p className="text-[10px] text-[var(--muted)] truncate">
+                                    {task.estimate ? `Estimate: ${task.estimate}` : "No estimate"} · {parsedHours > 0 ? `${parsedHours} hours` : "1.00 hours"} billable
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => importTask(task)}
+                                  disabled={isImported}
+                                  className={`min-h-7 px-2.5 py-1 text-[10px] font-bold rounded-lg border flex items-center gap-1 transition-all ${
+                                    isImported 
+                                      ? "bg-[var(--positive)]/10 text-[var(--positive)] border-[var(--positive)]/20" 
+                                      : "bg-[var(--card)] border-[var(--card-border)] hover:border-[var(--accent)]/50 text-[var(--foreground)]"
+                                  }`}
+                                >
+                                  <span className="material-symbols-outlined text-[13px]">
+                                    {isImported ? "check_circle" : "add"}
+                                  </span>
+                                  {isImported ? "Imported" : "Import"}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Line Items ledger */}
+                    <div className="surface-card overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01]">
+                        <p className="text-[11px] font-bold text-[var(--foreground)] tracking-wider uppercase">Work Done & Services</p>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, items: [...form.items, createItem()] })}
+                          className="btn-secondary text-[11px] min-h-7 px-2.5 py-1 hover:bg-[var(--foreground)]/[0.04] transition-smooth flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">add</span> Add Service
+                        </button>
+                      </div>
+
+                      <div className="divide-y divide-[var(--card-border)]">
+                        {form.items.map((item, index) => (
+                          <div key={item.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_110px_36px] gap-3 p-4 relative group">
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[9px] font-bold text-[var(--muted)] uppercase tracking-wider" htmlFor={`item-description-${item.id}`}>Description</label>
+                                {catalogItems.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px] text-[var(--accent)]">bolt</span>
+                                    <select
+                                      className="text-[9px] bg-transparent border-0 text-[var(--accent)] font-semibold cursor-pointer outline-none max-w-[130px] truncate"
+                                      onChange={(e) => {
+                                        const selectedId = e.target.value;
+                                        if (selectedId) {
+                                          const catItem = catalogItems.find(c => c.id === selectedId);
+                                          if (catItem) {
+                                            updateItem(index, {
+                                              description: catItem.description || catItem.name,
+                                              price: catItem.defaultPrice
+                                            });
+                                          }
+                                          e.target.value = "";
+                                        }
+                                      }}
+                                      defaultValue=""
+                                    >
+                                      <option value="" disabled className="text-[var(--foreground)] bg-[var(--background)]">Catalog Fill</option>
+                                      {catalogItems.map(cat => (
+                                        <option key={cat.id} value={cat.id} className="text-[var(--foreground)] bg-[var(--background)]">
+                                          {cat.name} ({formatCurrency(cat.defaultPrice, form.currency || currency)})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                              </div>
+                              <input id={`item-description-${item.id}`} required value={item.description} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="What service did you perform?" className="field-control px-3 py-1.5 text-[13px]" />
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-bold text-[var(--muted)] uppercase tracking-wider" htmlFor={`item-quantity-${item.id}`}>Qty / Hrs</label>
+                              <input id={`item-quantity-${item.id}`} type="number" min="0" step="1" value={item.quantity} onChange={(event) => {
+                                const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                                updateItem(index, { quantity: Number(cleanVal) });
+                              }} className="field-control px-3 py-1.5 text-[13px] text-center" />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-bold text-[var(--muted)] uppercase tracking-wider" htmlFor={`item-price-${item.id}`}>Rate ({form.currency || currency})</label>
+                              <input id={`item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => {
+                                const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                                updateItem(index, { price: Number(cleanVal) });
+                              }} className="field-control px-3 py-1.5 text-[13px] text-right font-mono" />
+                            </div>
+
+                            <div className="flex sm:items-end justify-center">
+                              <button
+                                type="button"
+                                onClick={() => removeItem(index)}
+                                className="size-8 flex items-center justify-center rounded-full text-[var(--muted)] hover:text-[var(--negative)] hover:bg-[var(--negative)]/10 transition-smooth shrink-0"
+                                aria-label="Remove item"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Financial Summary Card */}
+                    <div className="rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.01] p-4 space-y-2.5">
+                      <div className="flex items-center justify-between text-[12px] font-semibold text-[var(--muted)]">
+                        <span>Subtotal</span>
+                        <span className="font-mono">{formatCurrency(invoiceSubtotal, form.currency || currency)}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between gap-4 py-1 border-t border-[var(--card-border)]/20">
+                        <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Discount Deduction</span>
+                        <div className="flex items-center gap-1.5 max-w-[120px]">
+                          <span className="text-[11px] font-bold text-[var(--muted)]">{form.currency || currency}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={form.discount || ""}
+                            onChange={(event) => {
+                              const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
+                              setForm({ ...form, discount: Number(cleanVal) || 0 });
+                            }}
+                            className="field-control px-2 py-0.5 text-right text-[12px] font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2.5 border-t border-[var(--card-border)]/50">
+                        <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Invoice Total</span>
+                        <span className="text-2xl font-bold text-[var(--foreground)] font-display tracking-tight">
+                          {formatCurrency(invoiceTotal, form.currency || currency)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Payment Tracker */}
+                    {modalMode === "edit" && (
+                      <div className="border-t border-[var(--card-border)]/40 pt-4">
+                        <PaymentTrackingForm
+                          currency={currency}
+                          total={invoiceTotal}
+                          payments={form.payments}
+                          paymentNotes={form.paymentNotes}
+                          onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
+                          onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
+                        />
+                      </div>
+                    )}
+
+                    {/* Save Client Choices */}
+                    {needsClientSaveChoice && (
+                      <div className="rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/5 p-4 animate-in slide-in-from-bottom-2 duration-200">
+                        <p className="text-[12px] font-bold text-[var(--foreground)] mb-1">Save this client record?</p>
+                        <p className="text-[11px] text-[var(--muted)] mb-3 leading-normal">Regular clients are saved to the Clients directory for future invoices. One-time clients stay on this invoice only.</p>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => void submitInvoice("regular")} className="btn-primary text-[11px] min-h-7 px-3 py-1 shadow-xs active:scale-[0.97]">
+                            Save to Directory
+                          </button>
+                          <button type="button" onClick={() => void submitInvoice("onetime")} className="btn-secondary text-[11px] min-h-7 px-3 py-1 active:scale-[0.97]">
+                            One-Time Only
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {modalMode === "edit" && (
-                  <PaymentTrackingForm
-                    currency={currency}
-                    total={invoiceTotal}
-                    payments={form.payments}
-                    paymentNotes={form.paymentNotes}
-                    onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
-                    onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
-                  />
-                )}
-
-                {needsClientSaveChoice && (
-                  <div className="rounded-xl border border-[var(--accent)]/25 bg-[var(--accent)]/10 p-4">
-                    <p className="text-[13px] font-semibold text-[var(--foreground)] mb-1">Save this client?</p>
-                    <p className="text-[12px] text-[var(--muted)] mb-3">Regular clients are added to the Clients page. One-time clients stay only on this invoice.</p>
-                    <div className="flex flex-wrap gap-2">
-                      <button type="button" onClick={() => void submitInvoice("regular")} className="btn-primary active:scale-[0.97]">
-                        Save Regular Client
-                      </button>
-                      <button type="button" onClick={() => void submitInvoice("onetime")} className="btn-secondary">
-                        One-Time Only
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button type="button" onClick={closeModal} className="btn-ghost">
+                {/* Footer Action Bar */}
+                <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                     {isSaving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Create Invoice"}
                   </button>
                 </div>
               </form>
-            ) : selectedInvoice && (
-              <div className="space-y-5">
-                <div className="surface-card p-5">
+            </div>
+          ) : selectedInvoice && (
+            <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl p-5 sm:p-7 max-h-[90vh] overflow-y-auto animate-in fade-in-50 zoom-in-95 duration-200">
+              <div className="flex items-center justify-between mb-6">
+                <AnimatedText
+                  as="h2"
+                  text={modalTitle}
+                  effect="fade-through"
+                  className="text-xl font-semibold text-[var(--foreground)] font-display"
+                  replayKey={modalTitle}
+                />
+                <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                  <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+                </button>
+              </div>
+              <div className="surface-card p-5">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-[var(--card-border)] pb-5 mb-5">
                     <div className="flex items-center gap-3">
                       {activeProfile?.profilePic ? (
@@ -2022,13 +2132,12 @@ export default function Invoices() {
               </div>
             )}
           </div>
-        </div>
       )}
 
       {pendingTaskInvoice && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
-          <button aria-label="Close task prompt" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={() => setPendingTaskInvoice(null)} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl p-5 sm:p-7">
+          <button aria-label="Close task prompt" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setPendingTaskInvoice(null)} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl p-5 sm:p-7 animate-in fade-in-50 zoom-in-95 duration-200">
             <div className="mb-5">
               <AnimatedText as="p" text="Next Step" effect="micro-scale-fade" className="section-eyebrow" replayKey="invoice-task-prompt" />
               <AnimatedText

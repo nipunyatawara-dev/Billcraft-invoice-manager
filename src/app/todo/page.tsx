@@ -1019,178 +1019,225 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close task editor"
-            className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closeModal}
           />
-          <form onSubmit={handleTaskSubmit} className="modal-surface relative max-w-2xl p-5 sm:p-7 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-4 mb-6">
-              <div>
-                <AnimatedText as="p" text={editingTaskId ? "Edit" : "Create"} effect="micro-scale-fade" className="section-eyebrow" replayKey={editingTaskId ? "edit-task" : "create-task"} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">assignment</span>
                 <AnimatedText
                   as="h2"
                   text={taskModalTitle}
                   effect="fade-through"
-                  className="text-2xl font-semibold text-[var(--foreground)] font-display"
+                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
                   replayKey={taskModalTitle}
                 />
               </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-title">Title</label>
-                <input
-                  id="task-title"
-                  required
-                  value={form.title}
-                  onChange={(event) => setForm({ ...form, title: event.target.value })}
-                  placeholder="Task title"
-                  className="field-control px-3 py-2"
-                />
-              </div>
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleTaskSubmit} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                
+                {/* 1. Task Description & Scope Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Task Definition</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-title">Title</label>
+                    <input
+                      id="task-title"
+                      required
+                      value={form.title}
+                      onChange={(event) => setForm({ ...form, title: event.target.value })}
+                      placeholder="What needs to be done?"
+                      className="field-control px-3 py-1.5 text-[13px]"
+                    />
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-description">Description</label>
-                <textarea
-                  id="task-description"
-                  value={form.description}
-                  onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  placeholder="Notes, scope, or next step"
-                  rows={3}
-                  className="field-control px-3 py-2 resize-none"
-                />
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-description">Description</label>
+                    <textarea
+                      id="task-description"
+                      value={form.description}
+                      onChange={(event) => setForm({ ...form, description: event.target.value })}
+                      placeholder="Context details, bullet checklist, or scope notes..."
+                      className="field-control min-h-20 px-3 py-1.5 text-[13px] resize-none"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-stage">Stage</label>
-                  <select
-                    id="task-stage"
-                    value={form.stage}
-                    onChange={(event) => setForm({ ...form, stage: event.target.value as TodoStageId })}
-                    className="field-control px-3 py-2"
-                  >
-                    {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-priority">Priority</label>
-                  <select
-                    id="task-priority"
-                    value={form.priority}
-                    onChange={(event) => setForm({ ...form, priority: event.target.value as TodoPriority })}
-                    className="field-control px-3 py-2"
-                  >
-                    {TODO_PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-client">Client</label>
-                  {clientMode === "select" ? (
-                    <select
-                      id="task-client-select"
-                      value={form.client}
-                      onChange={(event) => {
-                        const val = event.target.value;
-                        if (val === "__custom__") {
-                          setClientMode("custom");
-                          setForm({ ...form, client: "" });
-                        } else {
-                          setForm({ ...form, client: val });
-                        }
-                      }}
-                      className="field-control px-3 py-2 w-full"
-                    >
-                      <option value="">General</option>
-                      {clients.map((c) => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                      <option value="__custom__">+ Add Custom Client...</option>
-                    </select>
-                  ) : (
-                    <div className="flex gap-2">
-                      <input
-                        id="task-client"
-                        value={form.client}
-                        onChange={(event) => setForm({ ...form, client: event.target.value })}
-                        placeholder="Client name"
-                        className="field-control px-3 py-2 flex-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setClientMode("select");
-                          setForm({ ...form, client: "" });
-                        }}
-                        className="btn-ghost px-2 text-[10px]"
-                      >
-                        Select Saved
-                      </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-stage">Stage</label>
+                      <div className="relative flex items-center">
+                        <select
+                          id="task-stage"
+                          value={form.stage}
+                          onChange={(event) => setForm({ ...form, stage: event.target.value as TodoStageId })}
+                          className="field-control px-3 py-1.5 text-[13px] appearance-none"
+                        >
+                          {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id} className="text-[var(--foreground)] bg-[var(--background)]">{stage.label}</option>)}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-3 text-[16px] text-[var(--muted)] pointer-events-none">expand_more</span>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Priority Selector as button pills */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Priority Level</label>
+                      <div className="flex gap-1">
+                        {TODO_PRIORITIES.map((p) => {
+                          const isSelected = form.priority === p;
+                          let colorClass = "border-[var(--card-border)] text-[var(--muted)] bg-[var(--card)] hover:border-[var(--foreground)]/10";
+                          if (isSelected) {
+                            if (p === "Low") colorClass = "bg-slate-500/10 border-slate-500 text-slate-500 shadow-xs";
+                            else if (p === "Medium") colorClass = "bg-blue-500/10 border-blue-500 text-blue-500 shadow-xs";
+                            else if (p === "High") colorClass = "bg-orange-500/10 border-orange-500 text-orange-500 shadow-xs";
+                            else if (p === "Urgent") colorClass = "bg-rose-500/10 border-rose-500 text-rose-500 shadow-xs";
+                          }
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => setForm({ ...form, priority: p })}
+                              className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] ${colorClass}`}
+                            >
+                              {p}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-due">Due</label>
-                  <input
-                    id="task-due"
-                    type="date"
-                    value={form.dueDate}
-                    onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
-                    className="field-control px-3 py-2"
-                  />
+
+                {/* 2. Relations, Deadlines & Tags Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Relations & Constraints</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-1 col-span-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-client-select">Client Link</label>
+                      {clientMode === "select" ? (
+                        <div className="relative flex items-center">
+                          <select
+                            id="task-client-select"
+                            value={form.client}
+                            onChange={(event) => {
+                              const val = event.target.value;
+                              if (val === "__custom__") {
+                                setClientMode("custom");
+                                setForm({ ...form, client: "" });
+                              } else {
+                                setForm({ ...form, client: val });
+                              }
+                            }}
+                            className="field-control px-3 py-1.5 text-[13px] appearance-none"
+                          >
+                            <option value="" className="text-[var(--foreground)] bg-[var(--background)]">General</option>
+                            {clients.map((c) => (
+                              <option key={c.id} value={c.name} className="text-[var(--foreground)] bg-[var(--background)]">{c.name}</option>
+                            ))}
+                            <option value="__custom__" className="text-[var(--foreground)] bg-[var(--background)]">+ Add Custom...</option>
+                          </select>
+                          <span className="material-symbols-outlined absolute right-3 text-[16px] text-[var(--muted)] pointer-events-none">expand_more</span>
+                        </div>
+                      ) : (
+                        <div className="flex gap-1.5 items-center">
+                          <input
+                            id="task-client"
+                            value={form.client}
+                            onChange={(event) => setForm({ ...form, client: event.target.value })}
+                            placeholder="Client name"
+                            className="field-control px-2.5 py-1.5 text-[13px] flex-1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setClientMode("select");
+                              setForm({ ...form, client: "" });
+                            }}
+                            className="text-[9px] font-bold text-[var(--accent)] hover:underline shrink-0"
+                          >
+                            Saved
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 col-span-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-due">Due Date</label>
+                      <input
+                        id="task-due"
+                        type="date"
+                        value={form.dueDate}
+                        onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
+                        className="field-control px-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+
+                    <div className="space-y-1 col-span-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-estimate">Estimate / Effort</label>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">timer</span>
+                        <input
+                          id="task-estimate"
+                          value={form.estimate}
+                          onChange={(event) => setForm({ ...form, estimate: event.target.value })}
+                          placeholder="e.g. 2h, 45m"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-tags">Category Tags</label>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">tag</span>
+                      <input
+                        id="task-tags"
+                        value={form.tags}
+                        onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                        placeholder="e.g. Design, Scope, Revision (comma separated)"
+                        className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-estimate">Estimate</label>
-                  <input
-                    id="task-estimate"
-                    value={form.estimate}
-                    onChange={(event) => setForm({ ...form, estimate: event.target.value })}
-                    placeholder="30m"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
+
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="task-tags">Tags</label>
-                <input
-                  id="task-tags"
-                  value={form.tags}
-                  onChange={(event) => setForm({ ...form, tags: event.target.value })}
-                  placeholder="Invoice, Client"
-                  className="field-control px-3 py-2"
-                />
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+                {editingTaskId ? (
+                  <button
+                    type="button"
+                    onClick={() => void deleteTask(editingTaskId)}
+                    disabled={isSaving}
+                    className="text-[11px] font-bold text-[var(--negative)] hover:underline active:scale-[0.97] transition-all"
+                  >
+                    Delete Task
+                  </button>
+                ) : <span />}
+                
+                <div className="flex gap-2">
+                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold" disabled={isSaving}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Save Task"}
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-5">
-              {editingTaskId ? (
-                <button
-                  type="button"
-                  onClick={() => void deleteTask(editingTaskId)}
-                  disabled={isSaving}
-                  className="btn-ghost text-[var(--accent)] hover:text-[var(--accent)] active:scale-[0.97]"
-                >
-                  Delete
-                </button>
-              ) : <span />}
-
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={closeModal} className="btn-ghost" disabled={isSaving}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save Task"}
-                </button>
-              </div>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
 
@@ -1201,7 +1248,7 @@ export default function TodoPage() {
             className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
             onClick={() => setOutsourcingTask(null)}
           />
-          <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full p-5 sm:p-7 max-h-[92vh] overflow-y-auto space-y-4">
+          <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full p-5 sm:p-7 max-h-[92vh] overflow-y-auto space-y-4 animate-in fade-in-50 zoom-in-95 duration-200">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <p className="section-eyebrow">Outsource Task</p>
@@ -1232,11 +1279,11 @@ export default function TodoPage() {
                       }}
                       className="field-control px-3 py-2 w-full"
                     >
-                      <option value="">-- Select a Subcontractor --</option>
+                      <option value="" className="text-[var(--foreground)] bg-[var(--background)]">-- Select a Subcontractor --</option>
                       {vendors.map((v) => (
-                        <option key={v.id} value={v.id}>{v.name} {v.company ? `(${v.company})` : ""}</option>
+                        <option key={v.id} value={v.id} className="text-[var(--foreground)] bg-[var(--background)]">{v.name} {v.company ? `(${v.company})` : ""}</option>
                       ))}
-                      <option value="__new__">+ Add New Subcontractor...</option>
+                      <option value="__new__" className="text-[var(--foreground)] bg-[var(--background)]">+ Add New Subcontractor...</option>
                     </select>
                   </div>
                 ) : (
@@ -1330,7 +1377,7 @@ export default function TodoPage() {
             className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
             onClick={() => setInformTask(null)}
           />
-          <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4 relative">
+          <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4 relative animate-in fade-in-50 zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
               <h3 className="text-lg font-semibold text-[var(--foreground)] font-display flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px] text-[var(--accent)]">info</span>

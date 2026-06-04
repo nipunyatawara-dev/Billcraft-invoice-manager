@@ -356,120 +356,156 @@ export default function Expenses() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div className="modal-surface relative max-w-lg p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <AnimatedText
-                as="h2"
-                text={editingExpenseId ? "Edit Expense" : "Add Expense"}
-                effect="fade-through"
-                className="text-xl font-semibold text-[var(--foreground)] font-display"
-                replayKey={editingExpenseId ? "Edit Expense" : "Add Expense"}
-              />
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">payments</span>
+                <AnimatedText
+                  as="h2"
+                  text={editingExpenseId ? "Edit Expense" : "Add Expense"}
+                  effect="fade-through"
+                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  replayKey={editingExpenseId ? "Edit Expense" : "Add Expense"}
+                />
+              </div>
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveExpense} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-merchant">Merchant</label>
-                  <input
-                    id="expense-merchant"
-                    required
-                    value={form.merchant}
-                    onChange={(event) => setForm({ ...form, merchant: event.target.value })}
-                    placeholder="e.g. Stripe, AWS, Cafe, etc."
-                    className="field-control px-3 py-2"
-                  />
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSaveExpense} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                
+                {/* Expense Details Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Expense Details</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="expense-merchant">Merchant</label>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">store</span>
+                      <input
+                        id="expense-merchant"
+                        required
+                        value={form.merchant}
+                        onChange={(event) => setForm({ ...form, merchant: event.target.value })}
+                        placeholder="e.g. AWS, Stripe, Cafe, Adobe"
+                        className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Category Grid Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Expense Category</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                      {CATEGORIES.map((category) => {
+                        const isSelected = form.category === category;
+                        const icon = CATEGORY_ICONS[category] || "payments";
+                        return (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => setForm({ ...form, category })}
+                            className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all duration-200 active:scale-[0.96] ${
+                              isSelected
+                                ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-xs"
+                                : "border-[var(--card-border)] text-[var(--muted)] bg-[var(--card)] hover:border-[var(--foreground)]/10 hover:text-[var(--foreground)]"
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[18px] mb-1">{icon}</span>
+                            <span className="text-[10px] font-bold truncate max-w-[80px]">{category}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="expense-description">Description</label>
+                    <input
+                      id="expense-description"
+                      required
+                      value={form.description}
+                      onChange={(event) => setForm({ ...form, description: event.target.value })}
+                      placeholder="e.g. Monthly server billing, Client networking lunch, etc."
+                      className="field-control px-3 py-1.5 text-[13px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="expense-amount">Amount ({currency})</label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3 text-[13px] font-semibold text-[var(--muted)]/50">{currency}</span>
+                        <input
+                          id="expense-amount"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          value={form.amount || ""}
+                          onChange={(event) => setForm({ ...form, amount: parseFloat(event.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px] text-right font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="expense-date">Date</label>
+                      <input
+                        id="expense-date"
+                        type="date"
+                        required
+                        value={form.date}
+                        onChange={(event) => setForm({ ...form, date: event.target.value })}
+                        className="field-control px-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tax Deductible Slider Switch */}
+                  <div className="flex items-center justify-between py-2 border-t border-[var(--card-border)]/55">
+                    <div>
+                      <p className="text-[12px] font-bold text-[var(--foreground)]">Tax Deductible</p>
+                      <p className="text-[10px] text-[var(--muted)] mt-0.5 font-medium">Write off this expense from business taxes</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input
+                        id="expense-deductible"
+                        type="checkbox"
+                        checked={form.isTaxDeductible}
+                        onChange={(event) => setForm({ ...form, isTaxDeductible: event.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-6 bg-[var(--card-border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                    </label>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="expense-notes">Notes</label>
+                    <textarea
+                      id="expense-notes"
+                      value={form.notes}
+                      onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                      placeholder="e.g. Receipt numbers, bank transaction reference..."
+                      className="field-control min-h-16 px-3 py-1.5 text-[13px] resize-none"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-category">Category</label>
-                  <select
-                    id="expense-category"
-                    value={form.category}
-                    onChange={(event) => setForm({ ...form, category: event.target.value as Expense["category"] })}
-                    className="field-control px-3 py-2"
-                  >
-                    {CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-description">Description</label>
-                <input
-                  id="expense-description"
-                  required
-                  value={form.description}
-                  onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  placeholder="e.g. Monthly server billing, Client lunch, etc."
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-amount">Amount ({currency})</label>
-                  <input
-                    id="expense-amount"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    value={form.amount || ""}
-                    onChange={(event) => setForm({ ...form, amount: parseFloat(event.target.value) || 0 })}
-                    placeholder="0.00"
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-date">Date</label>
-                  <input
-                    id="expense-date"
-                    type="date"
-                    required
-                    value={form.date}
-                    onChange={(event) => setForm({ ...form, date: event.target.value })}
-                    className="field-control px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 py-2">
-                <input
-                  id="expense-deductible"
-                  type="checkbox"
-                  checked={form.isTaxDeductible}
-                  onChange={(event) => setForm({ ...form, isTaxDeductible: event.target.checked })}
-                  className="size-4 rounded accent-[var(--action)]"
-                />
-                <label className="text-[12px] font-semibold text-[var(--foreground)] select-none cursor-pointer" htmlFor="expense-deductible">
-                  Tax deductible business expense
-                </label>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="expense-notes">Notes</label>
-                <textarea
-                  id="expense-notes"
-                  value={form.notes}
-                  onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                  placeholder="Additional tax info or transaction records..."
-                  className="field-control min-h-20 px-3 py-2 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={closeModal} className="btn-ghost">
+              {/* Sticky Footer */}
+              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+                <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                   {isSaving ? "Saving..." : editingExpenseId ? "Save Changes" : "Save Expense"}
                 </button>
               </div>

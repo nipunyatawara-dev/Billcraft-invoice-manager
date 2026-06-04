@@ -293,83 +293,109 @@ export default function Catalog() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div className="modal-surface relative max-w-lg p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <AnimatedText
-                as="h2"
-                text={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
-                effect="fade-through"
-                className="text-xl font-semibold text-[var(--foreground)] font-display"
-                replayKey={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
-              />
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">inventory_2</span>
+                <AnimatedText
+                  as="h2"
+                  text={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
+                  effect="fade-through"
+                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  replayKey={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
+                />
+              </div>
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveItem} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="catalog-name">Item Name</label>
-                  <input
-                    id="catalog-name"
-                    required
-                    value={form.name}
-                    onChange={(event) => setForm({ ...form, name: event.target.value })}
-                    placeholder="e.g. Full-stack Web Design, Consultation, SEO Audit"
-                    className="field-control px-3 py-2"
-                  />
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSaveItem} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                
+                {/* Identity & Scope Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Item Details</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-name">Item Name</label>
+                    <input
+                      id="catalog-name"
+                      required
+                      value={form.name}
+                      onChange={(event) => setForm({ ...form, name: event.target.value })}
+                      placeholder="e.g. Full-stack Web Design, Consultation, SEO Audit"
+                      className="field-control px-3 py-1.5 text-[13px]"
+                    />
+                  </div>
+
+                  {/* Segmented Button Selection for Units */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Billing Unit</label>
+                    <div className="flex flex-wrap gap-1">
+                      {UNITS.map((unit) => {
+                        const isSelected = form.unit === unit.value;
+                        return (
+                          <button
+                            key={unit.value}
+                            type="button"
+                            onClick={() => setForm({ ...form, unit: unit.value })}
+                            className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] ${
+                              isSelected
+                                ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-xs"
+                                : "border-[var(--card-border)] text-[var(--muted)] bg-[var(--card)] hover:border-[var(--foreground)]/10"
+                            }`}
+                          >
+                            {unit.label.replace("Per ", "").replace(" (hr)", "").replace(" (day)", "")}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-description">Default Description</label>
+                    <textarea
+                      id="catalog-description"
+                      required
+                      value={form.description}
+                      onChange={(event) => setForm({ ...form, description: event.target.value })}
+                      placeholder="Provide a default description for this service to include on invoice line items."
+                      className="field-control min-h-20 px-3 py-1.5 text-[13px] resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-price">Default Price ({currency})</label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-[13px] font-semibold text-[var(--muted)]/50">{currency}</span>
+                      <input
+                        id="catalog-price"
+                        type="number"
+                        step="0.01"
+                        min="0.00"
+                        required
+                        value={form.defaultPrice || ""}
+                        onChange={(event) => setForm({ ...form, defaultPrice: parseFloat(event.target.value) || 0 })}
+                        placeholder="0.00"
+                        className="field-control pl-9 pr-3 py-1.5 text-[13px] font-mono text-right"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="catalog-unit">Billing Unit</label>
-                  <select
-                    id="catalog-unit"
-                    value={form.unit}
-                    onChange={(event) => setForm({ ...form, unit: event.target.value as CatalogItem["unit"] })}
-                    className="field-control px-3 py-2"
-                  >
-                    {UNITS.map((unit) => (
-                      <option key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="catalog-description">Default Description</label>
-                <textarea
-                  id="catalog-description"
-                  required
-                  value={form.description}
-                  onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  placeholder="Provide a default description for this service to include on invoice line items."
-                  className="field-control min-h-24 px-3 py-2 resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="catalog-price">Default Price ({currency})</label>
-                <input
-                  id="catalog-price"
-                  type="number"
-                  step="0.01"
-                  min="0.00"
-                  required
-                  value={form.defaultPrice || ""}
-                  onChange={(event) => setForm({ ...form, defaultPrice: parseFloat(event.target.value) || 0 })}
-                  placeholder="0.00"
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={closeModal} className="btn-ghost">
+              {/* Sticky Footer */}
+              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+                <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                   {isSaving ? "Saving..." : editingItemId ? "Save Changes" : "Add to Catalog"}
                 </button>
               </div>

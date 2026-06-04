@@ -493,133 +493,178 @@ export default function Clients() {
 
       {showClientModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm" onClick={closeModal} />
-          <div className="modal-surface relative max-w-lg p-5 sm:p-7 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <AnimatedText
-                as="h2"
-                text={clientModalTitle}
-                effect="fade-through"
-                className="text-xl font-semibold text-[var(--foreground)] font-display"
-                replayKey={clientModalTitle}
-              />
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
+                <AnimatedText
+                  as="h2"
+                  text={clientModalTitle}
+                  effect="fade-through"
+                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  replayKey={clientModalTitle}
+                />
+              </div>
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveClient} className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="size-14 rounded-xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
-                  {form.avatar ? (
-                    <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
-                  ) : (
-                    <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
-                  )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSaveClient} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                
+                {/* 1. Identity & Brand Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Identity & Brand</h3>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="size-14 rounded-2xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
+                      {form.avatar ? (
+                        <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
+                      ) : (
+                        <span className="material-symbols-outlined text-[24px] text-[var(--foreground)]/20">person</span>
+                      )}
+                    </div>
+                    <label className="btn-secondary text-[11px] min-h-7 px-3 py-1 cursor-pointer hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                      <span>{form.avatar ? "Change Avatar" : "Upload Picture"}</span>
+                      <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-name">Client Name</label>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">person</span>
+                        <input
+                          id="client-name"
+                          required
+                          value={form.name}
+                          onChange={(event) => setForm({ ...form, name: event.target.value })}
+                          placeholder="Client or company name"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-company">Company</label>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">business</span>
+                        <input
+                          id="client-company"
+                          value={form.company}
+                          onChange={(event) => setForm({ ...form, company: event.target.value })}
+                          placeholder="Company name"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <label className="btn-secondary text-[12px] min-h-8 px-3 py-1.5 cursor-pointer">
-                  <span>{form.avatar ? "Change Image" : "Add Image"}</span>
-                  <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
-                </label>
-              </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-name">Client Name</label>
-                <input
-                  id="client-name"
-                  required
-                  value={form.name}
-                  onChange={(event) => setForm({ ...form, name: event.target.value })}
-                  placeholder="Client or company name"
-                  className="field-control px-3 py-2"
-                />
-              </div>
+                {/* 2. Contact Coordinates Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Contact Coordinates</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-email">Email Address</label>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">mail</span>
+                        <input
+                          id="client-email"
+                          type="email"
+                          value={form.email}
+                          onChange={(event) => setForm({ ...form, email: event.target.value })}
+                          placeholder="client@example.com"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-phone">Phone Number</label>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">phone</span>
+                        <input
+                          id="client-phone"
+                          value={form.phone}
+                          onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                          placeholder="+1 (555) 000-0000"
+                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-email">Email</label>
-                  <input
-                    id="client-email"
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => setForm({ ...form, email: event.target.value })}
-                    placeholder="client@example.com"
-                    className="field-control px-3 py-2"
-                  />
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-whatsapp">WhatsApp Contact</label>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">chat</span>
+                      <input
+                        id="client-whatsapp"
+                        value={form.whatsapp}
+                        onChange={(event) => setForm({ ...form, whatsapp: event.target.value })}
+                        placeholder="+1 (555) 000-0000"
+                        className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-phone">Phone</label>
-                  <input
-                    id="client-phone"
-                    value={form.phone}
-                    onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                    placeholder="+1 (555) 000-0000"
-                    className="field-control px-3 py-2"
-                  />
+
+                {/* 3. Deliverables & Notes Card */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Work Delivery & Notes</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-delivery-link">Finished Work Folder</label>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">folder_shared</span>
+                      <input
+                        id="client-delivery-link"
+                        type="url"
+                        value={form.deliveryLink}
+                        onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
+                        placeholder="https://drive.google.com/..."
+                        className="field-control pl-9 pr-3 py-1.5 text-[13px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-address">Billing Address</label>
+                    <textarea
+                      id="client-address"
+                      value={form.address}
+                      onChange={(event) => setForm({ ...form, address: event.target.value })}
+                      placeholder="Billing address for client statements"
+                      className="field-control min-h-16 px-3 py-1.5 text-[13px] resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-notes">Relationship Notes</label>
+                    <textarea
+                      id="client-notes"
+                      value={form.notes}
+                      onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                      placeholder="Scope rules, payment preferences, or context notes..."
+                      className="field-control min-h-16 px-3 py-1.5 text-[13px] resize-none"
+                    />
+                  </div>
                 </div>
+
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-whatsapp">WhatsApp</label>
-                <input
-                  id="client-whatsapp"
-                  value={form.whatsapp}
-                  onChange={(event) => setForm({ ...form, whatsapp: event.target.value })}
-                  placeholder="+1 (555) 000-0000"
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-company">Company</label>
-                <input
-                  id="client-company"
-                  value={form.company}
-                  onChange={(event) => setForm({ ...form, company: event.target.value })}
-                  placeholder="Company name"
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-address">Address</label>
-                <textarea
-                  id="client-address"
-                  value={form.address}
-                  onChange={(event) => setForm({ ...form, address: event.target.value })}
-                  placeholder="Billing address"
-                  className="field-control min-h-20 px-3 py-2 resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-delivery-link">Finished Work Folder</label>
-                <input
-                  id="client-delivery-link"
-                  type="url"
-                  value={form.deliveryLink}
-                  onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
-                  placeholder="https://drive.google.com/..."
-                  className="field-control px-3 py-2"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase" htmlFor="client-notes">Notes</label>
-                <textarea
-                  id="client-notes"
-                  value={form.notes}
-                  onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                  placeholder="Payment preferences, scope notes, or relationship context"
-                  className="field-control min-h-20 px-3 py-2 resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={closeModal} className="btn-ghost">
+              {/* Sticky Footer */}
+              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+                <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+                <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                   {isSaving ? "Saving..." : editingClientId ? "Save Changes" : "Add Client"}
                 </button>
               </div>
