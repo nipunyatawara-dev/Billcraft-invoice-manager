@@ -1,13 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, type Expense } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 type ExpenseForm = {
   merchant: string;
@@ -59,6 +59,23 @@ export default function Expenses() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [form, setForm] = useState<ExpenseForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA" &&
+        document.activeElement?.tagName !== "SELECT"
+      ) {
+        e.preventDefault();
+        const searchInput = document.querySelector(".search-field input") as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
@@ -237,28 +254,22 @@ export default function Expenses() {
         </div>
 
         {/* Filters and Search */}
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between mb-6">
-          <div className="search-field w-full max-w-md" data-expanded={searchQuery.length > 0}>
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search expenses..."
-              type="text"
-            />
-            <span className="search-icon-btn">
-              <span className="material-symbols-outlined text-[15px]">search</span>
-            </span>
-          </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search expenses..."
+          />
 
-          <div className="flex flex-wrap gap-1">
+          <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 no-scrollbar">
             {["All", ...CATEGORIES].map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1 text-[11px] font-semibold rounded-lg tracking-wider uppercase transition-smooth ${
+                className={`px-4 py-2 text-[13px] font-medium rounded-full transition-smooth active:scale-[0.95] whitespace-nowrap ${
                   selectedCategory === category
-                    ? "bg-[var(--action)]/12 text-[var(--action)]"
-                    : "text-[var(--foreground)]/50 hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]/80"
+                    ? "bg-[var(--foreground)] text-[var(--background)] shadow-sm"
+                    : "text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] bg-transparent"
                 }`}
               >
                 {category}
@@ -268,89 +279,91 @@ export default function Expenses() {
         </div>
 
         {/* Expenses List */}
-        <div className="surface-card p-4 sm:p-5 min-h-[320px]">
-          {filteredExpenses.length > 0 ? (
-            <div className="divide-y divide-[var(--card-border)]/65">
-              {filteredExpenses.map((expense) => (
-                <div key={expense.id} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0 group">
-                  <div className="size-11 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center shrink-0 border border-[var(--card-border)]">
-                    <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">
-                      {CATEGORY_ICONS[expense.category] || "payments"}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-3">
+        {filteredExpenses.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
+            {filteredExpenses.map((expense) => (
+              <div
+                key={expense.id}
+                className="surface-card p-4 sm:p-5 flex flex-col justify-between group relative hover:border-[var(--foreground)]/15 transition-smooth"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="size-9 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center border border-[var(--card-border)] shrink-0">
+                        <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">
+                          {CATEGORY_ICONS[expense.category] || "payments"}
+                        </span>
+                      </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-[14px] text-[var(--foreground)] truncate">
+                        <h3 className="font-semibold text-[13px] text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-smooth">
                           {expense.merchant}
                         </h3>
-                        <p className="text-[11px] text-[var(--muted)] mt-0.5 truncate">
-                          {expense.description}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="font-display font-semibold text-[14px] text-[var(--foreground)]">
-                          {formatCurrency(expense.amount, currency)}
-                        </p>
                         <p className="text-[10px] text-[var(--muted)] mt-0.5">
                           {formatDisplayDate(expense.date)}
                         </p>
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-3 mt-2.5 pt-2 border-t border-[var(--card-border)]/35">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--foreground)]/[0.05] text-[var(--muted)] tracking-wider uppercase">
-                          {expense.category}
-                        </span>
-
-                        {expense.isTaxDeductible ? (
-                          <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--positive)]/10 text-[var(--positive)] tracking-wider uppercase">
-                            Tax Deductible
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--accent)]/10 text-[var(--accent)] tracking-wider uppercase">
-                            Non-Deductible
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-smooth">
-                        <button
-                          onClick={() => openEdit(expense)}
-                          className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
-                          aria-label={`Edit expense`}
-                        >
-                          <span className="material-symbols-outlined text-[15px]">edit</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteExpense(expense.id, expense.merchant)}
-                          className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
-                          aria-label={`Delete expense`}
-                        >
-                          <span className="material-symbols-outlined text-[15px]">delete</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {expense.notes && (
-                      <p className="mt-2 text-[11px] italic text-[var(--muted)] bg-[var(--foreground)]/[0.015] p-2 rounded-lg border border-[var(--card-border)]/30">
-                        {expense.notes}
+                    <div className="text-right">
+                      <p className="font-display font-semibold text-[14px] text-[var(--foreground)]">
+                        {formatCurrency(expense.amount, currency)}
                       </p>
+                    </div>
+                  </div>
+
+                  <p className="text-[12px] text-[var(--foreground)]/70 font-medium line-clamp-2 leading-relaxed">
+                    {expense.description}
+                  </p>
+
+                  {expense.notes && (
+                    <p className="mt-2 text-[10.5px] italic text-[var(--muted)] bg-[var(--foreground)]/[0.015] p-2 rounded-lg border border-[var(--card-border)]/30 line-clamp-2">
+                      {expense.notes}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-[var(--card-border)]/55 shrink-0">
+                  <div className="flex flex-wrap gap-1">
+                    <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--foreground)]/[0.05] text-[var(--muted)] tracking-wider uppercase">
+                      {expense.category}
+                    </span>
+
+                    {expense.isTaxDeductible ? (
+                      <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--positive)]/10 text-[var(--positive)] tracking-wider uppercase">
+                        Tax Deductible
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[9px] font-bold rounded-md bg-[var(--accent)]/10 text-[var(--accent)] tracking-wider uppercase">
+                        Non-Deductible
+                      </span>
                     )}
                   </div>
+
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-smooth">
+                    <button
+                      onClick={() => openEdit(expense)}
+                      className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                      aria-label="Edit expense"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteExpense(expense.id, expense.merchant)}
+                      className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                      aria-label="Delete expense"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">receipt_long</span>
-              <AnimatedText as="p" text="No expenses found" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="surface-card p-5 text-center py-16">
+            <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">receipt_long</span>
+            <AnimatedText as="p" text="No expenses found" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
+          </div>
+        )}
       </main>
 
       {/* Add / Edit Modal */}

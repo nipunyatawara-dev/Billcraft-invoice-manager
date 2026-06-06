@@ -3,6 +3,8 @@
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PaymentSummary, PaymentTrackingForm, createPaymentRecord } from "@/components/payment-tracking";
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+
 import {
   formatCurrency,
   getAmountPaid,
@@ -21,7 +23,7 @@ import {
 import { useCurrency } from "@/hooks/use-currency";
 import { useOutsourcing } from "@/hooks/use-outsourcing";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
@@ -153,6 +155,23 @@ export default function Outsourcing() {
   const [form, setForm] = useState<OutsourcingForm>(createEmptyForm);
   const [needsVendorSaveChoice, setNeedsVendorSaveChoice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA" &&
+        document.activeElement?.tagName !== "SELECT"
+      ) {
+        e.preventDefault();
+        const searchInput = document.querySelector(".search-field input") as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredInvoices = useMemo(() => outsourcingInvoices.filter((invoice) => {
     const normalizedSearch = searchQuery.toLowerCase();
@@ -434,17 +453,11 @@ export default function Outsourcing() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
-          <div className="search-field flex-1 max-w-md">
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search outsourcing invoices..."
-              type="text"
-            />
-            <span className="search-icon-btn">
-              <span className="material-symbols-outlined text-[15px]">search</span>
-            </span>
-          </div>
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search outsourcing invoices..."
+          />
           <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0">
             {STATUS_FILTERS.map((filter) => (
               <button

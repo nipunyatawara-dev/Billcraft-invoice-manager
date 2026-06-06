@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, KeyboardEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
@@ -9,6 +9,8 @@ import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { exportClientStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
@@ -44,6 +46,23 @@ export default function Clients() {
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [form, setForm] = useState<ClientForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA" &&
+        document.activeElement?.tagName !== "SELECT"
+      ) {
+        e.preventDefault();
+        const searchInput = document.querySelector(".search-field input") as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const { invoices, clientRecords, saveClient } = useInvoices();
   const { activeProfile } = useUserData();
@@ -275,17 +294,11 @@ export default function Clients() {
         </div>
 
         <div className="mb-6">
-          <div className="search-field" data-expanded={searchQuery.length > 0}>
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search clients..."
-              type="text"
-            />
-            <span className="search-icon-btn">
-              <span className="material-symbols-outlined text-[15px]">search</span>
-            </span>
-          </div>
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search clients..."
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">

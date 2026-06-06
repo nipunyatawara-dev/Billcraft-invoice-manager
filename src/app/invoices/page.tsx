@@ -3,6 +3,8 @@
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PaymentSummary, PaymentTrackingForm, createPaymentRecord } from "@/components/payment-tracking";
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+
 import {
   formatCurrency,
   getAmountPaid,
@@ -247,6 +249,23 @@ export default function Invoices() {
   const [stripeStep, setStripeStep] = useState<string>("");
   const [webhookLogs, setWebhookLogs] = useState<string[]>([]);
   const [emailSendingStatus, setEmailSendingStatus] = useState<"idle" | "generating" | "attaching" | "sending" | "sent">("idle");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA" &&
+        document.activeElement?.tagName !== "SELECT"
+      ) {
+        e.preventDefault();
+        const searchInput = document.querySelector(".search-field input") as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   function openShareModal(invoice: Invoice) {
     setShareInvoice(invoice);
@@ -1041,17 +1060,11 @@ export default function Invoices() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
-          <div className="search-field" data-expanded={searchQuery.length > 0}>
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search invoices..."
-              type="text"
-            />
-            <span className="search-icon-btn">
-              <span className="material-symbols-outlined text-[15px]">search</span>
-            </span>
-          </div>
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search invoices..."
+          />
           <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0">
             {STATUS_FILTERS.map((filter) => (
               <button

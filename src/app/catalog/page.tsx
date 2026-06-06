@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, type CatalogItem } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 type CatalogForm = {
   name: string;
@@ -38,6 +39,23 @@ export default function Catalog() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [form, setForm] = useState<CatalogForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA" &&
+        document.activeElement?.tagName !== "SELECT"
+      ) {
+        e.preventDefault();
+        const searchInput = document.querySelector(".search-field input") as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredItems = useMemo(() => {
     return catalogItems.filter((item) => {
@@ -218,17 +236,11 @@ export default function Catalog() {
 
         {/* Search */}
         <div className="mb-6">
-          <div className="search-field w-full max-w-md" data-expanded={searchQuery.length > 0}>
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search catalog by name or description..."
-              type="text"
-            />
-            <span className="search-icon-btn">
-              <span className="material-symbols-outlined text-[15px]">search</span>
-            </span>
-          </div>
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search catalog by name or description..."
+          />
         </div>
 
         {/* Catalog Grid */}
