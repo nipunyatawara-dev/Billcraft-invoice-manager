@@ -937,7 +937,7 @@ const generateEasedGradientStops = (
 /**
  * Hook to manage loading data with pixel-perfect shimmer synchronization.
  */
-export function useLoadingData(isLoading: boolean, loadingBars: number = 12) {
+function useLoadingData(isLoading: boolean, loadingBars: number = 12) {
   const [loadingDataKey, setLoadingDataKey] = useState(false);
 
   const onShimmerExit = useCallback(() => {

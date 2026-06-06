@@ -34,6 +34,13 @@ export interface Invoice {
   updatedAt?: string;
 }
 
+export interface TrashItem {
+  id: string;
+  deletedAt: string;
+  type: "invoice";
+  data: Invoice;
+}
+
 export type InvoiceStatus = Invoice["status"];
 export type InvoiceWorkflowStatus = "Draft" | "Sent" | "Work Confirmed" | "Delivered";
 
@@ -84,7 +91,7 @@ export interface PaymentRecord {
   receiptAttachments?: PaymentAttachment[];
 }
 
-export const ANALYTICS_WIDGET_IDS = [
+const ANALYTICS_WIDGET_IDS = [
   "revenue-flow",
   "paid-ratio",
   "avg-invoice",
@@ -124,9 +131,9 @@ export interface UserProfile {
   updatedAt: string;
 }
 
-export const DEFAULT_ANALYTICS_WIDGET_ORDER: AnalyticsWidgetId[] = [...ANALYTICS_WIDGET_IDS];
+const DEFAULT_ANALYTICS_WIDGET_ORDER: AnalyticsWidgetId[] = [...ANALYTICS_WIDGET_IDS];
 
-export const DEFAULT_VISIBLE_ANALYTICS_WIDGET_IDS: AnalyticsWidgetId[] = [
+const DEFAULT_VISIBLE_ANALYTICS_WIDGET_IDS: AnalyticsWidgetId[] = [
   "revenue-flow",
   "paid-ratio",
   "avg-invoice",
@@ -143,7 +150,7 @@ export const DEFAULT_ANALYTICS_PREFERENCES: AnalyticsPreferences = {
 
 const ANALYTICS_WIDGET_ID_SET = new Set<AnalyticsWidgetId>(ANALYTICS_WIDGET_IDS);
 
-export function isAnalyticsWidgetId(value: unknown): value is AnalyticsWidgetId {
+function isAnalyticsWidgetId(value: unknown): value is AnalyticsWidgetId {
   return typeof value === "string" && ANALYTICS_WIDGET_ID_SET.has(value as AnalyticsWidgetId);
 }
 
@@ -175,7 +182,7 @@ const STATUS_STYLES: Record<InvoiceStatus, string> = {
   Overdue: "bg-[var(--accent)]/15 text-[var(--accent)]",
 };
 
-export const INVOICES: Invoice[] = [];
+// Removed unused export INVOICES
 
 export interface Client {
   id: string;
@@ -241,7 +248,7 @@ export function getStatusColor(status: InvoiceStatus) {
   return STATUS_STYLES[status];
 }
 
-export function parseInvoiceAmount(amount: string) {
+function parseInvoiceAmount(amount: string) {
   return Number(amount.replace(/[^\d.-]/g, "")) || 0;
 }
 
@@ -289,7 +296,7 @@ export function getPaymentRecordsTotal(payments: PaymentRecord[] = []) {
   }, 0);
 }
 
-export function getTrackableTotal(record: PaymentTrackable) {
+function getTrackableTotal(record: PaymentTrackable) {
   if (typeof record.total === "number") {
     return record.total;
   }
@@ -366,7 +373,7 @@ export const CURRENCY_RATES: Record<string, number> = {
   AED: 3.67,
 };
 
-export function convertCurrency(amount: number, from: string, to: string): number {
+function convertCurrency(amount: number, from: string, to: string): number {
   const rateFrom = CURRENCY_RATES[from] || 1.0;
   const rateTo = CURRENCY_RATES[to] || 1.0;
   return (amount / rateFrom) * rateTo;

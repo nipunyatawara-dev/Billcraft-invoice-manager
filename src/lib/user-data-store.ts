@@ -21,6 +21,7 @@ import {
   type Vendor,
   type Expense,
   type CatalogItem,
+  type TrashItem,
 } from "@/data/invoices";
 import { createDefaultTodoTasks, TODO_PRIORITIES, TODO_STAGES, type TodoTask } from "@/data/todos";
 
@@ -90,7 +91,7 @@ export type LocalDataSnapshot = {
   todoTasks: TodoTask[];
   expenses: Expense[];
   catalogItems: CatalogItem[];
-  trash: any[];
+  trash: TrashItem[];
   userDataPath: string;
 };
 
@@ -560,11 +561,11 @@ async function writeTodoTasks(profileId: string, tasks: TodoTask[]) {
   await writeJson(getProfileDataPath(profileId, "todo-tasks.json"), normalizedTasks);
 }
 
-async function readTrash(profileId: string) {
-  return readJson<any[]>(getProfileDataPath(profileId, "trash.json"), []);
+async function readTrash(profileId: string): Promise<TrashItem[]> {
+  return readJson<TrashItem[]>(getProfileDataPath(profileId, "trash.json"), []);
 }
 
-async function writeTrash(profileId: string, trash: any[]) {
+async function writeTrash(profileId: string, trash: TrashItem[]) {
   await writeJson(getProfileDataPath(profileId, "trash.json"), trash);
 }
 
@@ -1156,7 +1157,7 @@ export async function deleteInvoices(profileId: string, invoiceIds: string[]) {
   if (deletedInvoices.length > 0) {
     const trash = await readTrash(profileId);
     const now = new Date().toISOString();
-    const newTrashItems = deletedInvoices.map((inv) => ({
+    const newTrashItems: TrashItem[] = deletedInvoices.map((inv) => ({
       id: inv.id,
       deletedAt: now,
       type: "invoice",

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, type CatalogItem } from "@/data/invoices";

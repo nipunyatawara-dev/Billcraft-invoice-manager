@@ -1503,10 +1503,10 @@ export default function Settings() {
                             </span>
                           </div>
                           <h4 className="text-[13.5px] font-semibold text-[var(--foreground)] truncate">
-                            Client: {item.client || "Unknown Client"}
+                            Client: {item.data?.client || "Unknown Client"}
                           </h4>
                           <p className="text-[11.5px] text-[var(--muted)] mt-0.5">
-                            Original Date: {item.date || "N/A"} • Amount: <strong className="text-[var(--foreground)]">{item.amount || "N/A"}</strong>
+                            Original Date: {item.data?.date || "N/A"} • Amount: <strong className="text-[var(--foreground)]">{item.data?.amount || "N/A"}</strong>
                           </p>
                         </div>
 

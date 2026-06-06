@@ -14,8 +14,8 @@ export const TOAST_POSITIONS = [
 
 export type ToastPosition = (typeof TOAST_POSITIONS)[number]["id"];
 
-export const DEFAULT_TOAST_POSITION: ToastPosition = "top-right";
-export const TOAST_POSITION_STORAGE_KEY = "billcraft.toast-position.v1";
+const DEFAULT_TOAST_POSITION: ToastPosition = "top-right";
+const TOAST_POSITION_STORAGE_KEY = "billcraft.toast-position.v1";
 
 const CHANGE_EVENT = "billcraft:toast-position-change";
 const TOAST_POSITION_IDS = TOAST_POSITIONS.map((position) => position.id);

@@ -218,7 +218,7 @@ function addTextBlock(
   return nextY;
 }
 
-export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | null, currency: string) {
+async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | null, currency: string) {
   const pdf = await PDFDocument.create();
   const fonts = await embedGoogleSansFlex(pdf);
   let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
@@ -403,7 +403,7 @@ export async function exportInvoicePdf(invoice: Invoice, profile: UserProfile | 
   URL.revokeObjectURL(url);
 }
 
-export async function createOutsourcingInvoicePdfBlob(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
+async function createOutsourcingInvoicePdfBlob(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
   const pdf = await PDFDocument.create();
   const fonts = await embedGoogleSansFlex(pdf);
   let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
@@ -564,7 +564,7 @@ export async function exportOutsourcingInvoicePdf(invoice: OutsourcingInvoice, p
   URL.revokeObjectURL(url);
 }
 
-export async function createClientStatementPdfBlob(
+async function createClientStatementPdfBlob(
   client: Client & { invoices: Invoice[] },
   profile: UserProfile | null,
   currency: string

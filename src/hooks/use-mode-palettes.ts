@@ -49,10 +49,10 @@ export const COLOR_PALETTES = [
 
 export type ColorPaletteId = (typeof COLOR_PALETTES)[number]["id"];
 
-export const DEFAULT_LIGHT_PALETTE: ColorPaletteId = "palette-6";
-export const DEFAULT_DARK_PALETTE: ColorPaletteId = "palette-7";
-export const LIGHT_PALETTE_STORAGE_KEY = "billcraft.light-palette.v1";
-export const DARK_PALETTE_STORAGE_KEY = "billcraft.dark-palette.v1";
+const DEFAULT_LIGHT_PALETTE: ColorPaletteId = "palette-6";
+const DEFAULT_DARK_PALETTE: ColorPaletteId = "palette-7";
+const LIGHT_PALETTE_STORAGE_KEY = "billcraft.light-palette.v1";
+const DARK_PALETTE_STORAGE_KEY = "billcraft.dark-palette.v1";
 
 const CHANGE_EVENT = "billcraft:mode-palette-change";
 const PALETTE_IDS = COLOR_PALETTES.map((palette) => palette.id);

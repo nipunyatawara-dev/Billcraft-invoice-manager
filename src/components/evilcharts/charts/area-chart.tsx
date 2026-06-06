@@ -880,7 +880,7 @@ const generateEasedGradientStops = (
  * exits the chart container (at the 100% point), we can safely swap data
  * while the invisible portion continues animating.
  */
-export function useLoadingData(isLoading: boolean, loadingPoints: number = 14) {
+function useLoadingData(isLoading: boolean, loadingPoints: number = 14) {
   const [loadingDataKey, setLoadingDataKey] = useState(false);
 
   // Callback fired by motion.dev when shimmer exits visible area

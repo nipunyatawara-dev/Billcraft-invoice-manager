@@ -807,9 +807,6 @@ export default function TodoPage() {
                       const isDragging = draggingTaskId === task.id;
                       const isBeforeTarget = dragTarget?.stage === stage.id && dragTarget.beforeTaskId === task.id;
                       const isSelected = selectedTaskIds.has(task.id);
-                      const doneMessage = getTaskDoneMessage(task);
-                      const whatsappUrl = task.clientWhatsapp ? getWhatsAppUrl(task.clientWhatsapp, doneMessage) : "";
-                      const hasDoneActions = task.stage === "done" && Boolean(task.clientEmail || whatsappUrl || task.deliveryLink);
 
                       const isGroupHovered = hoveredInvoiceId !== null && task.invoiceId === hoveredInvoiceId;
                       const isDimmed = hoveredInvoiceId !== null && task.invoiceId !== hoveredInvoiceId;
@@ -1393,7 +1390,6 @@ export default function TodoPage() {
             <div className="space-y-2">
               {(() => {
                 const doneMessage = getTaskDoneMessage(informTask);
-                const whatsappUrl = informTask.clientWhatsapp ? getWhatsAppUrl(informTask.clientWhatsapp, doneMessage) : "";
                 const contactChannels = [];
                 if (informTask.clientEmail) {
                   contactChannels.push({

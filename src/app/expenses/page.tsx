@@ -1,13 +1,13 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, type Expense } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { AnimatePresence, motion } from "motion/react";
+
 
 type ExpenseForm = {
   merchant: string;
@@ -50,7 +50,7 @@ const CATEGORY_ICONS: Record<Expense["category"], string> = {
 };
 
 export default function Expenses() {
-  const { expenses = [], saveExpense, deleteExpense, activeProfile } = useUserData();
+  const { expenses = [], saveExpense, deleteExpense } = useUserData();
   const { currency } = useCurrency();
 
   const [searchQuery, setSearchQuery] = useState("");

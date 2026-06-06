@@ -19,6 +19,7 @@ import {
   type Vendor,
   type Expense,
   type CatalogItem,
+  type TrashItem,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
@@ -38,7 +39,7 @@ type LocalDataSnapshot = {
   todoTasks: TodoTask[];
   expenses: Expense[];
   catalogItems: CatalogItem[];
-  trash: any[];
+  trash: TrashItem[];
   userDataPath: string;
 };
  
