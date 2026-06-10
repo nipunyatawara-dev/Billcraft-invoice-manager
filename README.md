@@ -74,6 +74,22 @@ Plan invoice work with a local to-do board. Cards have been completely redesigne
 
 Select multiple invoices at once using circular checkboxes and trigger bulk operations via a premium glassmorphic bottom actions bar. Supports staggered multi-PDF downloads to bypass browser popup block warnings, bulk status transitions, and bulk deletions with instant synchronization.
 
+## Reusable Service Catalog
+
+Manage reusable services, consulting rates, and itemized products. Set default billing units (hourly, flat rate, daily, or per unit) and default descriptions to speed up invoice line item entry.
+
+## Expense & Tax Write-off Tracker
+
+Log and categorize business expenses for tax write-offs. Monitor software subscriptions, travel costs, meals, marketing campaigns, and tax/legal fees. Mark items as tax-deductible to compute collection write-offs.
+
+## Payment Tracking & Simulators
+
+Record multiple partial payments (installments) per invoice with amounts, dates, custom payment notes, and payment methods. Attach receipt files (images/PDFs) stored locally. Run Stripe Checkout sandbox simulations (card validation, signature webhooks, auto-updates to Paid) or compile/dispatch simulated SMTP Email Reminders directly from the UI.
+
+## Task-to-Invoice Integration
+
+Import completed tasks from your To-Do board directly into invoice line items. Automatically converts estimate strings (e.g., "5h 30m") to billable quantities multiplied by profile hourly rates, tagging tasks as "Billed" to avoid double-billing.
+
 ## Fluid Page-Specific Skeletons
 
 To deliver an instantaneous, high-fidelity experience, BillCraft implements custom, native route-specific skeleton loading screens for all major views. Layout shifts are eliminated, and tab transitions feel smooth and responsive.
@@ -108,6 +124,17 @@ To deliver an instantaneous, high-fidelity experience, BillCraft implements cust
 - Upload client avatars while creating invoice contacts
 - Preview invoice profile, client details, line items, and totals before export
 - Export invoices as `.pdf` files
+- Record multiple partial payments (installments) per invoice
+- Track payment amount, date, notes, and payment methods (Bank transfer, Card, Cash, PayPal, Wise, Check, Other)
+- Attach receipt documents/images (saved locally as base64 assets) directly to payment records
+- Auto-compute invoice payment states: Paid, Partially Paid, Overdue, or Unpaid
+- **Interactive Sandbox Simulators**:
+  - **Stripe Checkout Simulator**: Simulates network card validation and Stripe webhook events (`checkout.session.completed`, etc.) to auto-update invoice status with real-time logs
+  - **Email Reminder Simulator**: Simulates PDF generation, SMTP server attachments, and customer email dispatching with log feedback
+- **Task-to-Invoice Automation**:
+  - Import completed done tasks directly from the To-Do board as itemized line items
+  - Auto-convert task estimates (e.g. "4h 30m") to billable quantities using the profile's hourly rate
+  - Auto-tag tasks as "Billed" and link them to the new invoice ID to avoid duplicate billing
 - **Bulk actions bar** (with circular selection checkboxes and a glassmorphic quick-action menu):
   - Intelligent staggered multi-PDF exports (avoiding browser pop-up blocks)
   - Bulk status updates (Paid, Unpaid, Overdue)
@@ -120,6 +147,23 @@ To deliver an instantaneous, high-fidelity experience, BillCraft implements cust
 - Search clients by name, email, or company
 - See total billed, invoice count, and status breakdown per client
 - Expand client cards for deeper invoice context
+
+### Service Catalog
+
+- Manage reusable services and product items
+- Set default prices and billing units (hour, flat rate, day, unit)
+- Add default descriptions for auto-filling invoice line items
+- Live search bar and dynamic catalog statistics (Total Services, Average Rate, Premium Service Rate, Hourly Services count)
+- Add, edit, and delete catalog items
+
+### Expenses & Tax Tracking
+
+- Track and log vendor-facing expenses
+- Categorize spending (Travel, Software, Office Supplies, Meals, Marketing, Tax/Legal, Other) with custom icons
+- Toggle tax-deductible switch for write-offs
+- Add custom transaction notes and receipts references
+- Dynamic expense analytics: Total expenses, tax-deductible totals, average spend, and logged records
+- Filter expenses by category tabs or search queries
 
 ### Analytics
 
@@ -157,6 +201,10 @@ To deliver an instantaneous, high-fidelity experience, BillCraft implements cust
 - **Redesigned premium kanban tiles** with modern borders, transition effects, and larger typographic scales
 - **Full-width outsource button** with premium styling and micro-interaction scale feedback
 - **Crisp dual column footer action controls** (Inform/Upload) for completed tasks
+- **Dynamic Trash Drop Zone**: Drag tasks to the top delete zone to trash them, or select multiple cards to perform bulk trashing
+- **Countdown Undo Pill**: Revert task deletions with an interactive countdown timer
+- **Subcontractor Payable Automation**: Outsource tasks to vendor records, automatically generating a payable invoice under Outsourcing and tagging the task as "Outsourced"
+- **Inform Client Flow**: Trigger notifications (Email, WhatsApp, SMS) directly when tasks are completed
 
 ### Settings, Appearance, and Data Export
 
@@ -171,6 +219,7 @@ To deliver an instantaneous, high-fidelity experience, BillCraft implements cust
 - Delete the current profile or all local profiles from settings
 - **Collapse & Expand theme palettes** to keep color customization dashboard tidy
 - **Premium Font Selector engine** allowing users to choose their typeface across the platform, dynamically supporting *Inter*, *Open Sans*, *Google Sans Flex*, *Outfit*, and *Plus Jakarta Sans*
+- **Trash Bin Manager**: Recover soft-deleted invoices with all original details or permanently wipe them to free up local profile storage slots
 
 ### Premium UX & Fluid Animations
 
@@ -228,12 +277,15 @@ src/
     api/user-data/      Local JSON data endpoint
     api/user-data/asset/  Local profile asset endpoint
     analytics/          Revenue analytics page
+    catalog/            Service and rate catalog page
     clients/            Client management page
+    expenses/           Business expense and tax tracker page
     invoices/           Invoice management page
     outsourcing/        Vendor/payable invoice page
-    settings/           Profile, appearance, and preference settings
+    settings/           Profile, appearance, preference, and trash settings
     todo/               Billing task board
   components/           Shared layout, theme, toast, and UI helpers
+  components/ui/        Reusable UI components (animated search bar, etc.)
   data/                 Invoice, client, vendor, and todo data types/helpers
   hooks/                Local data, currency, theme, toast, and outsourcing hooks
   lib/                  Toast utilities and local data store
@@ -269,6 +321,9 @@ User data/
     vendors.json
     outsourcing-invoices.json
     todo-tasks.json
+    expenses.json
+    catalog.json
+    trash.json
     assets/
 ```
 
