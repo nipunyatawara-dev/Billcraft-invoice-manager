@@ -237,6 +237,7 @@ export default function Invoices() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [isBulkUpdatingStatus, setIsBulkUpdatingStatus] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
 
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
   const [shareInvoice, setShareInvoice] = useState<Invoice | null>(null);
@@ -433,6 +434,19 @@ export default function Invoices() {
       }
     }
   }, [todoTasks, activeProfile, clientRecords, modalMode]);
+
+  // Open invoice creation modal when action=new query parameter is set
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get("action");
+      if (action === "new" && !modalMode) {
+        // Clear query parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+        openCreateModal();
+      }
+    }
+  }, [clientRecords, modalMode]);
 
   // Handle sandbox logs initialization when viewing an invoice
   useEffect(() => {
@@ -1250,15 +1264,41 @@ export default function Invoices() {
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider hidden sm:inline">Template:</span>
-                      <select
-                        value={form.templateId}
-                        onChange={(e) => setForm({ ...form, templateId: e.target.value })}
-                        className="text-[12px] font-semibold bg-[var(--foreground)]/[0.04] border border-[var(--card-border)] rounded-full px-3 py-1 text-[var(--foreground)] outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                      >
-                        {TEMPLATES.map((t) => (
-                          <option key={t.id} value={t.id} className="text-[var(--foreground)] bg-[var(--background)]">{t.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                          className="flex items-center gap-2 text-[12px] font-semibold bg-[var(--foreground)]/[0.04] border border-[var(--card-border)] rounded-lg px-3 py-1 text-[var(--foreground)] outline-none hover:border-[var(--accent)]/50 focus:border-[var(--accent)] transition-smooth"
+                        >
+                          {selectedTemplate.name}
+                          <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">expand_more</span>
+                        </button>
+
+                        {isTemplateDropdownOpen && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setIsTemplateDropdownOpen(false)} />
+                            <div className="absolute right-0 top-full mt-1 w-[160px] bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-lg z-20 py-1">
+                              {TEMPLATES.map((t) => (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setForm({ ...form, templateId: t.id });
+                                    setIsTemplateDropdownOpen(false);
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 text-[12px] transition-colors ${
+                                    form.templateId === t.id
+                                      ? "bg-[var(--accent)]/10 text-[var(--accent)] font-semibold"
+                                      : "text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] font-medium"
+                                  }`}
+                                >
+                                  {t.name}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
                       <span className="material-symbols-outlined text-[20px]">close</span>
@@ -1280,12 +1320,12 @@ export default function Invoices() {
                         </h3>
                         
                         {/* Segment Selector */}
-                        <div className="flex gap-0.5 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-0.5 shrink-0">
+                        <div className="flex gap-0.5 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-0.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => setClientMode("saved")}
                             disabled={clientRecords.length === 0}
-                            className={`rounded-full px-3 py-1 text-[11px] font-bold transition-smooth ${
+                            className={`rounded-lg px-3 py-1 text-[11px] font-bold transition-smooth ${
                               form.clientMode === "saved"
                                 ? "bg-[var(--action)] text-[var(--action-text)] shadow-xs"
                                 : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -1296,7 +1336,7 @@ export default function Invoices() {
                           <button
                             type="button"
                             onClick={() => setClientMode("new")}
-                            className={`rounded-full px-3 py-1 text-[11px] font-bold transition-smooth ${
+                            className={`rounded-lg px-3 py-1 text-[11px] font-bold transition-smooth ${
                               form.clientMode === "new"
                                 ? "bg-[var(--action)] text-[var(--action-text)] shadow-xs"
                                 : "text-[var(--muted)] hover:text-[var(--foreground)]"
@@ -1616,7 +1656,7 @@ export default function Invoices() {
                             type="button"
                             onClick={() => importAllTasks(importableTasks)}
                             disabled={importableTasks.every(t => importedTaskIds.includes(t.id))}
-                            className="btn-primary text-[10px] min-h-7 px-3 py-1 bg-[var(--accent)] hover:bg-[var(--accent)]/90 border-0 disabled:opacity-50 active:scale-[0.97]"
+                            className="btn-primary text-[10px] min-h-7 px-3 py-1 bg-[var(--accent)] hover:bg-[var(--accent)]/90 border-0 disabled:opacity-50 active:scale-[0.97] rounded-lg"
                           >
                             Import All
                           </button>
@@ -1807,10 +1847,10 @@ export default function Invoices() {
 
                 {/* Footer Action Bar */}
                 <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
-                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
+                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-lg text-[12px] font-bold">
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
+                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-lg text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                     {isSaving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Create Invoice"}
                   </button>
                 </div>

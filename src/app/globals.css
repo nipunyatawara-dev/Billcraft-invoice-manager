@@ -16,12 +16,6 @@
 
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
-
-  --radius-default: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
-  --radius-full: 9999px;
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -48,6 +42,7 @@ html[data-font="plus-jakarta-sans"] {
 }
 
 html {
+  font-size: 14px;
   --palette-1: #ffffff;
   --palette-2: #f7f7f7;
   --palette-3: #e2e2e2;
@@ -162,14 +157,14 @@ html.dark {
   --chart-3: color-mix(in srgb, var(--foreground) 54%, transparent);
   --chart-4: var(--chart-soft);
   --chart-5: var(--negative);
-  --radius: var(--radius-default);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
-  --radius-3xl: 1.75rem;
-  --radius-4xl: 2.5rem;
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+  --radius-4xl: calc(var(--radius) + 32px);
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--action);
@@ -426,7 +421,7 @@ html.dark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 9999px;
+    border-radius: var(--radius-xl);
     font-weight: 600;
     transition-property: color, background-color, border-color, opacity, transform, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -446,20 +441,12 @@ html.dark {
   .btn-primary {
     background: var(--action);
     color: var(--action-text);
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--action-text) 14%, transparent),
-      0 2px 6px color-mix(in srgb, var(--action) 18%, transparent),
-      0 4px 12px color-mix(in srgb, var(--action) 10%, transparent);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
   .btn-primary:hover:not(:disabled) {
     background: var(--action-hover);
     color: var(--action-hover-text, var(--action-text));
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--action-hover-text, var(--action-text)) 18%, transparent),
-      0 4px 12px color-mix(in srgb, var(--action-hover) 28%, transparent),
-      0 10px 26px color-mix(in srgb, var(--action-hover) 18%, transparent);
   }
 
   .btn-secondary {
@@ -593,7 +580,7 @@ html.dark {
     position: relative;
     display: inline-flex;
     align-items: center;
-    border-radius: 9999px;
+    border-radius: var(--radius-xl);
     border: 1px solid var(--card-border);
     background: var(--card);
     box-shadow:
@@ -607,7 +594,7 @@ html.dark {
     position: absolute;
     top: 0.25rem;
     height: calc(100% - 0.5rem);
-    border-radius: 9999px;
+    border-radius: var(--radius-lg);
     background: var(--action);
     box-shadow:
       0 1px 3px color-mix(in srgb, var(--action) 22%, transparent),
@@ -625,7 +612,7 @@ html.dark {
     align-items: center;
     justify-content: center;
     padding: 0.375rem 0.875rem;
-    border-radius: 9999px;
+    border-radius: var(--radius-lg);
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;

@@ -1175,7 +1175,7 @@ export default function Analytics() {
           <button
             type="button"
             onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
-            className={`btn-secondary active:scale-[0.97] ${isCustomizeOpen ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)]" : ""}`}
+            className={`btn-primary active:scale-[0.97] ${isCustomizeOpen ? "bg-[var(--action-hover)] text-[var(--action-hover-text)]" : ""}`}
           >
             <span className="material-symbols-outlined text-[16px]">tune</span>
             Customize

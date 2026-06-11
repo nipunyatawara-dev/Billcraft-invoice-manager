@@ -70,6 +70,7 @@ export default function RootLayout({
           rel="stylesheet" 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" 
         />
+        <script src="https://unpkg.com/@phosphor-icons/web"></script>
         <script dangerouslySetInnerHTML={{ __html: paletteBootstrapScript }} />
       </head>
       <body

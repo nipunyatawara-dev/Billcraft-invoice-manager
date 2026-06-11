@@ -33,14 +33,14 @@ export function ThemeToggle() {
     root.classList.toggle("dark", theme === "dark");
   }, []);
 
-  const handleToggle = React.useCallback(() => {
-    if (isAnimating) {
+  const handleToggle = React.useCallback((targetTheme: ThemeMode) => {
+    if (isAnimating || activeTheme === targetTheme) {
       return;
     }
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setTheme(nextTheme);
-      applyThemeToDocument(nextTheme);
+      setTheme(targetTheme);
+      applyThemeToDocument(targetTheme);
       return;
     }
 
@@ -49,8 +49,8 @@ export function ThemeToggle() {
     const startViewTransition = documentWithTransition.startViewTransition?.bind(documentWithTransition);
 
     if (!button || !startViewTransition) {
-      setTheme(nextTheme);
-      applyThemeToDocument(nextTheme);
+      setTheme(targetTheme);
+      applyThemeToDocument(targetTheme);
       return;
     }
 
@@ -72,9 +72,9 @@ export function ThemeToggle() {
 
     const transition = startViewTransition(() => {
       flushSync(() => {
-        setTheme(nextTheme);
+        setTheme(targetTheme);
       });
-      applyThemeToDocument(nextTheme);
+      applyThemeToDocument(targetTheme);
     });
 
     transition.finished.catch(() => undefined).finally(() => {
@@ -83,29 +83,49 @@ export function ThemeToggle() {
       root.style.removeProperty("--theme-wipe-radius");
       setIsAnimating(false);
     });
-  }, [applyThemeToDocument, isAnimating, nextTheme, setTheme]);
+  }, [applyThemeToDocument, isAnimating, activeTheme, setTheme]);
 
   if (!mounted) {
     return (
-      <button className="icon-button active:scale-95" aria-label="Toggle Theme">
-        <span className="material-symbols-outlined text-[20px]">light_mode</span>
-      </button>
+      <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] rounded-full p-1 shadow-sm">
+        <button className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)]">
+          <i className="ph ph-sun"></i>
+        </button>
+        <button className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)]">
+          <i className="ph ph-moon"></i>
+        </button>
+      </div>
     );
   }
 
   return (
-    <button
-      type="button"
-      ref={buttonRef}
-      onClick={handleToggle}
-      className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-      disabled={isAnimating}
-      aria-label="Toggle Theme"
-      aria-disabled={isAnimating}
-    >
-      <span className="material-symbols-outlined text-[20px]">
-        {activeTheme === "dark" ? "light_mode" : "dark_mode"}
-      </span>
-    </button>
+    <div ref={buttonRef as any} className="flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] rounded-full p-1 shadow-sm">
+      <button
+        type="button"
+        onClick={() => handleToggle("light")}
+        disabled={isAnimating}
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+          activeTheme === "light"
+            ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)] shadow-sm"
+            : "text-[var(--muted)] hover:text-[var(--foreground)]"
+        }`}
+        aria-label="Light mode"
+      >
+        <i className={`ph ph-sun ${activeTheme === "light" ? "ph-fill" : ""}`}></i>
+      </button>
+      <button
+        type="button"
+        onClick={() => handleToggle("dark")}
+        disabled={isAnimating}
+        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+          activeTheme === "dark"
+            ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)] shadow-sm"
+            : "text-[var(--muted)] hover:text-[var(--foreground)]"
+        }`}
+        aria-label="Dark mode"
+      >
+        <i className={`ph ph-moon ${activeTheme === "dark" ? "ph-fill" : ""}`}></i>
+      </button>
+    </div>
   );
 }

@@ -33,6 +33,8 @@ export default function Home() {
   const { activeProfile, outsourcingInvoices } = useUserData();
   const [greeting, setGreeting] = useState("Good Morning");
   const [hasSyncedGreeting, setHasSyncedGreeting] = useState(false);
+  const [expectedTimeframe, setExpectedTimeframe] = useState("30days");
+
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
   const payableTotals = getOutsourcingTotals(outsourcingInvoices);
@@ -40,6 +42,33 @@ export default function Home() {
   const outstandingCount = totals.unpaidCount + totals.overdueCount;
   const openPayables = payableTotals.pendingAmount + payableTotals.overdueAmount;
   const expectedCash = outstandingAmount - openPayables;
+  
+  const filterByTimeframe = (items: any[], timeframe: string) => {
+    if (timeframe === "all") return items;
+    const now = new Date();
+    return items.filter(item => {
+      const itemDate = new Date(item.dueDate || item.date);
+      if (timeframe === "30days") {
+        const future = new Date(now); future.setDate(now.getDate() + 30);
+        return itemDate <= future;
+      }
+      if (timeframe === "90days") {
+        const future = new Date(now); future.setDate(now.getDate() + 90);
+        return itemDate <= future;
+      }
+      if (timeframe === "thismonth") {
+        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+  };
+
+  const expectedTotals = getInvoiceTotals(filterByTimeframe(invoices, expectedTimeframe));
+  const expectedPayableTotals = getOutsourcingTotals(filterByTimeframe(outsourcingInvoices, expectedTimeframe));
+  const expectedOutstandingAmount = expectedTotals.pendingAmount + expectedTotals.overdueAmount;
+  const expectedOpenPayablesAmount = expectedPayableTotals.pendingAmount + expectedPayableTotals.overdueAmount;
+  const expectedCashNet = expectedOutstandingAmount - expectedOpenPayablesAmount;
+
   const firstName = activeProfile?.name.trim().split(/\s+/)[0];
   const greetingText = `${greeting}${firstName ? `, ${firstName}` : ""}`;
 
@@ -61,187 +90,309 @@ export default function Home() {
   }, []);
 
   return (
-    <>
-      <main className="app-main flex-1">
-        
-        {/* Greeting */}
-        <div className="page-heading">
+    <div className="px-6 sm:px-10 pb-10 flex-1 w-full max-w-7xl mx-auto mt-6">
+      
+      {/* Page Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <AnimatedText as="p" text="Dashboard" effect="micro-scale-fade" className="section-eyebrow" />
-            {hasSyncedGreeting ? (
-              <AnimatedText
-                as="h1"
-                text={greetingText}
-                effect="soft-blur-in"
-                className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
-                delayMs={70}
-              />
-            ) : (
-              <h1 className="text-3xl lg:text-[40px] font-semibold text-transparent leading-[1.1] select-none pointer-events-none">
-                Good Morning
+              <div className="text-[var(--accent)] font-semibold text-sm mb-1 tracking-wide">Dashboard</div>
+              <h1 className="text-3xl font-bold text-[var(--foreground)] flex items-center gap-2">
+                  {hasSyncedGreeting ? greetingText : "Good Morning"} <span className="text-3xl">👋</span>
               </h1>
-            )}
+              <p className="text-[var(--muted)] mt-2 text-sm font-medium">Here's what's happening with your business today.</p>
           </div>
-          <div className="hidden md:flex gap-2.5">
-            <Link href="/invoices" className="btn-primary active:scale-[0.97]">
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              New Invoice
-            </Link>
-            <Link href="/analytics" className="btn-secondary active:scale-[0.97]">
-              View Analytics
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
           
-          {/* Outstanding — Featured Card (spans 2 cols, 2 rows) */}
-          <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
-            <div className="relative z-10">
-              <div className="flex items-center gap-2.5 mb-1">
-                <div className="size-7 rounded-xl bg-[var(--featured-text)]/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[14px] text-[var(--featured-text)]/60">account_balance_wallet</span>
-                </div>
-                <p className="text-[13px] font-medium text-[var(--featured-muted)] tracking-wide">Outstanding</p>
-              </div>
-            </div>
-
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-semibold text-[var(--featured-text)] mb-2 font-display">
-                <AnimatedNumber value={formatCurrency(outstandingAmount, currency)} />
-              </h2>
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1 text-[12px] text-[var(--positive)] font-medium bg-[var(--positive)]/15 px-2 py-0.5 rounded-full">
-                  <span className="material-symbols-outlined text-[14px]">receipt_long</span>
-                  <AnimatedNumber value={outstandingCount} /> open
-                </span>
-                <span className="text-[12px] text-[var(--featured-text)]/35 font-medium">
-                  {openPayables > 0 ? <>After vendor payables: <AnimatedNumber value={formatCurrency(expectedCash, currency)} /></> : "Client money still to collect"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Collected Card */}
-          <div className="surface-card p-5 lg:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Collected</p>
-              <div className="size-7 rounded-lg bg-[var(--foreground)]/[0.04] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[14px] text-[var(--muted)]">payments</span>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></h3>
-              <p className="text-[11px] text-[var(--muted)] font-medium"><AnimatedNumber value={totals.paidCount} /> paid invoices</p>
-            </div>
-          </div>
-
-          {/* Overdue Card */}
-          <div className="surface-card p-5 lg:p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[var(--foreground)]/12 transition-smooth min-h-[133px]">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Overdue</p>
-              <div className="size-7 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[14px] text-[var(--accent)]">warning</span>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl lg:text-2xl font-semibold text-[var(--foreground)] mb-0.5 font-display"><AnimatedNumber value={formatCurrency(totals.overdueAmount, currency)} /></h3>
-              <p className="text-[11px] text-[var(--accent)] font-medium"><AnimatedNumber value={totals.overdueCount} /> invoices overdue</p>
-            </div>
-          </div>
-
-          {/* Expected Cash */}
-          <div className="md:col-span-2 surface-card p-5 lg:p-6 min-h-[133px] flex flex-col justify-between">
-            <div className="flex items-center justify-between gap-4 mb-4">
-              <div>
-                <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-1">Expected Cash</p>
-                <p className="text-[12px] text-[var(--muted)]">
-                  {outstandingAmount > 0 || openPayables > 0 ? (
-                    <>
-                      <AnimatedNumber value={formatCurrency(expectedCash, currency)} />{" "}
-                      <AnimatedText
-                        text="after unpaid vendor payables"
-                        effect="fade-through"
-                        replayKey={`expected-cash-${expectedCash}`}
-                      />
-                    </>
-                  ) : (
-                    <AnimatedText text="Create invoices and payables to forecast cash" effect="fade-through" />
-                  )}
-                </p>
-              </div>
-              <div className="size-9 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">savings</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl border border-[var(--card-border)] p-3">
-                <p className="truncate text-sm font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(outstandingAmount, currency)} /></p>
-                <p className="text-[10px] font-semibold text-[var(--positive)] tracking-wide uppercase">Receivable</p>
-              </div>
-              <div className="rounded-xl border border-[var(--card-border)] p-3">
-                <p className="truncate text-sm font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(openPayables, currency)} /></p>
-                <p className="text-[10px] font-semibold text-[var(--muted)] tracking-wide uppercase">Payable</p>
-              </div>
-              <div className="rounded-xl border border-[var(--card-border)] p-3">
-                <p className={`truncate text-sm font-semibold font-display ${expectedCash < 0 ? "text-[var(--accent)]" : "text-[var(--foreground)]"}`}><AnimatedNumber value={formatCurrency(expectedCash, currency)} /></p>
-                <p className="text-[10px] font-semibold text-[var(--accent)] tracking-wide uppercase">Net Open</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Invoices — Full Width */}
-          <div className="md:col-span-2 lg:col-span-4 surface-card overflow-hidden">
-            <div className="flex items-center justify-between px-6 pt-5 pb-3">
-              <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Recent Invoices</p>
-              <Link href="/invoices" className="text-[12px] font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] transition-smooth">
-                View All
+          <div className="flex items-center gap-3">
+              <Link href="/invoices?action=new" className="flex items-center gap-2 bg-[var(--action)] hover:bg-[var(--action-hover)] text-[var(--action-text)] hover:text-[var(--action-hover-text)] px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm">
+                  <i className="ph ph-plus text-lg"></i>
+                  New Invoice
               </Link>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-x-0 sm:divide-x divide-[var(--card-border)]">
-              {recentInvoices.map((inv, i) => (
-                <div key={inv.id} className={`px-6 py-4 flex flex-col gap-3 hover:bg-[var(--foreground)]/[0.02] transition-smooth cursor-pointer group ${i > 0 ? 'border-t sm:border-t-0 border-[var(--card-border)]' : ''}`}>
-                  <div className="flex items-center gap-2.5">
-                    <div className="size-9 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
-                      <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="font-semibold text-[13px] text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-smooth">{inv.client}</h4>
-                      <p className="text-[11px] text-[var(--muted)]">{inv.id}</p>
-                    </div>
+              <Link href="/analytics" className="flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] text-[var(--foreground)] px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm">
+                  <i className="ph ph-trend-up text-lg"></i>
+                  View Analytics
+              </Link>
+          </div>
+      </div>
+
+      {/* Top Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          
+          {/* Outstanding Card (Spans 2 cols) */}
+          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col justify-between relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                      <i className="ph ph-receipt text-xl"></i>
                   </div>
-                  <div className="flex items-end justify-between">
+                  <h2 className="font-semibold text-[var(--foreground)]">Outstanding</h2>
+              </div>
+              
+              <div className="relative z-10">
+                  <p className="text-[var(--muted)] text-sm font-medium mb-2">Total outstanding</p>
+                  <div className="text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
+                    <AnimatedNumber value={formatCurrency(outstandingAmount, currency)} />
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--accent)]/10 text-[var(--accent)] text-xs font-semibold">
+                          <i className="ph ph-file-text"></i> <AnimatedNumber value={outstandingCount} /> open
+                      </span>
+                      <span className="text-sm text-[var(--muted)] font-medium">After vendor payables: <strong className="text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(expectedCash, currency)} /></strong></span>
+                  </div>
+              </div>
+
+              {/* Abstract Graphic SVG */}
+              <div className="absolute right-6 bottom-6 w-48 h-32 opacity-90 pointer-events-none hidden sm:block">
+                  <svg viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M141.5 125.5C163.591 125.5 181.5 107.591 181.5 85.5C181.5 63.4086 163.591 45.5 141.5 45.5C136.216 45.5 131.171 46.5242 126.541 48.3749C119.829 27.653 100.286 12.5 77 12.5C46.6244 12.5 22 37.1244 22 67.5C22 97.8756 46.6244 122.5 77 122.5C81.8213 122.5 86.4975 121.879 90.963 120.73C99.2778 135.253 115.118 145 133 145C155.091 145 173 127.091 173 105C173 99.414 171.854 94.0954 169.789 89.2847C171.161 88.1633 172.43 86.9189 173.575 85.5684C178.694 92.5181 181.5 100.999 181.5 109.5C181.5 131.591 163.591 149.5 141.5 149.5C119.409 149.5 101.5 131.591 101.5 109.5C101.5 108.575 101.531 107.658 101.593 106.749C96.7937 110.158 91.0665 112.148 85 112.148C70.6406 112.148 59 100.507 59 86.148C59 71.7886 70.6406 60.148 85 60.148C87.218 60.148 89.3664 60.4258 91.4137 60.9472C94.2762 49.6202 104.536 41.148 116.5 41.148C130.859 41.148 142.5 52.7886 142.5 67.148C142.5 70.6385 141.811 73.9686 140.569 77.0275C140.876 77.0093 141.187 77 141.5 77C163.591 77 181.5 94.9086 181.5 117C181.5 139.091 163.591 157 141.5 157C119.409 157 101.5 139.091 101.5 117H141.5V125.5Z" fill="currentColor" className="text-[var(--foreground)]/5"/>
+                      <rect x="50" y="20" width="100" height="110" rx="20" fill="currentColor" className="text-[var(--background)]"/>
+                      <path d="M50 40C50 28.9543 58.9543 20 70 20H130C141.046 20 150 28.9543 150 40V130C150 141.046 141.046 150 130 150H70C58.9543 150 50 141.046 50 130V40Z" fill="currentColor" className="text-[var(--card)]"/>
+                      
+                      <rect x="70" y="50" width="60" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
+                      <rect x="70" y="70" width="60" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
+                      <rect x="70" y="90" width="40" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
+                      <rect x="70" y="110" width="30" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
+
+                      <circle cx="140" cy="100" r="22" fill="currentColor" className="text-[var(--accent)]"/>
+                      <path d="M141.6 92C143.476 92 145 93.5239 145 95.4C145 97.2761 143.476 98.8 141.6 98.8H138.4C136.524 98.8 135 100.324 135 102.2C135 104.076 136.524 105.6 138.4 105.6H141.6C145.466 105.6 148.6 102.466 148.6 98.6C148.6 94.734 145.466 91.6 141.6 91.6H138.4C136.524 91.6 135 90.0761 135 88.2C135 86.3239 136.524 84.8 138.4 84.8H141.6C143.476 84.8 145 86.3239 145 88.2H148.6C148.6 84.334 145.466 81.2 141.6 81.2H140.6V78H137.4V81.2H136.4C132.534 81.2 129.4 84.334 129.4 88.2C129.4 92.066 132.534 95.2 136.4 95.2H139.6C141.476 95.2 143 96.7239 143 98.6C143 100.476 141.476 102 139.6 102H136.4C132.534 102 129.4 98.866 129.4 95H125.8C125.8 100.854 130.546 105.6 136.4 105.6H137.4V108.8H140.6V105.6H141.6C145.466 105.6 148.6 102.466 148.6 98.6C148.6 94.734 145.466 91.6 141.6 91.6Z" fill="currentColor" className="text-[var(--card)]"/>
+                      
+                      <circle cx="170" cy="50" r="3" fill="currentColor" className="text-[var(--accent)]/30"/>
+                      <circle cx="40" cy="90" r="4" fill="currentColor" className="text-[var(--accent)]/30"/>
+                      <circle cx="160" cy="130" r="2" fill="currentColor" className="text-[var(--accent)]/30"/>
+                  </svg>
+              </div>
+          </div>
+
+          {/* Right Column Stack (Collected & Overdue) */}
+          <div className="flex flex-col gap-6">
+              {/* Collected Card */}
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--accent)]/30 transition-colors">
+                  <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--foreground)]/5 flex items-center justify-center text-[var(--foreground)] mt-1">
+                          <i className="ph ph-wallet text-xl"></i>
+                      </div>
+                      <div>
+                          <h3 className="text-sm font-medium text-[var(--muted)] mb-1">Collected</h3>
+                          <div className="text-2xl font-bold text-[var(--foreground)] mb-0.5"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></div>
+                          <p className="text-xs text-[var(--muted)] font-medium opacity-80"><AnimatedNumber value={totals.paidCount} /> paid invoices</p>
+                      </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--foreground)] transition-all">
+                      <i className="ph ph-caret-right"></i>
+                  </div>
+              </div>
+
+              {/* Overdue Card */}
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--negative)]/30 transition-colors">
+                  <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--negative)]/10 flex items-center justify-center text-[var(--negative)] mt-1">
+                          <i className="ph ph-warning text-xl"></i>
+                      </div>
+                      <div>
+                          <h3 className="text-sm font-medium text-[var(--muted)] mb-1">Overdue</h3>
+                          <div className="text-2xl font-bold text-[var(--foreground)] mb-0.5"><AnimatedNumber value={formatCurrency(totals.overdueAmount, currency)} /></div>
+                          <p className="text-xs text-[var(--negative)] font-medium"><AnimatedNumber value={totals.overdueCount} /> invoices overdue</p>
+                      </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--negative)] transition-all">
+                      <i className="ph ph-caret-right"></i>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      {/* Expected Cash Section */}
+      <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                      <i className="ph ph-trend-up text-xl"></i>
+                  </div>
+                  <div>
+                      <h2 className="font-semibold text-[var(--foreground)] text-lg">Expected Cash</h2>
+                      <p className="text-xs text-[var(--muted)] font-medium mt-0.5"><AnimatedNumber value={formatCurrency(expectedCashNet, currency)} /> after unpaid vendor payables</p>
+                  </div>
+              </div>
+              
+              <div className="relative">
+                <select
+                  value={expectedTimeframe}
+                  onChange={(e) => setExpectedTimeframe(e.target.value)}
+                  className="flex items-center justify-between gap-2 border border-[var(--card-border)] rounded-lg pl-9 pr-8 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] transition-colors min-w-[140px] appearance-none bg-transparent outline-none cursor-pointer"
+                >
+                  <option value="thismonth">This Month</option>
+                  <option value="30days">Next 30 Days</option>
+                  <option value="90days">Next 90 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+                <i className="ph ph-calendar-blank text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <i className="ph ph-caret-down text-[var(--muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
+          </div>
+
+          {/* Three Columns Data */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-[var(--card-border)]">
+              <div className="pt-4 md:pt-0 md:pl-0">
+                  <div className="text-2xl font-bold text-[var(--accent)] mb-1"><AnimatedNumber value={formatCurrency(expectedOutstandingAmount, currency)} /></div>
+                  <div className="text-[11px] font-bold tracking-wider text-[var(--accent)] uppercase">Receivable</div>
+              </div>
+              <div className="pt-4 md:pt-0 md:pl-8">
+                  <div className="text-2xl font-bold text-[var(--muted)] mb-1"><AnimatedNumber value={formatCurrency(expectedOpenPayablesAmount, currency)} /></div>
+                  <div className="text-[11px] font-bold tracking-wider text-[var(--muted)] uppercase">Payable</div>
+              </div>
+              <div className="pt-4 md:pt-0 md:pl-8">
+                  <div className={`text-2xl font-bold mb-1 ${expectedCashNet < 0 ? 'text-[var(--negative)]' : 'text-[var(--foreground)]'}`}><AnimatedNumber value={formatCurrency(expectedCashNet, currency)} /></div>
+                  <div className="text-[11px] font-bold tracking-wider text-[var(--foreground)]/60 uppercase">Net Open</div>
+              </div>
+          </div>
+      </div>
+
+      {/* Bottom Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Recent Invoices Table (Spans 2 cols) */}
+          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm flex flex-col overflow-hidden">
+              <div className="px-6 py-5 flex items-center justify-between border-b border-[var(--card-border)]">
+                  <h2 className="font-semibold text-[var(--foreground)] text-lg">Recent Invoices</h2>
+                  <Link href="/invoices" className="text-[var(--accent)] font-semibold text-sm hover:opacity-80 px-4 py-2 border border-[var(--card-border)] rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-colors">View All</Link>
+              </div>
+              
+              <div className="overflow-x-auto flex-1">
+                  <table className="w-full text-left text-sm">
+                      <thead className="text-xs text-[var(--muted)] bg-[var(--card)] font-medium border-b border-[var(--card-border)]">
+                          <tr>
+                              <th className="px-6 py-4 font-medium">Invoice</th>
+                              <th className="px-6 py-4 font-medium">Status</th>
+                              <th className="px-6 py-4 font-medium">Amount</th>
+                              <th className="px-6 py-4 font-medium">Due Date</th>
+                              <th className="px-6 py-4 font-medium text-right">Action</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--card-border)]">
+                          {recentInvoices.map((inv) => (
+                              <tr key={inv.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors group">
+                                  <td className="px-6 py-4">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-9 h-9 rounded-full border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
+                                              <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
+                                          </div>
+                                          <div>
+                                              <div className="font-semibold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors">{inv.id}</div>
+                                              <div className="text-xs text-[var(--muted)] mt-0.5">{inv.client}</div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${inv.statusColor}`}>
+                                          {getPaymentState(inv)}
+                                      </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                      <div className="font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} /></div>
+                                      <div className="text-xs text-[var(--muted)] mt-0.5"><AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected</div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                      <div className="text-[var(--foreground)] font-medium">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'}) : "-"}</div>
+                                      {getBalanceDue(inv) > 0 && (
+                                        <div className="text-xs text-[var(--negative)] font-medium mt-0.5"><AnimatedNumber value={formatCurrency(getBalanceDue(inv), currency)} /> off due</div>
+                                      )}
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                      <button className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-transparent text-[var(--muted)] hover:border-[var(--card-border)] hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)] transition-colors">
+                                          <i className="ph ph-dots-three-vertical text-lg"></i>
+                                      </button>
+                                  </td>
+                              </tr>
+                          ))}
+                          {recentInvoices.length === 0 && (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-10 text-center">
+                                    <span className="material-symbols-outlined text-[38px] text-[var(--foreground)]/10 mb-2 block">receipt_long</span>
+                                    <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
+                                </td>
+                            </tr>
+                          )}
+                      </tbody>
+                  </table>
+              </div>
+              
+              {/* Table Footer Summary */}
+              {recentInvoices.length > 0 && (
+                <div className="mt-auto px-6 py-4 border-t border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex items-center justify-center gap-3 text-sm rounded-b-2xl">
+                    <div className="w-6 h-6 rounded bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center text-xs">
+                        <i className="ph ph-arrows-clockwise"></i>
+                    </div>
                     <div>
-                      <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} /></p>
-                      <p className="text-[10px] text-[var(--foreground)]/25 mt-0.5">
-                        <AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected
-                      </p>
+                        <span className="font-semibold text-[var(--foreground)]">{totals.unpaidCount + totals.overdueCount} open</span>
+                        <span className="text-[var(--muted)] ml-2">Total outstanding: <AnimatedNumber value={formatCurrency(outstandingAmount, currency)} /></span>
                     </div>
-                    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full tracking-wide uppercase ${inv.statusColor}`}>
-                      {getPaymentState(inv)}
-                    </span>
-                  </div>
-                  {getBalanceDue(inv) > 0 && (
-                    <p className="text-[10px] font-medium text-[var(--muted)]">
-                      <AnimatedNumber value={formatCurrency(getBalanceDue(inv), currency)} /> still due
-                    </p>
-                  )}
-                </div>
-              ))}
-              {recentInvoices.length === 0 && (
-                <div className="px-6 py-10 sm:col-span-2 lg:col-span-4 text-center">
-                  <span className="material-symbols-outlined text-[38px] text-[var(--foreground)]/10 mb-2 block">receipt_long</span>
-                  <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
                 </div>
               )}
-            </div>
           </div>
 
-        </div>
-      </main>
+          {/* Quick Actions List */}
+          <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col">
+              <h2 className="font-semibold text-[var(--foreground)] text-lg mb-4">Quick Actions</h2>
+              
+              <div className="space-y-3 flex-1">
+                  {/* Action Item 1 */}
+                  <Link href="/invoices?action=new" className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] transition-all group">
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center">
+                              <i className="ph ph-file-plus text-xl"></i>
+                          </div>
+                          <div>
+                              <div className="font-semibold text-[var(--foreground)] text-sm">Create Invoice</div>
+                              <div className="text-xs text-[var(--muted)] mt-0.5">Send a new invoice</div>
+                          </div>
+                      </div>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                  </Link>
 
-    </>
+                  {/* Action Item 2 */}
+                  <Link href="/expenses" className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] transition-all group">
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-[#3b82f6]/10 text-[#3b82f6] flex items-center justify-center">
+                              <i className="ph ph-receipt text-xl"></i>
+                          </div>
+                          <div>
+                              <div className="font-semibold text-[var(--foreground)] text-sm">Add Expense</div>
+                              <div className="text-xs text-[var(--muted)] mt-0.5">Track a business expense</div>
+                          </div>
+                      </div>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                  </Link>
+
+                  {/* Action Item 3 */}
+                  <Link href="/clients" className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] transition-all group">
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-[#8b5cf6]/10 text-[#8b5cf6] flex items-center justify-center">
+                              <i className="ph ph-user-plus text-xl"></i>
+                          </div>
+                          <div>
+                              <div className="font-semibold text-[var(--foreground)] text-sm">Add Client</div>
+                              <div className="text-xs text-[var(--muted)] mt-0.5">Create a new client profile</div>
+                          </div>
+                      </div>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                  </Link>
+
+                  {/* Action Item 4 */}
+                  <Link href="/analytics" className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] transition-all group">
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-[#f59e0b]/10 text-[#f59e0b] flex items-center justify-center">
+                              <i className="ph ph-squares-four text-xl"></i>
+                          </div>
+                          <div>
+                              <div className="font-semibold text-[var(--foreground)] text-sm">View Reports</div>
+                              <div className="text-xs text-[var(--muted)] mt-0.5">Explore insights & analytics</div>
+                          </div>
+                      </div>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                  </Link>
+              </div>
+          </div>
+
+      </div>
+    </div>
   );
 }
