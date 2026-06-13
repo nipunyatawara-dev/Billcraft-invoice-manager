@@ -531,7 +531,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         (activeProfile?.name || "S")[0].toUpperCase()
                       )}
                     </div>
-                    <span className="truncate">{activeProfile?.name || "Settings"}</span>
+                    <span className="truncate">Settings</span>
                 </div>
                 <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors shrink-0"></i>
             </Link>

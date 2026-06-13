@@ -14,7 +14,7 @@ export const TOAST_POSITIONS = [
 
 export type ToastPosition = (typeof TOAST_POSITIONS)[number]["id"];
 
-const DEFAULT_TOAST_POSITION: ToastPosition = "top-right";
+const DEFAULT_TOAST_POSITION: ToastPosition = "top-center";
 const TOAST_POSITION_STORAGE_KEY = "billcraft.toast-position.v1";
 
 const CHANGE_EVENT = "billcraft:toast-position-change";

@@ -87,45 +87,22 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] rounded-full p-1 shadow-sm">
-        <button className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)]">
-          <i className="ph ph-sun"></i>
-        </button>
-        <button className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--muted)]">
-          <i className="ph ph-moon"></i>
-        </button>
-      </div>
+      <button className="relative p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors rounded-full hover:bg-[var(--foreground)]/[0.04]">
+        <i className="ph ph-sun text-2xl"></i>
+      </button>
     );
   }
 
   return (
-    <div ref={buttonRef as any} className="flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] rounded-full p-1 shadow-sm">
-      <button
-        type="button"
-        onClick={() => handleToggle("light")}
-        disabled={isAnimating}
-        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-          activeTheme === "light"
-            ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)] shadow-sm"
-            : "text-[var(--muted)] hover:text-[var(--foreground)]"
-        }`}
-        aria-label="Light mode"
-      >
-        <i className={`ph ph-sun ${activeTheme === "light" ? "ph-fill" : ""}`}></i>
-      </button>
-      <button
-        type="button"
-        onClick={() => handleToggle("dark")}
-        disabled={isAnimating}
-        className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-          activeTheme === "dark"
-            ? "bg-[var(--foreground)]/[0.04] text-[var(--foreground)] shadow-sm"
-            : "text-[var(--muted)] hover:text-[var(--foreground)]"
-        }`}
-        aria-label="Dark mode"
-      >
-        <i className={`ph ph-moon ${activeTheme === "dark" ? "ph-fill" : ""}`}></i>
-      </button>
-    </div>
+    <button
+      ref={buttonRef as any}
+      type="button"
+      onClick={() => handleToggle(nextTheme)}
+      disabled={isAnimating}
+      className="relative p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors rounded-full hover:bg-[var(--foreground)]/[0.04]"
+      aria-label={`Switch to ${nextTheme} mode`}
+    >
+      <i className={`ph text-2xl ${activeTheme === "light" ? "ph-sun ph-fill" : "ph-moon ph-fill"}`}></i>
+    </button>
   );
 }
