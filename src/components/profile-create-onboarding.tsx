@@ -238,26 +238,26 @@ export function ProfileCreateOnboarding({
   function renderStepFields() {
     if (activeStep.id === "identity") {
       return (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-name">Name</label>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-name">Full Name</label>
             <input
               id="profile-name"
               value={profileForm.name}
               onChange={(event) => updateProfileField(setProfileForm, "name", event.target.value)}
-              placeholder="Your name"
-              className="field-control px-3 py-2"
+              placeholder="e.g. John Doe"
+              className="field-control px-3 py-2.5"
               autoFocus
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-profession">Profession</label>
+          <div className="flex flex-col gap-3">
+            <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-profession">Profession / Role</label>
             <input
               id="profile-profession"
               value={profileForm.profession}
               onChange={(event) => updateProfileField(setProfileForm, "profession", event.target.value)}
-              placeholder="Designer, developer, consultant"
-              className="field-control px-3 py-2"
+              placeholder="e.g. Graphic Designer, Freelance Developer"
+              className="field-control px-3 py-2.5"
             />
           </div>
         </div>
@@ -266,37 +266,37 @@ export function ProfileCreateOnboarding({
 
     if (activeStep.id === "business") {
       return (
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-business">Business Name</label>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-business">Business Name</label>
             <input
               id="profile-business"
               value={profileForm.businessName}
               onChange={(event) => updateProfileField(setProfileForm, "businessName", event.target.value)}
-              placeholder="Studio or business name"
-              className="field-control px-3 py-2"
+              placeholder="e.g. Studio Design"
+              className="field-control px-3 py-2.5"
             />
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-email">Email</label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-3">
+              <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-email">Email Address</label>
               <input
                 id="profile-email"
                 type="email"
                 value={profileForm.email}
                 onChange={(event) => updateProfileField(setProfileForm, "email", event.target.value)}
                 placeholder="you@example.com"
-                className="field-control px-3 py-2"
+                className="field-control px-3 py-2.5"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-phone">Phone</label>
+            <div className="flex flex-col gap-3">
+              <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-phone">Phone Number</label>
               <input
                 id="profile-phone"
                 value={profileForm.phone}
                 onChange={(event) => updateProfileField(setProfileForm, "phone", event.target.value)}
-                placeholder="+94 77 000 0000"
-                className="field-control px-3 py-2"
+                placeholder="+1 234 567 890"
+                className="field-control px-3 py-2.5"
               />
             </div>
           </div>
@@ -307,43 +307,43 @@ export function ProfileCreateOnboarding({
     if (activeStep.id === "security") {
       return (
         <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-password">Password</label>
-              <input
-                id="profile-password"
-                minLength={6}
-                type="password"
-                value={profileForm.password || ""}
-                onChange={(event) => updateProfileField(setProfileForm, "password", event.target.value)}
-                placeholder="Minimum 6 characters"
-                className="field-control px-3 py-2"
-              />
-              <p className="text-[10px] text-[var(--muted)]">Numbers-only passwords are allowed.</p>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-password-confirm">Confirm Password</label>
-              <input
-                id="profile-password-confirm"
-                minLength={6}
-                type="password"
-                value={profilePasswordConfirm}
-                onChange={(event) => setProfilePasswordConfirm(event.target.value)}
-                placeholder="Repeat password"
-                className="field-control px-3 py-2"
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="profile-password-hint">Password Hint</label>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex flex-col gap-3">
+            <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-password">Password</label>
             <input
-              id="profile-password-hint"
-              value={profileForm.passwordHint || ""}
-              onChange={(event) => updateProfileField(setProfileForm, "passwordHint", event.target.value)}
-              placeholder="Optional reminder"
-              className="field-control px-3 py-2"
+              id="profile-password"
+              minLength={6}
+              type="password"
+              value={profileForm.password || ""}
+              onChange={(event) => updateProfileField(setProfileForm, "password", event.target.value)}
+              placeholder="Minimum 6 characters"
+              className="field-control px-3 py-2.5"
+            />
+            <p className="text-[11px] text-[var(--muted)]">Numbers-only passwords are allowed.</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-password-confirm">Confirm Password</label>
+            <input
+              id="profile-password-confirm"
+              minLength={6}
+              type="password"
+              value={profilePasswordConfirm}
+              onChange={(event) => setProfilePasswordConfirm(event.target.value)}
+              placeholder="Repeat password"
+              className="field-control px-3 py-2.5"
             />
           </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <label className="text-[13px] font-medium text-[var(--foreground)]" htmlFor="profile-password-hint">Password Hint <span className="text-[var(--muted)] font-normal">(Optional)</span></label>
+          <input
+            id="profile-password-hint"
+            value={profileForm.passwordHint || ""}
+            onChange={(event) => updateProfileField(setProfileForm, "passwordHint", event.target.value)}
+            placeholder="Helpful reminder"
+            className="field-control px-3 py-2.5"
+          />
+        </div>
         </div>
       );
     }
@@ -460,10 +460,10 @@ export function ProfileCreateOnboarding({
               exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, filter: "blur(3px)" }}
               transition={{ duration: shouldReduceMotion ? 0.01 : 0.2, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="mb-4">
+              <div className="mb-8">
                 <p className="section-eyebrow mb-1">Profile Setup</p>
                 <h2 className="font-display text-2xl font-semibold leading-tight text-[var(--foreground)]">{activeStep.title}</h2>
-                <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--muted)]">{activeStep.description}</p>
+                <p className="mt-1 text-[13px] font-medium leading-5 text-[var(--muted)]">{activeStep.description}</p>
               </div>
 
               {renderStepFields()}
@@ -475,7 +475,7 @@ export function ProfileCreateOnboarding({
               )}
 
               {!canContinue && (
-                <p className="mt-4 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.025] px-3 py-2 text-[12px] font-medium text-[var(--muted)]">
+                <p className="mt-4 text-[12px] font-medium italic text-[var(--muted)]">
                   {activeStep.id === "identity" ? "Name and profession are required." : "Use at least 6 matching password characters."}
                 </p>
               )}
@@ -542,12 +542,10 @@ export function ProfileCreateOnboarding({
               )}
             >
               <span className={cn(
-                "grid size-6 shrink-0 place-items-center rounded-full border text-[var(--muted)]",
-                isComplete
-                  ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
-                  : "border-[var(--card-border)] bg-[var(--card)]",
+                "flex size-6 shrink-0 items-center justify-center text-[var(--muted)]",
+                isComplete && "rounded-full border border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
               )}>
-                <span className="material-symbols-outlined text-[15px]" style={isComplete ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
+                <span className="material-symbols-outlined block text-[15px] leading-none tracking-normal" style={isComplete ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
                   {isComplete ? "check" : step.icon}
                 </span>
               </span>

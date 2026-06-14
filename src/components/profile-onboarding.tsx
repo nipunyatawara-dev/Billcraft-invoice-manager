@@ -423,12 +423,10 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                           )}
                         >
                           <span className={cn(
-                            "grid size-6 shrink-0 place-items-center rounded-full border text-[var(--muted)]",
-                            step.completed
-                              ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
-                              : "border-[var(--card-border)] bg-[var(--card)]",
+                            "flex size-6 shrink-0 items-center justify-center text-[var(--muted)]",
+                            step.completed && "rounded-full border border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
                           )}>
-                            <span className="material-symbols-outlined text-[15px]" style={step.completed ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
+                            <span className="material-symbols-outlined block text-[15px] leading-none tracking-normal" style={step.completed ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
                               {step.completed ? "check" : step.icon}
                             </span>
                           </span>
