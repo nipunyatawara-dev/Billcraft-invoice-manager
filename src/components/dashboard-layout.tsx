@@ -70,7 +70,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useModePalettes();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNotificationBadgeOpen, setIsNotificationBadgeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [showCreateProfileForm, setShowCreateProfileForm] = useState(false);
   const [profileForm, setProfileForm] = useState<ProfileDraft>(EMPTY_PROFILE_FORM);
@@ -193,7 +192,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
 
     // Todo
-    const matchedTodos = todoTasks.filter(t => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    const matchedTodos = todoTasks.filter(t => t.title.toLowerCase().includes(q) || (t.description || "").toLowerCase().includes(q));
     if (matchedTodos.length) {
       results.push({ group: "To-Do", items: matchedTodos.map(t => ({ id: t.id, label: t.title, icon: "ph ph-check-square-offset", href: `/todo?id=${t.id}` })) });
     }
@@ -211,7 +210,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
 
     return results;
-  }, [searchQuery, clients, invoices, expenses, catalogItems, todoTasks]);
+  }, [searchQuery, clients, invoices, expenses, catalogItems, todoTasks, vendors, outsourcingInvoices]);
 
   useEffect(() => {
     if (isFirstRun) {
@@ -267,11 +266,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
   }, [activeProfileId, isProfileLocked]);
 
-  useEffect(() => {
-    const badgeTimer = window.setTimeout(() => setIsNotificationBadgeOpen(true), 120);
-
-    return () => window.clearTimeout(badgeTimer);
-  }, []);
 
   useEffect(() => {
     if (loading || onboardingProfileId) {
@@ -502,8 +496,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   function handleNotificationsClick() {
-    setIsNotificationBadgeOpen(false);
-
     if (error) {
       notify.error({
         title: "Data sync issue",

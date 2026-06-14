@@ -63,7 +63,7 @@ export default function Home() {
   const openPayables = payableTotals.pendingAmount + payableTotals.overdueAmount;
   const expectedCash = outstandingAmount - openPayables;
   
-  const filterByTimeframe = (items: any[], timeframe: string) => {
+  const filterByTimeframe = <T extends { dueDate?: string; date: string }>(items: T[], timeframe: string): T[] => {
     if (timeframe === "all") return items;
     const now = new Date();
     return items.filter(item => {

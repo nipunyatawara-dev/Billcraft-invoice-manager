@@ -86,12 +86,11 @@ export default function Expenses() {
         if (expense) {
           setEditingExpenseId(expense.id);
           setForm({
-            amount: expense.amount.toString(),
-            category: expense.category,
             merchant: expense.merchant,
-            date: expense.date,
             description: expense.description,
-            receiptUrl: expense.receiptUrl || "",
+            category: expense.category,
+            amount: expense.amount,
+            date: expense.date,
             isTaxDeductible: expense.isTaxDeductible,
             notes: expense.notes || "",
           });

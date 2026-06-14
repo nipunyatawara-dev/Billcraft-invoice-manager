@@ -137,9 +137,9 @@ async function embedGoogleSansFlex(pdf: PDFDocument): Promise<PdfFonts> {
   ]);
 
   return {
-    regular: await pdf.embedFont(regular, { subset: false }),
-    semibold: await pdf.embedFont(semibold, { subset: false }),
-    bold: await pdf.embedFont(bold, { subset: false }),
+    regular: await pdf.embedFont(regular, { subset: true }),
+    semibold: await pdf.embedFont(semibold, { subset: true }),
+    bold: await pdf.embedFont(bold, { subset: true }),
   };
 }
 

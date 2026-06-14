@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastViewport } from "@/components/toast-viewport";
@@ -70,12 +71,12 @@ export default function RootLayout({
           rel="stylesheet" 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" 
         />
-        <script src="https://unpkg.com/@phosphor-icons/web"></script>
         <script dangerouslySetInnerHTML={{ __html: paletteBootstrapScript }} />
       </head>
       <body
         className="font-sans antialiased"
       >
+        <Script src="https://unpkg.com/@phosphor-icons/web" strategy="afterInteractive" />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

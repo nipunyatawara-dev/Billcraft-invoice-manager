@@ -301,8 +301,6 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
     return null;
   }
 
-  const progressDegrees = Math.max(12, Math.round(progress * 360));
-
   return (
     <AnimatePresence>
       <motion.aside

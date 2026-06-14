@@ -95,7 +95,7 @@ export function ThemeToggle() {
 
   return (
     <button
-      ref={buttonRef as any}
+      ref={buttonRef}
       type="button"
       onClick={() => handleToggle(nextTheme)}
       disabled={isAnimating}

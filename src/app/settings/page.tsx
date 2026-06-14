@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { AnimatedText } from "@/components/animated-text";
 import { ProfileTab } from "./components/ProfileTab";
 import { AppearanceTab } from "./components/AppearanceTab";
@@ -21,17 +22,36 @@ const tabs = [
 ];
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  return (
+    <Suspense fallback={
+      <main className="app-main flex-1">
+        <div className="page-heading">
+          <div>
+            <p className="section-eyebrow">Account</p>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">Settings</h1>
+          </div>
+        </div>
+        <div className="py-12 text-center text-[var(--muted)]">Loading Settings...</div>
+      </main>
+    }>
+      <SettingsContent />
+    </Suspense>
+  );
+}
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab") as SettingsTab;
-      if (tab && tabs.some(t => t.id === tab)) {
-        setActiveTab(tab);
-      }
-    }
-  }, []);
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const queryTab = searchParams.get("tab") as SettingsTab;
+  const activeTab = queryTab && tabs.some(t => t.id === queryTab) ? queryTab : "profile";
+
+  const handleTabChange = (tabId: SettingsTab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabId);
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <main className="app-main flex-1">
@@ -63,7 +83,7 @@ export default function Settings() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
                     isActive
                       ? "bg-[var(--action)]/10 text-[var(--action)] shadow-sm"
