@@ -42,6 +42,7 @@ html[data-font="plus-jakarta-sans"] {
 }
 
 html {
+  color-scheme: light;
   font-size: 14px;
   --palette-1: #ffffff;
   --palette-2: #f7f7f7;
@@ -79,6 +80,7 @@ html {
 }
 
 html.dark {
+  color-scheme: dark;
   --palette-1: #080808;
   --palette-2: #111111;
   --palette-3: #181818;
@@ -425,6 +427,14 @@ html.dark {
     background: var(--action);
     color: var(--action-text);
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-ghost:disabled,
+  .icon-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .btn-primary:hover:not(:disabled) {
