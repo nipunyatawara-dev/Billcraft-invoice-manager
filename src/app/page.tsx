@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, getAmountPaid, getBalanceDue, getInvoiceTotal, getInvoiceTotals, getOutsourcingTotals, getPaymentState } from "@/data/invoices";
@@ -34,6 +35,25 @@ export default function Home() {
   const [greeting, setGreeting] = useState("Good Morning");
   const [hasSyncedGreeting, setHasSyncedGreeting] = useState(false);
   const [expectedTimeframe, setExpectedTimeframe] = useState("30days");
+  const [isTimeframeOpen, setIsTimeframeOpen] = useState(false);
+  const timeframeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (timeframeRef.current && !timeframeRef.current.contains(event.target as Node)) {
+        setIsTimeframeOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const timeframeOptions = [
+    { value: "thismonth", label: "This Month" },
+    { value: "30days", label: "Next 30 Days" },
+    { value: "90days", label: "Next 90 Days" },
+    { value: "all", label: "All Time" },
+  ];
 
   const recentInvoices = invoices.slice(0, 4);
   const totals = getInvoiceTotals(invoices);
@@ -217,19 +237,49 @@ export default function Home() {
                   </div>
               </div>
               
-              <div className="relative">
-                <select
-                  value={expectedTimeframe}
-                  onChange={(e) => setExpectedTimeframe(e.target.value)}
-                  className="flex items-center justify-between gap-2 border border-[var(--card-border)] rounded-lg pl-9 pr-8 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] transition-colors min-w-[140px] appearance-none bg-transparent outline-none cursor-pointer"
+              <div className="relative" ref={timeframeRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsTimeframeOpen(!isTimeframeOpen)}
+                  className="flex items-center justify-between gap-2 border border-[var(--card-border)] rounded-lg pl-9 pr-8 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] transition-colors min-w-[150px] bg-[var(--card)] outline-none cursor-pointer relative z-10"
                 >
-                  <option value="thismonth">This Month</option>
-                  <option value="30days">Next 30 Days</option>
-                  <option value="90days">Next 90 Days</option>
-                  <option value="all">All Time</option>
-                </select>
-                <i className="ph ph-calendar-blank text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <i className="ph ph-caret-down text-[var(--muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <span>{timeframeOptions.find(o => o.value === expectedTimeframe)?.label}</span>
+                  <i className="ph ph-calendar-blank text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <i className="ph ph-caret-down text-[var(--muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200" style={{ transform: isTimeframeOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)' }}></i>
+                </button>
+
+                <AnimatePresence>
+                  {isTimeframeOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 top-full mt-2 w-full min-w-full rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-1.5 shadow-xl z-50 origin-top"
+                    >
+                      {timeframeOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setExpectedTimeframe(option.value);
+                            setIsTimeframeOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-[13px] font-medium transition-colors flex items-center justify-between group ${
+                            expectedTimeframe === option.value
+                              ? "bg-[var(--accent)]/[0.08] text-[var(--accent)]"
+                              : "text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04]"
+                          }`}
+                        >
+                          {option.label}
+                          {expectedTimeframe === option.value && (
+                            <i className="ph-fill ph-check text-[14px]"></i>
+                          )}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
           </div>
 
