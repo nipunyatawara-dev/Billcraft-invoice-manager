@@ -246,22 +246,6 @@ html.dark {
   }
 }
 
-@keyframes t-digit-pop-in {
-  0% {
-    filter: blur(var(--digit-blur));
-    opacity: 0;
-    transform: translate(
-      calc(var(--digit-distance) * var(--digit-dir-x)),
-      calc(var(--digit-distance) * var(--digit-dir-y))
-    );
-  }
-  100% {
-    filter: blur(0);
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-}
-
 @keyframes skeleton-shimmer {
   from {
     background-position: 180% 0;
@@ -303,7 +287,6 @@ html.dark {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-digit-group .t-digit,
   .t-badge,
   .t-badge-dot,
   .skeleton-block,
@@ -541,21 +524,6 @@ html.dark {
       transform var(--badge-pop-close-dur) var(--badge-close-ease),
       opacity var(--badge-fade-close-dur) var(--badge-close-ease),
       filter var(--badge-pop-close-dur) var(--badge-close-ease);
-  }
-
-  .t-digit-group {
-    display: inline-flex;
-    align-items: baseline;
-    white-space: pre;
-  }
-
-  .t-digit {
-    display: inline-block;
-    will-change: transform, opacity, filter;
-  }
-
-  .t-digit-group.is-animating .t-digit {
-    animation: t-digit-pop-in var(--digit-dur) var(--digit-ease) both;
   }
 
   .field-control {

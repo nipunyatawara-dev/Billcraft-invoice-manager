@@ -81,11 +81,11 @@ export function TrashTab() {
                   <span className="material-symbols-outlined text-[20px] text-[var(--muted)] group-hover:text-[var(--action)]">receipt_long</span>
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-[var(--foreground)] tracking-tight">{item.client}</h4>
+                  <h4 className="text-[14px] font-bold text-[var(--foreground)] tracking-tight">{item.data.client}</h4>
                   <div className="flex items-center gap-2 mt-1 text-[11px] font-medium text-[var(--muted)]">
                     <span className="uppercase tracking-wider">Invoice</span>
                     <span className="size-1 rounded-full bg-[var(--muted)]/40"></span>
-                    <span>{item.date}</span>
+                    <span>{item.data.date}</span>
                   </div>
                 </div>
               </div>
