@@ -24,19 +24,21 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
   return (
-    <main className="app-main flex-1 max-w-7xl mx-auto w-full pb-20">
+    <main className="app-main flex-1">
       
       {/* Header */}
-      <div className="mb-10 lg:mb-12">
-        <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="section-eyebrow" />
-        <AnimatedText
-          as="h1"
-          text="Settings"
-          effect="micro-scale-fade"
-          className="text-4xl lg:text-5xl font-black text-[var(--foreground)] leading-tight tracking-tight font-display"
-          delayMs={70}
-        />
-        <p className="mt-3 text-[15px] text-[var(--muted)] max-w-2xl font-medium">Manage your profile, adjust aesthetic preferences, and control your data.</p>
+      <div className="page-heading">
+        <div>
+          <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText
+            as="h1"
+            text="Settings"
+            effect="micro-scale-fade"
+            className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+            delayMs={70}
+          />
+          <p className="mt-3 text-[15px] text-[var(--muted)] max-w-2xl font-medium">Manage your profile, adjust aesthetic preferences, and control your data.</p>
+        </div>
       </div>
 
       {/* Modern Bento Layout */}

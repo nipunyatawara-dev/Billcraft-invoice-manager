@@ -90,16 +90,20 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="px-6 sm:px-10 pb-10 flex-1 w-full max-w-7xl mx-auto mt-6">
+    <main className="app-main flex-1">
       
       {/* Page Header Area */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <div className="page-heading">
           <div>
-              <div className="text-[var(--accent)] font-semibold text-sm mb-1 tracking-wide">Dashboard</div>
-              <h1 className="text-3xl font-bold text-[var(--foreground)] flex items-center gap-2">
-                  {hasSyncedGreeting ? greetingText : "Good Morning"} <span className="text-3xl">👋</span>
-              </h1>
-              <p className="text-[var(--muted)] mt-2 text-sm font-medium">Here's what's happening with your business today.</p>
+              <AnimatedText as="p" text="Overview" effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text={hasSyncedGreeting ? greetingText : "Good Morning"}
+                effect="micro-scale-fade"
+                className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+                delayMs={70}
+              />
+              <AnimatedText as="p" text="Here's what's happening with your business today." effect="micro-scale-fade" className="text-[var(--muted)] mt-2 text-sm font-medium" delayMs={140} />
           </div>
           
           <div className="flex items-center gap-3">
@@ -153,7 +157,7 @@ export default function Home() {
                       <rect x="70" y="110" width="30" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
 
                       <circle cx="140" cy="100" r="22" fill="currentColor" className="text-[var(--accent)]"/>
-                      <path d="M141.6 92C143.476 92 145 93.5239 145 95.4C145 97.2761 143.476 98.8 141.6 98.8H138.4C136.524 98.8 135 100.324 135 102.2C135 104.076 136.524 105.6 138.4 105.6H141.6C145.466 105.6 148.6 102.466 148.6 98.6C148.6 94.734 145.466 91.6 141.6 91.6H138.4C136.524 91.6 135 90.0761 135 88.2C135 86.3239 136.524 84.8 138.4 84.8H141.6C143.476 84.8 145 86.3239 145 88.2H148.6C148.6 84.334 145.466 81.2 141.6 81.2H140.6V78H137.4V81.2H136.4C132.534 81.2 129.4 84.334 129.4 88.2C129.4 92.066 132.534 95.2 136.4 95.2H139.6C141.476 95.2 143 96.7239 143 98.6C143 100.476 141.476 102 139.6 102H136.4C132.534 102 129.4 98.866 129.4 95H125.8C125.8 100.854 130.546 105.6 136.4 105.6H137.4V108.8H140.6V105.6H141.6C145.466 105.6 148.6 102.466 148.6 98.6C148.6 94.734 145.466 91.6 141.6 91.6Z" fill="currentColor" className="text-[var(--card)]"/>
+                      <text x="140" y="101" fontSize="26" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle" dominantBaseline="central" fill="currentColor" className="text-[var(--card)]">$</text>
                       
                       <circle cx="170" cy="50" r="3" fill="currentColor" className="text-[var(--accent)]/30"/>
                       <circle cx="40" cy="90" r="4" fill="currentColor" className="text-[var(--accent)]/30"/>
@@ -393,6 +397,6 @@ export default function Home() {
           </div>
 
       </div>
-    </div>
+    </main>
   );
 }
