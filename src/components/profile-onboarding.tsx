@@ -320,20 +320,28 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
             className="flex w-full items-center gap-3 px-4 py-3 text-left transition-smooth hover:bg-[var(--foreground)]/[0.025]"
             aria-expanded={isExpanded}
           >
-            <span
-              className="grid size-7 shrink-0 place-items-center rounded-full"
-              style={{
-                background: `conic-gradient(var(--accent) ${progressDegrees}deg, color-mix(in srgb, var(--foreground) 10%, transparent) 0deg)`,
-              }}
-            >
-              <span className="grid size-[1.15rem] place-items-center rounded-full bg-[var(--card)]">
+            <div className="relative grid size-7 shrink-0 place-items-center">
+              <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="11" fill="none" stroke="color-mix(in srgb, var(--foreground) 10%, transparent)" strokeWidth="6" />
+                <motion.circle 
+                  cx="14" cy="14" r="11" 
+                  fill="none" 
+                  stroke="var(--accent)" 
+                  strokeWidth="6"
+                  strokeDasharray="69.115"
+                  initial={{ strokeDashoffset: 69.115 }}
+                  animate={{ strokeDashoffset: 69.115 - (69.115 * Math.max(0.03, progress)) }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                />
+              </svg>
+              <span className="relative grid size-[1.15rem] place-items-center rounded-full bg-[var(--card)]">
                 {allDone ? (
                   <span className="material-symbols-outlined text-[13px] text-[var(--accent)]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}>check</span>
                 ) : (
                   <span className="size-2 rounded-full bg-[var(--accent)]" />
                 )}
               </span>
-            </span>
+            </div>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] font-semibold text-[var(--foreground)]">{allDone ? "All done!" : "Get Started"}</span>
             </span>
@@ -424,7 +432,7 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                         >
                           <span className={cn(
                             "flex size-6 shrink-0 items-center justify-center text-[var(--muted)]",
-                            step.completed && "rounded-full border border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
+                            step.completed && "text-[var(--accent)]"
                           )}>
                             <span className="material-symbols-outlined block text-[15px] leading-none tracking-normal" style={step.completed ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
                               {step.completed ? "check" : step.icon}

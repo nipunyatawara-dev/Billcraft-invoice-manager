@@ -480,7 +480,12 @@ export function ProfileCreateOnboarding({
                 </p>
               )}
 
-              <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                {activeStepIndex > 0 && (
+                  <button type="button" onClick={goBack} className="btn-secondary active:scale-[0.97]">
+                    Previous
+                  </button>
+                )}
                 {activeStep.optional && !isFinalStep && (
                   <button
                     type="button"
@@ -489,11 +494,6 @@ export function ProfileCreateOnboarding({
                     disabled={activeStep.id === "business" ? isBusinessDirty : activeStep.id === "brand" ? isBrandDirty : false}
                   >
                     Skip
-                  </button>
-                )}
-                {activeStepIndex > 0 && (
-                  <button type="button" onClick={goBack} className="btn-ghost active:scale-[0.97]">
-                    Back
                   </button>
                 )}
                 {isFinalStep ? (
@@ -543,7 +543,7 @@ export function ProfileCreateOnboarding({
             >
               <span className={cn(
                 "flex size-6 shrink-0 items-center justify-center text-[var(--muted)]",
-                isComplete && "rounded-full border border-[var(--accent)] bg-[var(--accent)] text-[var(--action-text)]"
+                isComplete && "text-[var(--accent)]"
               )}>
                 <span className="material-symbols-outlined block text-[15px] leading-none tracking-normal" style={isComplete ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
                   {isComplete ? "check" : step.icon}
