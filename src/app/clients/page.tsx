@@ -69,6 +69,16 @@ export default function Clients() {
   const { currency } = useCurrency();
   const shouldReduceMotion = useReducedMotion();
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (id && clientRecords.length > 0 && !selectedClientId) {
+        setSelectedClientId(id);
+      }
+    }
+  }, [clientRecords, selectedClientId]);
+
   const clients = useMemo<ClientWithInvoices[]>(() => (
     clientRecords.map((client) => {
       const clientInvoices = invoices.filter((invoice) => invoice.clientId === client.id || invoice.client === client.name);

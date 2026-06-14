@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatedText } from "@/components/animated-text";
 import { ProfileTab } from "./components/ProfileTab";
 import { AppearanceTab } from "./components/AppearanceTab";
@@ -22,6 +22,16 @@ const tabs = [
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab") as SettingsTab;
+      if (tab && tabs.some(t => t.id === tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
 
   return (
     <main className="app-main flex-1">

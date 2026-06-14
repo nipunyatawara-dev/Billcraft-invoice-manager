@@ -77,6 +77,30 @@ export default function Expenses() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (id && expenses.length > 0 && !editingExpenseId && !showModal) {
+        const expense = expenses.find(e => e.id === id);
+        if (expense) {
+          setEditingExpenseId(expense.id);
+          setForm({
+            amount: expense.amount.toString(),
+            category: expense.category,
+            merchant: expense.merchant,
+            date: expense.date,
+            description: expense.description,
+            receiptUrl: expense.receiptUrl || "",
+            isTaxDeductible: expense.isTaxDeductible,
+            notes: expense.notes || "",
+          });
+          setShowModal(true);
+        }
+      }
+    }
+  }, [expenses, editingExpenseId, showModal]);
+
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
       const matchesCategory = selectedCategory === "All" || expense.category === selectedCategory;

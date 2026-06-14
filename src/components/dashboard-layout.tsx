@@ -11,10 +11,10 @@ import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: "ph ph-house", activeIcon: "ph-fill ph-house" },
@@ -80,7 +80,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [onboardingProfileId, setOnboardingProfileId] = useState<string | null>(null);
+  const [osKey, setOsKey] = useState("⌘");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const {
     activeProfile,
     activeProfileId,
@@ -97,6 +102,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     todoTasks,
     unlockProfile,
     vendors,
+    expenses,
+    catalogItems,
   } = useUserData();
   const isFirstRun = !loading && profiles.length === 0;
   const activeAlerts = useMemo(() => {
@@ -135,12 +142,119 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }, [activeProfile, clients, invoices, outsourcingInvoices, todoTasks, vendors]);
   const alertCount = activeAlerts.reduce((sum, alert) => sum + alert.count, 0);
 
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    
+    const results = [];
+    
+    // Pages
+    const pages = [...NAV_ITEMS, ...WORK_NAV_ITEMS, ...BOTTOM_NAV].filter(p => p.label.toLowerCase().includes(q));
+    if (pages.length) {
+      results.push({ group: "Pages", items: pages.map(p => ({ id: p.href, label: p.label, icon: p.icon, href: p.href })) });
+    }
+
+    // Settings Tabs
+    const settingsTabs = [
+      { id: "profile", label: "Profile Settings", icon: "ph ph-user" },
+      { id: "appearance", label: "Appearance", icon: "ph ph-palette" },
+      { id: "notifications", label: "Notifications", icon: "ph ph-bell" },
+      { id: "data", label: "Your Data", icon: "ph ph-database" },
+      { id: "security", label: "Security", icon: "ph ph-shield" },
+      { id: "trash", label: "Trash Bin", icon: "ph ph-trash" },
+    ].filter(t => t.label.toLowerCase().includes(q));
+    if (settingsTabs.length) {
+      results.push({ group: "Settings", items: settingsTabs.map(t => ({ id: t.id, label: t.label, icon: t.icon, href: `/settings?tab=${t.id}` })) });
+    }
+
+    // Clients
+    const matchedClients = clients.filter(c => c.name.toLowerCase().includes(q) || (c.company || "").toLowerCase().includes(q));
+    if (matchedClients.length) {
+      results.push({ group: "Clients", items: matchedClients.map(c => ({ id: c.id, label: c.name + (c.company ? ` (${c.company})` : ''), icon: "ph ph-user-circle", href: `/clients?id=${c.id}` })) });
+    }
+
+    // Invoices
+    const matchedInvoices = invoices.filter(i => i.id.toLowerCase().includes(q) || i.client.toLowerCase().includes(q));
+    if (matchedInvoices.length) {
+      results.push({ group: "Invoices", items: matchedInvoices.map(i => ({ id: i.id, label: `${i.id} - ${i.client}`, icon: "ph ph-receipt", href: `/invoices?id=${i.id}` })) });
+    }
+
+    // Expenses
+    const matchedExpenses = expenses.filter(e => e.merchant.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
+    if (matchedExpenses.length) {
+      results.push({ group: "Expenses", items: matchedExpenses.map(e => ({ id: e.id, label: `${e.merchant} - ${e.description}`, icon: "ph ph-wallet", href: `/expenses?id=${e.id}` })) });
+    }
+
+    // Catalog
+    const matchedCatalog = catalogItems.filter(c => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
+    if (matchedCatalog.length) {
+      results.push({ group: "Catalog", items: matchedCatalog.map(c => ({ id: c.id, label: c.name, icon: "ph ph-box-arrow-down", href: `/catalog?id=${c.id}` })) });
+    }
+
+    // Todo
+    const matchedTodos = todoTasks.filter(t => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    if (matchedTodos.length) {
+      results.push({ group: "To-Do", items: matchedTodos.map(t => ({ id: t.id, label: t.title, icon: "ph ph-check-square-offset", href: `/todo?id=${t.id}` })) });
+    }
+
+    // Vendors
+    const matchedVendors = vendors.filter(v => v.name.toLowerCase().includes(q) || (v.email || "").toLowerCase().includes(q) || (v.phone || "").toLowerCase().includes(q));
+    if (matchedVendors.length) {
+      results.push({ group: "Vendors", items: matchedVendors.map(v => ({ id: v.id, label: v.name, icon: "ph ph-storefront", href: `/outsourcing?vendor=${v.id}` })) });
+    }
+
+    // Payables (Outsourcing Invoices)
+    const matchedPayables = outsourcingInvoices.filter(i => i.id.toLowerCase().includes(q) || i.vendor.toLowerCase().includes(q));
+    if (matchedPayables.length) {
+      results.push({ group: "Payables", items: matchedPayables.map(i => ({ id: i.id, label: `${i.id} - ${i.vendor}`, icon: "ph ph-receipt-x", href: `/outsourcing?id=${i.id}` })) });
+    }
+
+    return results;
+  }, [searchQuery, clients, invoices, expenses, catalogItems, todoTasks]);
+
   useEffect(() => {
     if (isFirstRun) {
       setIsProfileModalOpen(true);
       setShowCreateProfileForm(true);
     }
   }, [isFirstRun]);
+
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      const isMac = navigator.userAgent.toLowerCase().includes("mac");
+      setOsKey(isMac ? "⌘" : "Ctrl");
+    }
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.userAgent.toLowerCase().includes("mac");
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+      const isSearchKey = e.key.toLowerCase() === "k" || e.key.toLowerCase() === "f";
+      
+      if (modifier && isSearchKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery) {
+      e.preventDefault();
+      const firstGroup = searchResults[0];
+      if (firstGroup && firstGroup.items[0]) {
+        router.push(firstGroup.items[0].href);
+        setIsSearchFocused(false);
+        setSearchQuery("");
+      }
+    }
+  };
 
   useEffect(() => {
     if (isProfileLocked && activeProfileId) {
@@ -382,7 +496,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setProfileMessage("");
     notify.info({
       title: "Logged out",
-      description: "Enter your profile password to continue.",
+      description: "Select a profile to continue.",
     });
   }
 
@@ -437,7 +551,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const passwordPromptProfile = profiles.find((profile) => profile.id === (pendingSwitchProfileId || (isProfileLocked ? activeProfileId : null)));
   const isPasswordPromptForLogin = Boolean(passwordPromptProfile && passwordPromptProfile.id === activeProfileId && isProfileLocked);
-  const canLogoutActiveProfile = Boolean(activeProfile?.hasPassword && !isProfileLocked);
+  const canLogoutActiveProfile = Boolean(activeProfile && !isProfileLocked);
   const isCreatingProfile = isFirstRun || showCreateProfileForm;
   const isLoggingIn = isProfileLocked || pendingSwitchProfileId !== null;
   const showPremiumBg = isCreatingProfile || isLoggingIn;
@@ -553,12 +667,54 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             
             <div className="flex items-center gap-3 sm:gap-6">
                 {/* Search */}
-                <div className="relative group hidden sm:block">
+                <div 
+                  className="relative group hidden sm:block" 
+                  onFocus={() => setIsSearchFocused(true)} 
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setIsSearchFocused(false);
+                    }
+                  }}
+                >
                     <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors"></i>
-                    <input type="text" placeholder="Search..." className="pl-10 pr-12 py-2.5 bg-[var(--card)] border border-[var(--card-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] w-64 shadow-sm transition-all text-[var(--foreground)] placeholder:text-[var(--muted)]" />
+                    <input 
+                      ref={searchInputRef}
+                      type="text" 
+                      placeholder="Search..." 
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onKeyDown={handleSearchKeyDown}
+                      className="pl-10 pr-12 py-2.5 bg-[var(--card)] border border-[var(--card-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] w-64 shadow-sm transition-all text-[var(--foreground)] placeholder:text-[var(--muted)]" 
+                    />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-[var(--muted)] border border-[var(--card-border)] rounded bg-[var(--foreground)]/[0.02]">⌘ K</kbd>
+                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-[var(--muted)] border border-[var(--card-border)] rounded bg-[var(--foreground)]/[0.02] pointer-events-none select-none">{osKey} F</kbd>
                     </div>
+
+                    {/* Dropdown Results */}
+                    {isSearchFocused && searchQuery && (
+                        <div className="absolute top-full left-0 mt-2 w-full max-h-[60vh] overflow-y-auto bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-2 flex flex-col gap-1">
+                            {searchResults.length === 0 ? (
+                                <div className="p-4 text-center text-sm text-[var(--muted)] font-medium">No results found.</div>
+                            ) : (
+                                searchResults.map(group => (
+                                    <div key={group.group} className="mb-2 last:mb-0">
+                                        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">{group.group}</div>
+                                        {group.items.map(item => (
+                                            <Link 
+                                                key={item.id} 
+                                                href={item.href}
+                                                onClick={() => { setIsSearchFocused(false); setSearchQuery(""); }}
+                                                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-colors"
+                                            >
+                                                <i className={`${item.icon} text-lg text-[var(--muted)] shrink-0`}></i>
+                                                <span className="text-sm font-medium text-[var(--foreground)] truncate">{item.label}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Theme Toggle */}
@@ -645,135 +801,153 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             className={cn(
               "absolute inset-0 transition-all duration-300",
               showPremiumBg 
-                ? "bg-[var(--background)]/20 backdrop-blur-md" 
-                : "bg-[var(--foreground)]/25 backdrop-blur-sm"
+                ? "bg-black/40 backdrop-blur-md" 
+                : "bg-black/70 backdrop-blur-md"
             )}
             onClick={closeProfileModal}
           />
           <div
             role="dialog"
             aria-modal="true"
-            className={`modal-surface relative max-h-[92vh] overflow-y-auto ${isCreatingProfile ? "max-w-4xl p-0" : "max-w-3xl p-5 sm:p-7"}`}
+            className={`modal-surface relative max-h-[92vh] overflow-y-auto shadow-2xl shadow-black/40 border border-white/5 backdrop-blur-xl ${isCreatingProfile ? "max-w-4xl p-0" : "max-w-3xl p-5 sm:p-7"}`}
           >
             {!isCreatingProfile && (
-              <div className="flex items-start justify-between gap-4 mb-6">
-                <div>
-                  <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="section-eyebrow" replayKey={profileModalEyebrow} />
-                  <AnimatedText
-                    as="h2"
-                    text={profileModalTitle}
-                    effect="mask-reveal-up"
-                    className="text-2xl font-semibold text-[var(--foreground)] font-display"
-                    replayKey={profileModalTitle}
-                  />
-                  <p className="mt-1 text-[12px] text-[var(--muted)]">
+              <>
+                <div className="relative flex flex-col items-center text-center mb-6 z-10">
+                  <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest mb-2" replayKey={profileModalEyebrow} />
+                  <AnimatedText as="h2" text={profileModalTitle} effect="micro-scale-fade" className="text-3xl font-bold text-[var(--foreground)] mb-2" replayKey={profileModalTitle} />
+                  <p className="text-sm text-[var(--muted)]">
                     <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
                   </p>
-                </div>
-                {!isFirstRun && !isProfileLocked && (
-                  <button onClick={closeProfileModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                    <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
-                  </button>
-                )}
-              </div>
-            )}
-
-            {!isCreatingProfile && profiles.length > 0 && (
-              <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {profiles.map((profile) => {
-                  const isActive = profile.id === activeProfileId;
-
-                  return (
-                    <button
-                      key={profile.id}
-                      type="button"
-                      onClick={() => void handleProfileSwitch(profile.id)}
-                      className={`surface-card p-3 text-left flex items-center gap-3 transition-smooth ${
-                        isActive ? "border-[var(--accent)]/50" : "hover:border-[var(--foreground)]/15"
-                      }`}
-                    >
-                      <span className="size-11 rounded-xl overflow-hidden border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0">
-                        {profile.profilePic ? (
-                          <img className="h-full w-full object-cover" alt={profile.name} src={profile.profilePic} />
-                        ) : (
-                          <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
-                        )}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-[13px] font-semibold text-[var(--foreground)] truncate">{profile.name}</span>
-                        <span className="block text-[11px] text-[var(--muted)] truncate">{profile.profession}</span>
-                      </span>
-                      {profile.hasPassword && !isActive && (
-                        <span className="ml-auto material-symbols-outlined text-[16px] text-[var(--muted)]">lock</span>
-                      )}
-                      {isActive && (
-                        <span className="ml-auto material-symbols-outlined text-[18px] text-[var(--accent)]">check_circle</span>
-                      )}
+                  {!isFirstRun && !isProfileLocked && (
+                    <button onClick={closeProfileModal} className="absolute top-0 right-0 text-[var(--muted)] hover:text-[var(--accent)] transition-colors duration-200">
+                      <span className="material-symbols-outlined text-[24px]">close</span>
                     </button>
-                  );
-                })}
-              </div>
-            )}
+                  )}
+                </div>
 
-            {!isCreatingProfile && passwordPromptProfile && (
-              <form onSubmit={handleProfileAccess} className="mb-5 surface-card p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <span className="size-9 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[18px]">lock</span>
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-[13px] font-semibold text-[var(--foreground)]">
-                      {isPasswordPromptForLogin ? `Login as ${passwordPromptProfile.name}` : `Switch to ${passwordPromptProfile.name}`}
-                    </h3>
-                    {passwordPromptProfile.passwordHint && (
-                      <p className="mt-0.5 text-[11px] text-[var(--muted)]">Hint: {passwordPromptProfile.passwordHint}</p>
-                    )}
+                {profiles.length > 0 && (
+                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Profiles Column */}
+                    <div className="flex flex-col gap-4">
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2 border-b border-white/10 pb-2">Select Profile</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {profiles.map((profile) => {
+                          const isActive = profile.id === activeProfileId;
+                          
+                          return (
+                            <button
+                              key={profile.id}
+                              type="button"
+                              onClick={() => void handleProfileSwitch(profile.id)}
+                              className={`flex flex-col items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all relative overflow-hidden group ${
+                                isActive 
+                                  ? "bg-[var(--foreground)]/[0.05] border-[var(--accent)] shadow-[0_0_20px_var(--accent)]/30" 
+                                  : "bg-[var(--background)] border-[var(--card-border)] hover:border-[var(--muted)] hover:bg-[var(--foreground)]/[0.03]"
+                              }`}
+                            >
+                              {isActive && (
+                                <div className="absolute inset-0 bg-gradient-to-b from-[var(--accent)]/10 to-transparent pointer-events-none"></div>
+                              )}
+                              <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shrink-0 relative z-10 overflow-hidden ${
+                                isActive ? "border-[var(--accent)] shadow-[0_0_15px_var(--accent)]/40" : "border-[var(--card-border)] group-hover:border-[var(--muted)]"
+                              }`}>
+                                {profile.profilePic ? (
+                                  <img className="h-full w-full object-cover" alt={profile.name} src={profile.profilePic} />
+                                ) : (
+                                  <span className={`material-symbols-outlined text-3xl ${isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>person</span>
+                                )}
+                              </div>
+                              <div className="text-center relative z-10 max-w-full">
+                                <h3 className="text-[15px] font-bold text-[var(--foreground)] truncate px-1">{profile.name}</h3>
+                                <p className={`text-[11px] uppercase tracking-wide mt-1 truncate px-1 ${isActive ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+                                  {isActive ? "Active" : profile.profession}
+                                </p>
+                              </div>
+                              {profile.hasPassword && !isActive && (
+                                <span className="absolute top-3 right-3 material-symbols-outlined text-[18px] text-[var(--muted)] opacity-60">lock</span>
+                              )}
+                              {isActive && (
+                                <span className="absolute top-3 right-3 material-symbols-outlined text-[18px] text-[var(--accent)]">check_circle</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      <div className="mt-2 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowCreateProfileForm(true)}
+                          disabled={profiles.length >= 5}
+                          className="w-full flex items-center justify-center gap-2 border border-dashed border-[var(--card-border)] text-[var(--muted)] text-[12px] uppercase tracking-wider py-4 rounded-xl hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors hover:bg-[var(--accent)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">add</span>
+                          {profiles.length >= 5 ? "Create Limit Reached (Max 5)" : "Create New Profile"}
+                        </button>
+
+                        {canLogoutActiveProfile && (
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="w-full flex items-center justify-center gap-2 border border-dashed border-red-500/30 text-red-400 text-[12px] uppercase tracking-wider py-4 rounded-xl hover:text-red-500 hover:border-red-500 transition-colors hover:bg-red-500/5"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">logout</span>
+                            Log Out
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Password / Details Column */}
+                    <div className="flex flex-col h-full">
+                      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2 border-b border-white/10 pb-2">Authentication</h3>
+                      <div className="flex-grow flex flex-col justify-center items-center bg-[var(--background)] rounded-xl border border-white/5 p-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/10 rounded-full blur-3xl"></div>
+                        
+                        {passwordPromptProfile ? (
+                          <form onSubmit={handleProfileAccess} className="w-full flex flex-col items-center z-10">
+                            <div className="w-16 h-16 rounded-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] flex items-center justify-center mb-4 shadow-lg">
+                              <span className="material-symbols-outlined text-3xl text-[var(--accent)]">lock</span>
+                            </div>
+                            <h4 className="text-xl font-bold text-[var(--foreground)] mb-1 text-center">
+                              {isPasswordPromptForLogin ? `Login as ${passwordPromptProfile.name}` : `Switch to ${passwordPromptProfile.name}`}
+                            </h4>
+                            <p className="text-sm text-[var(--muted)] mb-6 text-center">Enter PIN to access profile</p>
+                            
+                            <div className="w-full flex flex-col gap-4">
+                              <div className="relative w-full">
+                                <input
+                                  type="password"
+                                  value={profileAccessPassword}
+                                  onChange={(event) => setProfileAccessPassword(event.target.value)}
+                                  placeholder="••••••"
+                                  className="w-full bg-black/20 border-b-2 border-transparent border-b-[var(--card-border)] py-3 px-4 text-center text-2xl tracking-[0.5em] text-[var(--foreground)] font-mono focus:outline-none focus:border-b-[var(--accent)] focus:bg-[var(--foreground)]/[0.02] transition-all placeholder:tracking-normal placeholder:text-lg placeholder:text-[var(--muted)]/30"
+                                  autoFocus
+                                />
+                              </div>
+                              {passwordPromptProfile.passwordHint && (
+                                <p className="text-xs text-center text-[var(--muted)]/60 font-mono mt-1">Hint: {passwordPromptProfile.passwordHint}</p>
+                              )}
+                              {(profileMessage || error) && (
+                                <p className="text-xs text-center text-red-400 font-medium">{profileMessage || error}</p>
+                              )}
+                              <button type="submit" disabled={profileSaving} className="w-full bg-[var(--accent)] text-white font-semibold text-[16px] py-3 px-6 rounded-lg hover:brightness-110 transition-colors mt-2 shadow-[0_0_15px_var(--accent)]/30 active:scale-[0.98]">
+                                {profileSaving ? "Checking..." : isPasswordPromptForLogin ? "Unlock Profile" : "Switch Profile"}
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center z-10 text-center opacity-60">
+                            <span className="material-symbols-outlined text-4xl mb-3">shield_person</span>
+                            <p className="text-sm">Select a locked profile to authenticate</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="password"
-                    value={profileAccessPassword}
-                    onChange={(event) => setProfileAccessPassword(event.target.value)}
-                    placeholder="Profile password"
-                    className="field-control px-3 py-2"
-                    autoFocus
-                  />
-                  <button type="submit" className="btn-primary justify-center active:scale-[0.97]" disabled={profileSaving}>
-                    {profileSaving ? "Checking..." : isPasswordPromptForLogin ? "Login" : "Switch"}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {!showCreateProfileForm && (profileMessage || error) && (
-              <p className="mb-5 rounded-xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-2 text-[12px] font-medium text-[var(--accent)]">
-                {profileMessage || error}
-              </p>
-            )}
-
-            {!isFirstRun && !showCreateProfileForm && (
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end mt-4">
-                {canLogoutActiveProfile && (
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="btn-secondary active:scale-[0.97]"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">logout</span>
-                    Log Out
-                  </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setShowCreateProfileForm(true)}
-                  disabled={profiles.length >= 5}
-                  className="btn-primary active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                  {profiles.length >= 5 ? "Create Limit Reached (Max 5)" : "Create New Profile"}
-                </button>
-              </div>
+              </>
             )}
 
             {isCreatingProfile && (

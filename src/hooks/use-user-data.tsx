@@ -429,6 +429,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
   const logoutProfile = useCallback(() => {
     setUnlockedProfileId(null);
+    writeActiveProfileId(null);
+    setSnapshot((current) => ({ ...current, activeProfileId: null }));
   }, []);
 
   const verifyProfilePassword = useCallback(async (profileId: string, password: string) => {

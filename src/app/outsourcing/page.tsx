@@ -184,6 +184,33 @@ export default function Outsourcing() {
     return matchesStatus && matchesSearch;
   }), [activeFilter, outsourcingInvoices, searchQuery]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      const vendorId = params.get("vendor");
+      
+      if (id && outsourcingInvoices.length > 0 && !selectedInvoice && modalMode === null) {
+        const invoice = outsourcingInvoices.find(i => i.id === id);
+        if (invoice) {
+          setSelectedInvoice(invoice);
+          setNeedsVendorSaveChoice(false);
+          setForm(getOutsourcingForm(invoice, vendors));
+          setModalMode("view");
+        }
+      } else if (vendorId && vendors.length > 0 && modalMode === null) {
+        const vendor = vendors.find(v => v.id === vendorId);
+        if (vendor) {
+          setSelectedInvoice(null);
+          setNeedsVendorSaveChoice(false);
+          const initialForm = createEmptyForm();
+          setForm(getFormFromVendor(vendor, initialForm));
+          setModalMode("create");
+        }
+      }
+    }
+  }, [outsourcingInvoices, vendors, selectedInvoice, modalMode]);
+
   const totals = getOutsourcingTotals(outsourcingInvoices);
   const isFormMode = modalMode === "create" || modalMode === "edit";
   const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];

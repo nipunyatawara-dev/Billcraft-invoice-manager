@@ -57,6 +57,26 @@ export default function Catalog() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (id && catalogItems.length > 0 && !editingItemId && !showModal) {
+        const item = catalogItems.find(i => i.id === id);
+        if (item) {
+          setEditingItemId(item.id);
+          setForm({
+            name: item.name,
+            description: item.description,
+            defaultPrice: item.defaultPrice,
+            unit: item.unit,
+          });
+          setShowModal(true);
+        }
+      }
+    }
+  }, [catalogItems, editingItemId, showModal]);
+
   const filteredItems = useMemo(() => {
     return catalogItems.filter((item) => {
       const normalizedSearch = searchQuery.toLowerCase();

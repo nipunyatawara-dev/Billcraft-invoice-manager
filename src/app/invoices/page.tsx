@@ -268,6 +268,20 @@ export default function Invoices() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (id && invoices.length > 0 && !selectedInvoice && modalMode === null) {
+        const invoice = invoices.find(i => i.id === id);
+        if (invoice) {
+          setSelectedInvoice(invoice);
+          setModalMode("view");
+        }
+      }
+    }
+  }, [invoices, selectedInvoice, modalMode]);
+
   function openShareModal(invoice: Invoice) {
     setShareInvoice(invoice);
   }

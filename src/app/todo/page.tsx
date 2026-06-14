@@ -196,6 +196,30 @@ export default function TodoPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      if (id && todoTasks.length > 0 && !editingTaskId && !isTaskModalOpen) {
+        const task = todoTasks.find(t => t.id === id);
+        if (task) {
+          setEditingTaskId(task.id);
+          setForm({
+            title: task.title,
+            description: task.description || "",
+            client: task.client || "",
+            dueDate: task.dueDate || "",
+            estimate: task.estimate || "",
+            stage: task.stage,
+            priority: task.priority,
+            tags: task.tags.join(", "),
+          });
+          setIsTaskModalOpen(true);
+        }
+      }
+    }
+  }, [todoTasks, editingTaskId, isTaskModalOpen]);
+
   function stashUndo(previousTasks: TodoTask[], label: string) {
     if (undoTimerRef.current) {
       clearTimeout(undoTimerRef.current);
