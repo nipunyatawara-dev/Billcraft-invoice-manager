@@ -361,7 +361,7 @@ export function ProfileCreateOnboarding({
                   <span className="material-symbols-outlined text-[var(--foreground)]/25">image</span>
                 )}
               </div>
-              <label className="btn-secondary min-h-8 cursor-pointer px-3 py-1.5 text-[12px]">
+              <label className="flex items-center justify-center min-h-8 bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] text-[var(--foreground)] px-3 py-1.5 rounded-xl font-medium transition-all shadow-sm cursor-pointer text-[12px]">
                 <span>{profileForm.profilePic ? "Change" : "Upload"}</span>
                 <input className="sr-only" type="file" accept="image/*" onChange={(event) => onImageChange("profilePic", event)} />
               </label>
@@ -377,7 +377,7 @@ export function ProfileCreateOnboarding({
                   <span className="material-symbols-outlined text-[var(--foreground)]/25">draw</span>
                 )}
               </div>
-              <label className="btn-secondary min-h-8 cursor-pointer px-3 py-1.5 text-[12px]">
+              <label className="flex items-center justify-center min-h-8 bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] text-[var(--foreground)] px-3 py-1.5 rounded-xl font-medium transition-all shadow-sm cursor-pointer text-[12px]">
                 <span>{profileForm.signature ? "Change" : "Upload"}</span>
                 <input className="sr-only" type="file" accept="image/*" onChange={(event) => onImageChange("signature", event)} />
               </label>

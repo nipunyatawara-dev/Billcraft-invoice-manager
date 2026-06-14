@@ -82,6 +82,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [onboardingProfileId, setOnboardingProfileId] = useState<string | null>(null);
   const [osKey, setOsKey] = useState("⌘");
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const pathname = usePathname();
@@ -806,144 +807,146 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             )}
             onClick={closeProfileModal}
           />
-          <div
-            role="dialog"
-            aria-modal="true"
-            className={`modal-surface relative max-h-[92vh] overflow-y-auto shadow-2xl shadow-black/40 border border-white/5 backdrop-blur-xl ${isCreatingProfile ? "max-w-4xl p-0" : "max-w-3xl p-5 sm:p-7"}`}
-          >
+          <div className="relative flex justify-center items-center">
+            {/* Main Modal Glow */}
             {!isCreatingProfile && (
-              <>
-                <div className="relative flex flex-col items-center text-center mb-6 z-10">
-                  <AnimatedText as="p" text={profileModalEyebrow} effect="micro-scale-fade" className="text-[12px] font-bold text-[var(--accent)] uppercase tracking-widest mb-2" replayKey={profileModalEyebrow} />
-                  <AnimatedText as="h2" text={profileModalTitle} effect="micro-scale-fade" className="text-3xl font-bold text-[var(--foreground)] mb-2" replayKey={profileModalTitle} />
-                  <p className="text-sm text-[var(--muted)]">
-                    <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
-                  </p>
-                  {!isFirstRun && !isProfileLocked && (
-                    <button onClick={closeProfileModal} className="absolute top-0 right-0 text-[var(--muted)] hover:text-[var(--accent)] transition-colors duration-200">
-                      <span className="material-symbols-outlined text-[24px]">close</span>
-                    </button>
-                  )}
-                </div>
+              <div className="absolute -inset-4 bg-[var(--accent)]/15 blur-[100px] rounded-[40px] z-0 animate-pulse-slow pointer-events-none"></div>
+            )}
+            <div
+              role="dialog"
+              aria-modal="true"
+              className={`modal-surface relative z-10 max-h-[92vh] w-full overflow-y-auto shadow-2xl shadow-[var(--accent)]/10 border border-white/5 backdrop-blur-xl ${isCreatingProfile ? "max-w-4xl p-0" : "max-w-3xl p-5 sm:p-7"}`}
+            >
+              {!isCreatingProfile && (
+                <>
+                  <div className="relative flex flex-col items-center text-center mb-12 z-10">
+                    <AnimatedText as="h2" text={profileModalEyebrow} effect="micro-scale-fade" className="text-[14px] font-bold text-[var(--accent)] uppercase tracking-widest mb-2" replayKey={profileModalEyebrow} />
+                    <AnimatedText as="h1" text={profileModalTitle} effect="micro-scale-fade" className="text-3xl font-bold text-[var(--foreground)] mb-3" replayKey={profileModalTitle} />
+                    <p className="text-[17px] text-[var(--muted)]">
+                      <AnimatedNumber value={profiles.length} />/<AnimatedNumber value={5} /> profiles saved locally in the User data folder.
+                    </p>
+                    {!isFirstRun && !isProfileLocked && (
+                      <button onClick={closeProfileModal} className="absolute top-0 right-0 text-[var(--muted)] hover:text-[var(--accent)] transition-colors duration-200">
+                        <span className="material-symbols-outlined text-[24px]">close</span>
+                      </button>
+                    )}
+                  </div>
 
-                {profiles.length > 0 && (
-                  <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Profiles Column */}
-                    <div className="flex flex-col gap-4">
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2 border-b border-white/10 pb-2">Select Profile</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        {profiles.map((profile) => {
-                          const isActive = profile.id === activeProfileId;
-                          
-                          return (
-                            <button
-                              key={profile.id}
-                              type="button"
-                              onClick={() => void handleProfileSwitch(profile.id)}
-                              className={`flex flex-col items-center justify-center gap-3 p-5 rounded-xl border-2 transition-all relative overflow-hidden group ${
-                                isActive 
-                                  ? "bg-[var(--foreground)]/[0.05] border-[var(--accent)] shadow-[0_0_20px_var(--accent)]/30" 
-                                  : "bg-[var(--background)] border-[var(--card-border)] hover:border-[var(--muted)] hover:bg-[var(--foreground)]/[0.03]"
-                              }`}
-                            >
-                              {isActive && (
-                                <div className="absolute inset-0 bg-gradient-to-b from-[var(--accent)]/10 to-transparent pointer-events-none"></div>
-                              )}
-                              <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shrink-0 relative z-10 overflow-hidden ${
-                                isActive ? "border-[var(--accent)] shadow-[0_0_15px_var(--accent)]/40" : "border-[var(--card-border)] group-hover:border-[var(--muted)]"
-                              }`}>
-                                {profile.profilePic ? (
-                                  <img className="h-full w-full object-cover" alt={profile.name} src={profile.profilePic} />
-                                ) : (
-                                  <span className={`material-symbols-outlined text-3xl ${isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}>person</span>
-                                )}
-                              </div>
-                              <div className="text-center relative z-10 max-w-full">
-                                <h3 className="text-[15px] font-bold text-[var(--foreground)] truncate px-1">{profile.name}</h3>
-                                <p className={`text-[11px] uppercase tracking-wide mt-1 truncate px-1 ${isActive ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
-                                  {isActive ? "Active" : profile.profession}
-                                </p>
-                              </div>
-                              {profile.hasPassword && !isActive && (
-                                <span className="absolute top-3 right-3 material-symbols-outlined text-[18px] text-[var(--muted)] opacity-60">lock</span>
-                              )}
-                              {isActive && (
-                                <span className="absolute top-3 right-3 material-symbols-outlined text-[18px] text-[var(--accent)]">check_circle</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
-                      <div className="mt-2 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowCreateProfileForm(true)}
-                          disabled={profiles.length >= 5}
-                          className="w-full flex items-center justify-center gap-2 border border-dashed border-[var(--card-border)] text-[var(--muted)] text-[12px] uppercase tracking-wider py-4 rounded-xl hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors hover:bg-[var(--accent)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">add</span>
-                          {profiles.length >= 5 ? "Create Limit Reached (Max 5)" : "Create New Profile"}
-                        </button>
-
-                        {canLogoutActiveProfile && (
+                  {profiles.length > 0 && (
+                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                      {/* Select Profile Column */}
+                      <div className="flex flex-col gap-6">
+                        <h3 className="text-2xl font-bold text-[var(--foreground)] pb-4 border-b border-[var(--card-border)]">Select Profile</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {profiles.map((profile) => {
+                            const isSelectedForLogin = passwordPromptProfile?.id === profile.id;
+                            
+                            return (
+                              <button
+                                key={profile.id}
+                                type="button"
+                                onClick={() => void handleProfileSwitch(profile.id)}
+                                className={`rounded-[18px] p-6 flex flex-col items-center text-center cursor-pointer relative transition-all ${
+                                  isSelectedForLogin
+                                    ? "bg-[var(--foreground)]/[0.05] border-2 border-[var(--accent)] shadow-[0_8px_24px_color-mix(in_srgb,var(--accent)_10%,transparent)] hover:scale-105"
+                                    : "bg-[var(--background)] border border-transparent opacity-70 hover:opacity-100 hover:bg-[var(--foreground)]/[0.03]"
+                                }`}
+                              >
+                                <span 
+                                  className={`material-symbols-outlined absolute top-4 right-4 text-lg ${isSelectedForLogin ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}
+                                  style={isSelectedForLogin ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                                >
+                                  {isSelectedForLogin ? "check_circle" : "lock"}
+                                </span>
+                                
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-sm ${isSelectedForLogin ? 'bg-[var(--foreground)] text-[var(--accent)]' : 'bg-[var(--foreground)]/[0.1] text-[var(--muted)]'}`}>
+                                  {profile.profilePic ? (
+                                    <img className="h-full w-full object-cover rounded-full" alt={profile.name} src={profile.profilePic} />
+                                  ) : (
+                                    <span className="material-symbols-outlined text-3xl">person</span>
+                                  )}
+                                </div>
+                                <h4 className="text-[14px] font-bold text-[var(--foreground)] truncate w-full">{profile.name}</h4>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="mt-2 space-y-2">
                           <button
                             type="button"
-                            onClick={handleLogout}
-                            className="w-full flex items-center justify-center gap-2 border border-dashed border-red-500/30 text-red-400 text-[12px] uppercase tracking-wider py-4 rounded-xl hover:text-red-500 hover:border-red-500 transition-colors hover:bg-red-500/5"
+                            onClick={() => setShowCreateProfileForm(true)}
+                            disabled={profiles.length >= 5}
+                            className="rounded-xl w-full py-4 border border-dashed border-[var(--card-border)] text-[var(--muted)] text-[14px] font-bold flex items-center justify-center gap-2 hover:bg-[var(--foreground)]/[0.03] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <span className="material-symbols-outlined text-[18px]">logout</span>
-                            Log Out
+                            <span className="material-symbols-outlined">add</span>
+                            CREATE NEW PROFILE
                           </button>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Password / Details Column */}
-                    <div className="flex flex-col h-full">
-                      <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2 border-b border-white/10 pb-2">Authentication</h3>
-                      <div className="flex-grow flex flex-col justify-center items-center bg-[var(--background)] rounded-xl border border-white/5 p-6 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/10 rounded-full blur-3xl"></div>
+                          {canLogoutActiveProfile && (
+                            <button
+                              type="button"
+                              onClick={handleLogout}
+                              className="rounded-xl w-full py-4 border border-dashed border-red-500/30 text-red-400 text-[14px] font-bold flex items-center justify-center gap-2 hover:border-red-500 hover:bg-red-500/5 transition-colors"
+                            >
+                              <span className="material-symbols-outlined">logout</span>
+                              LOG OUT
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Authentication Column */}
+                      <div className="flex flex-col gap-6">
+                        <h3 className="text-2xl font-bold text-[var(--foreground)] pb-4 border-b border-[var(--card-border)]">Authentication</h3>
                         
-                        {passwordPromptProfile ? (
+                        <div className="relative h-full flex-grow">
+                          <div className={`rounded-[18px] p-8 flex flex-col items-center text-center h-full justify-center relative z-10 transition-colors ${passwordPromptProfile ? 'bg-[var(--foreground)]/[0.05] border border-[var(--accent)]/30' : 'bg-[var(--foreground)]/[0.03] border border-white/5'}`}>
+                          {passwordPromptProfile ? (
                           <form onSubmit={handleProfileAccess} className="w-full flex flex-col items-center z-10">
-                            <div className="w-16 h-16 rounded-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] flex items-center justify-center mb-4 shadow-lg">
-                              <span className="material-symbols-outlined text-3xl text-[var(--accent)]">lock</span>
+                            <div className="relative w-20 h-20 mb-6 group">
+                              <div className="w-full h-full rounded-full bg-[var(--foreground)] flex items-center justify-center shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_25%,transparent)] border-[3px] border-[var(--accent)] overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                                {passwordPromptProfile.profilePic ? (
+                                  <img className="h-full w-full object-cover" alt={passwordPromptProfile.name} src={passwordPromptProfile.profilePic} />
+                                ) : (
+                                  <span className="material-symbols-outlined text-4xl text-[var(--background)]">person</span>
+                                )}
+                              </div>
                             </div>
-                            <h4 className="text-xl font-bold text-[var(--foreground)] mb-1 text-center">
+                            <h4 className="text-2xl font-bold text-[var(--foreground)] mb-2">
                               {isPasswordPromptForLogin ? `Login as ${passwordPromptProfile.name}` : `Switch to ${passwordPromptProfile.name}`}
                             </h4>
-                            <p className="text-sm text-[var(--muted)] mb-6 text-center">Enter PIN to access profile</p>
+                            <p className="text-[17px] text-[var(--muted)] mb-8">Enter PIN to access profile</p>
                             
-                            <div className="w-full flex flex-col gap-4">
-                              <div className="relative w-full">
-                                <input
-                                  type="password"
-                                  value={profileAccessPassword}
-                                  onChange={(event) => setProfileAccessPassword(event.target.value)}
-                                  placeholder="••••••"
-                                  className="w-full bg-black/20 border-b-2 border-transparent border-b-[var(--card-border)] py-3 px-4 text-center text-2xl tracking-[0.5em] text-[var(--foreground)] font-mono focus:outline-none focus:border-b-[var(--accent)] focus:bg-[var(--foreground)]/[0.02] transition-all placeholder:tracking-normal placeholder:text-lg placeholder:text-[var(--muted)]/30"
-                                  autoFocus
-                                />
-                              </div>
-                              {passwordPromptProfile.passwordHint && (
-                                <p className="text-xs text-center text-[var(--muted)]/60 font-mono mt-1">Hint: {passwordPromptProfile.passwordHint}</p>
+                            <div className="w-full max-w-[240px] mb-8 relative">
+                              <input
+                                ref={passwordInputRef}
+                                type="password"
+                                value={profileAccessPassword}
+                                onChange={(event) => setProfileAccessPassword(event.target.value)}
+                                placeholder="••••••"
+                                className="w-full bg-transparent border-b border-[var(--card-border)] py-2 text-center text-2xl tracking-[0.5em] text-[var(--foreground)] font-mono focus:outline-none focus:border-b-[var(--accent)] transition-all placeholder:tracking-[0.3em] placeholder:text-lg placeholder:text-[var(--muted)]/40"
+                                autoFocus
+                              />
+                              {(passwordPromptProfile.passwordHint || profileMessage || error) && (
+                                <p className={`text-[12px] text-center mt-3 font-medium ${profileMessage || error ? 'text-red-400' : 'text-[var(--muted)]'}`}>
+                                  {profileMessage || error || `Hint: ${passwordPromptProfile.passwordHint}`}
+                                </p>
                               )}
-                              {(profileMessage || error) && (
-                                <p className="text-xs text-center text-red-400 font-medium">{profileMessage || error}</p>
-                              )}
-                              <button type="submit" disabled={profileSaving} className="w-full bg-[var(--accent)] text-white font-semibold text-[16px] py-3 px-6 rounded-lg hover:brightness-110 transition-colors mt-2 shadow-[0_0_15px_var(--accent)]/30 active:scale-[0.98]">
-                                {profileSaving ? "Checking..." : isPasswordPromptForLogin ? "Unlock Profile" : "Switch Profile"}
-                              </button>
                             </div>
+                            
+                            <button type="submit" disabled={profileSaving} className="rounded-xl w-full bg-[var(--foreground)] text-[var(--background)] font-bold text-[14px] py-4 hover:opacity-90 transition-opacity disabled:opacity-50 mt-auto active:scale-[0.98]">
+                              {profileSaving ? "Unlocking..." : "Unlock Profile"}
+                            </button>
                           </form>
                         ) : (
                           <div className="flex flex-col items-center justify-center z-10 text-center opacity-60">
-                            <span className="material-symbols-outlined text-4xl mb-3">shield_person</span>
-                            <p className="text-sm">Select a locked profile to authenticate</p>
+                            <span className="material-symbols-outlined text-4xl mb-3 text-[var(--muted)]">shield_person</span>
+                            <p className="text-sm text-[var(--muted)]">Select a profile to authenticate</p>
                           </div>
                         )}
                       </div>
+                    </div>
                     </div>
                   </div>
                 )}
@@ -972,6 +975,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 setProfilePasswordConfirm={setProfilePasswordConfirm}
               />
             )}
+          </div>
           </div>
         </div>
       )}

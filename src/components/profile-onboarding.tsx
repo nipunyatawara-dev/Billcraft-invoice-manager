@@ -307,7 +307,11 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
     <AnimatePresence>
       <motion.aside
         ref={onboardingRef}
-        className="fixed inset-x-3 bottom-3 z-[90] mx-auto w-[min(100%,24rem)] sm:inset-x-auto sm:right-5 sm:bottom-5"
+        className={`fixed z-[90] w-[min(100%,24rem)] ${
+          pathname?.startsWith("/settings")
+            ? "inset-x-3 bottom-24 mx-auto sm:inset-x-auto sm:bottom-5 sm:left-5 lg:left-[280px]"
+            : "inset-x-3 bottom-3 mx-auto sm:inset-x-auto sm:bottom-5 sm:right-5"
+        }`}
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 18, filter: "blur(8px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, filter: "blur(6px)" }}
@@ -349,7 +353,7 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
               <AnimatedNumber value={completedCount} /> of <AnimatedNumber value={totalSteps} /> Completed
             </span>
             <span className={cn("material-symbols-outlined text-[18px] text-[var(--muted)] transition-transform duration-200", isExpanded && "rotate-180")}>
-              expand_more
+              expand_less
             </span>
           </button>
 

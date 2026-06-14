@@ -110,7 +110,7 @@ export function ProfileTab() {
             <AnimatedText as="p" text={profileForm.profession || "Set your profession"} className="text-[14px] text-[var(--featured-text)]/60 font-medium" />
           </div>
           
-          <label className="btn-secondary hidden sm:flex bg-[var(--background)]/50 border-[var(--card-border)] hover:bg-[var(--background)] hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer backdrop-blur-md shadow-sm transition-all duration-300 hover:-translate-y-0.5">
+          <label className="hidden sm:flex items-center gap-2 bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.02] text-[var(--foreground)] px-4 py-2 rounded-xl font-medium transition-all shadow-sm cursor-pointer backdrop-blur-md text-[14px]">
             <span className="material-symbols-outlined text-[18px]">photo_camera</span>
             Change Photo
             <input className="sr-only" type="file" accept="image/*" onChange={(event) => handleProfileImageChange("profilePic", event)} />

@@ -245,7 +245,7 @@ export default function Home() {
                 >
                   <span>{timeframeOptions.find(o => o.value === expectedTimeframe)?.label}</span>
                   <i className="ph ph-calendar-blank text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                  <i className="ph ph-caret-down text-[var(--muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200" style={{ transform: isTimeframeOpen ? 'translateY(-50%) rotate(180deg)' : 'translateY(-50%)' }}></i>
+                  <i className={`ph ph-caret-down text-[var(--muted)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200 ${isTimeframeOpen ? 'rotate-180' : ''}`}></i>
                 </button>
 
                 <AnimatePresence>
