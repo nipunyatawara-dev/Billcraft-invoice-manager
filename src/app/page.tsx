@@ -142,7 +142,7 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           
           {/* Outstanding Card (Spans 2 cols) */}
-          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col justify-between relative overflow-hidden">
+          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col justify-between relative overflow-hidden hover:border-[var(--accent)]/30 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 group">
               <div className="flex items-center gap-3 mb-8">
                   <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
                       <i className="ph ph-receipt text-xl"></i>
@@ -176,7 +176,7 @@ export default function Home() {
                       <rect x="70" y="90" width="40" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
                       <rect x="70" y="110" width="30" height="8" rx="4" fill="currentColor" className="text-[var(--card-border)]"/>
 
-                      <circle cx="140" cy="100" r="22" fill="currentColor" className="text-[var(--accent)]"/>
+                      <circle cx="140" cy="100" r="22" fill="currentColor" className="text-[var(--accent)] transition-transform duration-500 group-hover:scale-105 origin-[140px_100px]"/>
                       <text x="140" y="101" fontSize="26" fontWeight="bold" fontFamily="sans-serif" textAnchor="middle" dominantBaseline="central" fill="currentColor" className="text-[var(--card)]">$</text>
                       
                       <circle cx="170" cy="50" r="3" fill="currentColor" className="text-[var(--accent)]/30"/>
@@ -189,7 +189,7 @@ export default function Home() {
           {/* Right Column Stack (Collected & Overdue) */}
           <div className="flex flex-col gap-6">
               {/* Collected Card */}
-              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--accent)]/30 transition-colors">
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--accent)]/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                   <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-xl bg-[var(--foreground)]/5 flex items-center justify-center text-[var(--foreground)] mt-1">
                           <i className="ph ph-wallet text-xl"></i>
@@ -200,13 +200,13 @@ export default function Home() {
                           <p className="text-xs text-[var(--muted)] font-medium opacity-80"><AnimatedNumber value={totals.paidCount} /> paid invoices</p>
                       </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--foreground)] transition-all">
+                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--foreground)] group-hover:translate-x-0.5 transition-all">
                       <i className="ph ph-caret-right"></i>
                   </div>
               </div>
 
               {/* Overdue Card */}
-              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--negative)]/30 transition-colors">
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-5 flex items-center justify-between group cursor-pointer hover:border-[var(--negative)]/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                   <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-xl bg-[var(--negative)]/10 flex items-center justify-center text-[var(--negative)] mt-1">
                           <i className="ph ph-warning text-xl"></i>
@@ -217,7 +217,7 @@ export default function Home() {
                           <p className="text-xs text-[var(--negative)] font-medium"><AnimatedNumber value={totals.overdueCount} /> invoices overdue</p>
                       </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--negative)] transition-all">
+                  <div className="w-8 h-8 rounded-full border border-[var(--card-border)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--foreground)]/[0.04] group-hover:text-[var(--negative)] group-hover:translate-x-0.5 transition-all">
                       <i className="ph ph-caret-right"></i>
                   </div>
               </div>
@@ -225,7 +225,7 @@ export default function Home() {
       </div>
 
       {/* Expected Cash Section */}
-      <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 mb-6">
+      <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 mb-6 hover:shadow-md transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
@@ -304,7 +304,7 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Recent Invoices Table (Spans 2 cols) */}
-          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm flex flex-col overflow-hidden">
+          <div className="lg:col-span-2 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm flex flex-col overflow-hidden hover:shadow-md transition-all duration-300">
               <div className="px-6 py-5 flex items-center justify-between border-b border-[var(--card-border)]">
                   <h2 className="font-semibold text-[var(--foreground)] text-lg">Recent Invoices</h2>
                   <Link href="/invoices" className="text-[var(--accent)] font-semibold text-sm hover:opacity-80 px-4 py-2 border border-[var(--card-border)] rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-colors">View All</Link>
@@ -384,7 +384,7 @@ export default function Home() {
           </div>
 
           {/* Quick Actions List */}
-          <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col">
+          <div className="bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-sm p-6 flex flex-col hover:shadow-md transition-all duration-300">
               <h2 className="font-semibold text-[var(--foreground)] text-lg mb-4">Quick Actions</h2>
               
               <div className="space-y-3 flex-1">
@@ -399,7 +399,7 @@ export default function Home() {
                               <div className="text-xs text-[var(--muted)] mt-0.5">Send a new invoice</div>
                           </div>
                       </div>
-                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)] group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
 
                   {/* Action Item 2 */}
@@ -413,7 +413,7 @@ export default function Home() {
                               <div className="text-xs text-[var(--muted)] mt-0.5">Track a business expense</div>
                           </div>
                       </div>
-                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)] group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
 
                   {/* Action Item 3 */}
@@ -427,7 +427,7 @@ export default function Home() {
                               <div className="text-xs text-[var(--muted)] mt-0.5">Create a new client profile</div>
                           </div>
                       </div>
-                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)] group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
 
                   {/* Action Item 4 */}
@@ -441,7 +441,7 @@ export default function Home() {
                               <div className="text-xs text-[var(--muted)] mt-0.5">Explore insights & analytics</div>
                           </div>
                       </div>
-                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)]"></i>
+                      <i className="ph ph-caret-right text-[var(--muted)] group-hover:text-[var(--foreground)] group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
               </div>
           </div>
