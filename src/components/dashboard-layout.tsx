@@ -1,6 +1,8 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CommandPalette } from "@/components/command-palette";
+import { AnimatePresence } from "motion/react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
@@ -84,6 +86,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const {
@@ -233,7 +236,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       
       if (modifier && isSearchKey) {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        setIsCommandPaletteOpen((prev) => !prev);
       }
     };
 
@@ -660,56 +663,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
             
             <div className="flex items-center gap-3 sm:gap-6">
-                {/* Search */}
-                <div 
-                  className="relative group hidden sm:block" 
-                  onFocus={() => setIsSearchFocused(true)} 
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget)) {
-                      setIsSearchFocused(false);
-                    }
-                  }}
+                {/* Global Command Palette search trigger */}
+                <button 
+                  onClick={() => setIsCommandPaletteOpen(true)}
+                  className="relative group hidden sm:flex items-center text-left pl-10 pr-12 py-2.5 bg-[var(--card)] border border-[var(--card-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] w-64 shadow-sm transition-all text-[var(--muted)] hover:border-[var(--foreground)]/20 hover:bg-[var(--foreground)]/[0.01]" 
                 >
-                    <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] group-focus-within:text-[var(--accent)] transition-colors"></i>
-                    <input 
-                      ref={searchInputRef}
-                      type="text" 
-                      placeholder="Search..." 
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      onKeyDown={handleSearchKeyDown}
-                      className="pl-10 pr-12 py-2.5 bg-[var(--card)] border border-[var(--card-border)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20 focus:border-[var(--accent)] w-64 shadow-sm transition-all text-[var(--foreground)] placeholder:text-[var(--muted)]" 
-                    />
+                    <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors"></i>
+                    <span className="text-sm select-none text-[var(--muted)]/80">Search...</span>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-[var(--muted)] border border-[var(--card-border)] rounded bg-[var(--foreground)]/[0.02] pointer-events-none select-none">{osKey} F</kbd>
+                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-[var(--muted)] border border-[var(--card-border)] rounded bg-[var(--foreground)]/[0.02] pointer-events-none select-none">{osKey} F/K</kbd>
                     </div>
-
-                    {/* Dropdown Results */}
-                    {isSearchFocused && searchQuery && (
-                        <div className="absolute top-full left-0 mt-2 w-full max-h-[60vh] overflow-y-auto bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-2 flex flex-col gap-1">
-                            {searchResults.length === 0 ? (
-                                <div className="p-4 text-center text-sm text-[var(--muted)] font-medium">No results found.</div>
-                            ) : (
-                                searchResults.map(group => (
-                                    <div key={group.group} className="mb-2 last:mb-0">
-                                        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">{group.group}</div>
-                                        {group.items.map(item => (
-                                            <Link 
-                                                key={item.id} 
-                                                href={item.href}
-                                                onClick={() => { setIsSearchFocused(false); setSearchQuery(""); }}
-                                                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--foreground)]/[0.04] transition-colors"
-                                            >
-                                                <i className={`${item.icon} text-lg text-[var(--muted)] shrink-0`}></i>
-                                                <span className="text-sm font-medium text-[var(--foreground)] truncate">{item.label}</span>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    )}
-                </div>
+                </button>
 
                 {/* Theme Toggle */}
                 <ThemeToggle />
@@ -764,6 +728,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           setOnboardingProfileId(null);
         }}
       />
+
+      <AnimatePresence>
+        {isCommandPaletteOpen && (
+          <CommandPalette
+            onClose={() => setIsCommandPaletteOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {(isProfileModalOpen || isFirstRun) && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
