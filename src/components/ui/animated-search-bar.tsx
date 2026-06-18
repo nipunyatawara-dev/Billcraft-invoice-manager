@@ -28,8 +28,15 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
     };
   }, []);
 
-  const handleSearchClick = () => {
-    if (!isExpanded) {
+  const handleSearchClick = (e: React.MouseEvent) => {
+    if (isExpanded) {
+      e.stopPropagation();
+      if (value) {
+        onChange("");
+      }
+      setIsExpanded(false);
+      inputRef.current?.blur();
+    } else {
       setIsExpanded(true);
       // Focus the input field shortly after the expansion animation starts
       setTimeout(() => {
@@ -51,11 +58,11 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
   };
 
   return (
-    <div className={`relative z-20 search-field ${className}`}>
+    <div className={`relative z-20 search-field flex items-center ${className}`}>
       <div
         ref={containerRef}
-        className={`relative h-10 bg-white dark:bg-[#111111] border border-transparent dark:border-[var(--card-border)] rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.1)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${
-          isExpanded || value ? 'w-[260px] sm:w-[320px]' : 'w-10'
+        className={`relative h-10 bg-[var(--field)] border border-[var(--card-border)] rounded-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${
+          isExpanded || value ? 'w-[260px] sm:w-[320px] shadow-sm' : 'w-10'
         }`}
       >
         <input
@@ -66,7 +73,7 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
           onKeyDown={handleKeyDown}
           onFocus={() => setIsExpanded(true)}
           placeholder={placeholder}
-          className={`absolute left-0 w-full h-full bg-transparent outline-none pl-4 pr-11 text-[13px] font-medium text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-[var(--muted)] transition-opacity duration-300 ${
+          className={`absolute left-0 w-full h-full bg-transparent outline-none pl-4 pr-11 text-[13px] font-semibold text-[var(--foreground)] placeholder-[var(--muted)]/50 transition-opacity duration-300 ${
             isExpanded || value
               ? 'opacity-100 pointer-events-auto delay-100'
               : 'opacity-0 pointer-events-none'
@@ -75,37 +82,18 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
         
         <button
           onClick={handleSearchClick}
-          className={`absolute right-1 h-8 w-8 rounded-full flex items-center justify-center transition-colors duration-300 z-10 shrink-0 ${
-            isExpanded || value ? 'bg-[#2b2b2b] dark:bg-[#2b2b2b] hover:bg-[#1a1a1a]' : 'bg-[#2b2b2b] dark:bg-[var(--card)] hover:bg-[#1a1a1a] dark:hover:bg-[var(--card-border)]'
+          className={`absolute right-1 top-1 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 shrink-0 ${
+            isExpanded || value 
+              ? 'bg-[var(--foreground)]/[0.04] text-[var(--muted)] hover:bg-[var(--foreground)]/[0.08] hover:text-[var(--foreground)]' 
+              : 'bg-transparent text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]'
           }`}
-          aria-label="Search"
+          aria-label={isExpanded && value ? "Clear search" : "Search"}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-white dark:text-[var(--foreground)] w-5 h-5"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-            <circle
-              cx="11"
-              cy="11"
-              r="4"
-              fill="currentColor"
-              stroke="none"
-              style={{ transformOrigin: '11px 11px' }}
-              className={`transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                isExpanded || value ? 'scale-100' : 'scale-0'
-              }`}
-            />
-          </svg>
+          {isExpanded && value ? (
+            <i className="ph ph-x text-lg"></i>
+          ) : (
+            <i className="ph ph-magnifying-glass text-lg"></i>
+          )}
         </button>
       </div>
     </div>
