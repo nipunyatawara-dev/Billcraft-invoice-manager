@@ -226,7 +226,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.userAgent.toLowerCase().includes("mac");
+      if (!e.key) return;
+      const isMac = typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("mac");
       const modifier = isMac ? e.metaKey : e.ctrlKey;
       const isSearchKey = e.key.toLowerCase() === "k" || e.key.toLowerCase() === "f";
       
