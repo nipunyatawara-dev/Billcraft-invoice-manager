@@ -369,7 +369,7 @@ export function AppearanceTab() {
                     </div>
                     
                     <div className="w-full py-4 px-4 flex justify-center items-center h-20 bg-foreground/[0.03] border border-card-border group-hover:bg-foreground/[0.05] rounded-lg">
-                       <div className={`w-24 h-12 bg-action/20 border-2 border-action ${radius.previewClass} transition-all duration-300`} />
+                       <div className="w-24 h-12 bg-action/20 border-2 border-action transition-all duration-300" style={{ borderRadius: radius.id === "squircle" ? "8px" : "32px" }} />
                     </div>
                   </button>
                 );

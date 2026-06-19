@@ -64,6 +64,7 @@ interface InvoiceForm {
   saveClientMode: SaveClientMode | null;
   currency?: string;
   discount?: number;
+  discountType?: "flat" | "percent";
 }
 
 function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
@@ -104,6 +105,7 @@ function createEmptyForm(): InvoiceForm {
     saveClientMode: null,
     currency: "",
     discount: 0,
+    discountType: "flat",
   };
 }
 
@@ -209,6 +211,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
     saveClientMode: null,
     currency: invoice.currency || "",
     discount: invoice.discount || 0,
+    discountType: invoice.discountType || "flat",
   };
 }
 
@@ -401,7 +404,8 @@ export default function Invoices() {
   const isFormMode = modalMode === "create" || modalMode === "edit";
   const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];
   const invoiceSubtotal = getInvoiceItemsTotal(form.items);
-  const invoiceTotal = Math.max(0, invoiceSubtotal - (Number(form.discount) || 0));
+  const discountAmount = form.discountType === "percent" ? (invoiceSubtotal * (Number(form.discount) || 0)) / 100 : (Number(form.discount) || 0);
+  const invoiceTotal = Math.max(0, invoiceSubtotal - discountAmount);
 
   // Prefill invoice creation modal when task-to-invoice automation query parameter is set
   useEffect(() => {
@@ -764,6 +768,7 @@ export default function Invoices() {
         saveClientMode: form.clientMode === "new" ? saveClientMode || form.saveClientMode || "onetime" : "onetime",
         currency: form.currency || undefined,
         discount: Number(form.discount) || 0,
+        discountType: form.discountType || "flat",
       }).then((savedInvoice) => {
         if (!savedInvoice) {
           throw new Error("Create a profile before saving invoices.");
@@ -1243,7 +1248,7 @@ export default function Invoices() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-foreground flex items-center gap-1.5 font-display">
                 <span className="material-symbols-outlined text-[18px] text-accent">send</span>
-                Send Invoice & Delivery Link
+                Send Invoice & Share
               </h3>
               <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04]">
                 <span className="material-symbols-outlined text-[16px] text-muted">close</span>
@@ -1251,65 +1256,97 @@ export default function Invoices() {
             </div>
             
             <p className="text-[12px] text-muted mb-5 leading-normal">
-              Manage work confirmation workflow and copy delivery links to share with {shareInvoice.client}.
+              Update the invoice workflow status and share the billing details with {shareInvoice.client}.
             </p>
 
             <div className="space-y-4">
-              {/* Delivery link */}
-              {shareInvoice.deliveryLink ? (
-                <div className="surface-card p-4 border border-card-border rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Product Delivery Link</span>
-                    <button 
-                      onClick={() => {
-                        void navigator.clipboard.writeText(shareInvoice.deliveryLink || "");
-                        notify.success({ title: "Link copied", description: "Delivery link copied to clipboard." });
-                      }}
-                      className="text-[10px] font-extrabold text-accent hover:underline uppercase"
-                    >
-                      Copy Link
-                    </button>
-                  </div>
-                  <p className="text-[12px] text-foreground font-mono truncate select-all">{shareInvoice.deliveryLink}</p>
-                </div>
-              ) : (
-                <div className="surface-card p-4 border border-dashed border-card-border rounded-xl text-center text-[12px] text-muted">
-                  No work delivery link added to this invoice.
-                </div>
-              )}
-
               {/* Status workflow */}
               <div className="surface-card p-4 border border-card-border rounded-xl space-y-3">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Workflow Progress</span>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Sent"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Sent" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Sent" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark as Sent
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Work Confirmed"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Confirm Work
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Delivered"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Delivered" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Delivered" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark Delivered
                   </button>
-                  {shareInvoice.phone && (
+                </div>
+              </div>
+
+              {/* Share Channels */}
+              <div className="surface-card p-4 border border-card-border rounded-xl space-y-3">
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Share Channels</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {shareInvoice.phone ? (
+                    <a
+                      href={`sms:${shareInvoice.phone}?body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-blue-500 hover:bg-blue-500/5 transition-colors border-card-border"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">sms</span>
+                      <span>Message</span>
+                    </a>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        const msg = getInvoiceContactMessage(shareInvoice);
+                        void navigator.clipboard.writeText(msg);
+                        notify.success({ title: "Message copied", description: "Details copied to clipboard." });
+                      }}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">content_copy</span>
+                      <span>Copy Message</span>
+                    </button>
+                  )}
+
+                  {shareInvoice.phone ? (
                     <a
                       href={getWhatsAppUrl(shareInvoice.phone, getInvoiceContactMessage(shareInvoice))}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-secondary text-[11px] py-1.5 text-center flex items-center justify-center gap-1 text-emerald-600 hover:bg-emerald-50"
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-emerald-500 hover:bg-emerald-500/5 transition-colors border-card-border"
                     >
-                      <i className="ph ph-whatsapp text-sm"></i>
-                      WhatsApp Client
+                      <i className="ph ph-whatsapp text-lg"></i>
+                      <span>WhatsApp</span>
                     </a>
+                  ) : (
+                    <button 
+                      disabled
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border"
+                    >
+                      <i className="ph ph-whatsapp text-lg"></i>
+                      <span>WhatsApp</span>
+                    </button>
+                  )}
+
+                  {shareInvoice.email ? (
+                    <a
+                      href={`mailto:${shareInvoice.email}?subject=${encodeURIComponent("Invoice " + shareInvoice.id)}&body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-sky-500 hover:bg-sky-500/5 transition-colors border-card-border"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">mail</span>
+                      <span>Email</span>
+                    </a>
+                  ) : (
+                    <button 
+                      disabled
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">mail</span>
+                      <span>Email</span>
+                    </button>
                   )}
                 </div>
               </div>

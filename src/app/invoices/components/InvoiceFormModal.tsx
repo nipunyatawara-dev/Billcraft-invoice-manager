@@ -9,6 +9,7 @@ import {
   type InvoiceItem,
   type PaymentRecord,
   type PaymentAttachment,
+  CURRENCIES,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 
@@ -42,6 +43,7 @@ interface InvoiceForm {
   saveClientMode: SaveClientMode | null;
   currency?: string;
   discount?: number;
+  discountType?: "flat" | "percent";
 }
 
 interface InvoiceFormModalProps {
@@ -402,14 +404,22 @@ export function InvoiceFormModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label htmlFor="form-currency" className="text-[10px] font-bold text-muted uppercase tracking-wider">Override Currency</label>
-                  <input
-                    type="text"
-                    id="form-currency"
-                    placeholder={`Matches profile: ${currency}`}
-                    value={form.currency || ""}
-                    onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase().slice(0, 3) })}
-                    className="field-control px-3 py-1.5 text-[13px] font-semibold tracking-wider placeholder:font-normal placeholder:text-muted/50"
-                  />
+                  <div className="relative">
+                    <select
+                      id="form-currency"
+                      value={form.currency || ""}
+                      onChange={(event) => setForm({ ...form, currency: event.target.value })}
+                      className="field-control px-3 py-1.5 text-[13px] font-medium appearance-none"
+                    >
+                      <option value="">Default ({currency})</option>
+                      {CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} ({c.symbol})
+                        </option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-muted pointer-events-none text-[16px]">expand_more</span>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="form-payment-link" className="text-[10px] font-bold text-muted uppercase tracking-wider">Online Payment Link</label>
@@ -520,10 +530,11 @@ export function InvoiceFormModal({
                   <button
                     type="button"
                     onClick={() => setForm((curr) => ({ ...curr, items: [...curr.items, createItem()] }))}
-                    className="text-[11px] font-bold text-accent hover:underline flex items-center gap-1 tracking-wider uppercase"
+                    className="text-accent hover:text-accent-hover hover:bg-accent/10 p-1.5 rounded-lg transition-colors flex items-center justify-center"
+                    title="Add Line"
+                    aria-label="Add Line"
                   >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
-                    Add Line
+                    <span className="material-symbols-outlined text-[18px] font-bold">add</span>
                   </button>
                 </div>
 
@@ -592,19 +603,45 @@ export function InvoiceFormModal({
                 
                 <div className="flex items-center justify-between gap-4 py-1 border-t border-card-border/20">
                   <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Discount Deduction</span>
-                  <div className="flex items-center gap-1.5 max-w-[120px]">
-                    <span className="text-[11px] font-bold text-muted">{form.currency || currency}</span>
+                  <div className="flex items-center gap-2 max-w-[180px]">
+                    <div className="flex rounded-lg border border-card-border bg-foreground/[0.03] p-0.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, discountType: "flat" })}
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-smooth ${
+                          (form.discountType || "flat") === "flat"
+                            ? "bg-action text-action-text shadow-xs"
+                            : "text-muted hover:text-foreground"
+                        }`}
+                      >
+                        {form.currency || currency}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, discountType: "percent" })}
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-smooth ${
+                          form.discountType === "percent"
+                            ? "bg-action text-action-text shadow-xs"
+                            : "text-muted hover:text-foreground"
+                        }`}
+                      >
+                        %
+                      </button>
+                    </div>
                     <input
                       type="number"
                       min="0"
-                      step="0.01"
-                      placeholder="0.00"
+                      max={form.discountType === "percent" ? 100 : undefined}
+                      step="any"
+                      placeholder="0"
                       value={form.discount || ""}
                       onChange={(event) => {
                         const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                        setForm({ ...form, discount: Number(cleanVal) || 0 });
+                        let val = Number(cleanVal) || 0;
+                        if (form.discountType === "percent" && val > 100) val = 100;
+                        setForm({ ...form, discount: val });
                       }}
-                      className="field-control px-2 py-0.5 text-right text-[12px] font-mono"
+                      className="field-control px-2 py-0.5 text-right text-[12px] font-mono w-20"
                     />
                   </div>
                 </div>

@@ -115,14 +115,14 @@ export function InvoiceList({
           return (
             <div
               key={invoice.id}
-              onClick={() => openViewModal(invoice)}
+              onClick={() => openShareModal(invoice)}
               className="surface-card w-full cursor-pointer p-4 lg:p-5 hover:border-foreground/12 transition-smooth group"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  openViewModal(invoice);
+                  openShareModal(invoice);
                 }
               }}
             >
@@ -172,18 +172,15 @@ export function InvoiceList({
                 <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 bg-foreground/[0.05] text-muted">
                   {invoice.workflowStatus || "Draft"}
                 </span>
-                <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="View">
-                    <span className="material-symbols-outlined text-[16px]">visibility</span>
+                <div className="hidden sm:flex gap-0.5 shrink-0 transition-opacity">
+                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/45 hover:text-accent hover:bg-accent/10 transition-smooth" title="Edit">
+                    <span className="material-symbols-outlined text-[16px]">edit</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Send/Share">
+                  <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/45 hover:text-accent hover:bg-accent/10 transition-smooth" title="Send/Share">
                     <span className="material-symbols-outlined text-[16px]">send</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Export PDF">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/45 hover:text-accent hover:bg-accent/10 transition-smooth" title="Export PDF">
                     <span className="material-symbols-outlined text-[16px]">download</span>
-                  </span>
-                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Edit">
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
                   </span>
                 </div>
               </div>

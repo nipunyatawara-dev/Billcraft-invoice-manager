@@ -78,7 +78,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="app-main flex-1 p-6 sm:p-10">
+    <main className="app-main flex-1">
       {/* Page Header Area */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
         <div>
@@ -101,7 +101,7 @@ export default function Home() {
             <i className="ph ph-trend-up text-lg group-hover:scale-110 transition-transform"></i>
             Analytics
           </Link>
-          <Link href="/invoices?action=new" className="flex items-center gap-2 bg-accent hover:bg-accent/90 text-action-text px-5 py-2.5 rounded-2xl font-medium transition-all shadow-md shadow-accent/20 group">
+          <Link href="/invoices?action=new" className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md hover:shadow-accent/20 group">
             <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
             New Invoice
           </Link>
@@ -152,12 +152,9 @@ export default function Home() {
             initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
             className="flex-1 bg-card/80 backdrop-blur-xl rounded-3xl border border-card-border p-6 flex flex-col justify-center relative overflow-hidden group hover:border-foreground/20 transition-all duration-300"
           >
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex items-start mb-2">
               <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground group-hover:scale-110 transition-transform">
                 <i className="ph ph-wallet text-xl"></i>
-              </div>
-              <div className="w-8 h-8 rounded-full border border-card-border flex items-center justify-center text-muted group-hover:bg-foreground group-hover:text-background transition-colors">
-                <i className="ph ph-arrow-up-right"></i>
               </div>
             </div>
             <h3 className="text-muted font-medium mb-1">Total Collected</h3>
@@ -172,12 +169,9 @@ export default function Home() {
             initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
             className="flex-1 bg-negative/5 backdrop-blur-xl rounded-3xl border border-negative/20 p-6 flex flex-col justify-center relative overflow-hidden group hover:bg-negative/10 hover:border-negative/30 transition-all duration-300"
           >
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex items-start mb-2">
               <div className="w-10 h-10 rounded-xl bg-negative/10 flex items-center justify-center text-negative group-hover:scale-110 transition-transform">
                 <i className="ph ph-warning-circle text-xl"></i>
-              </div>
-              <div className="w-8 h-8 rounded-full border border-negative/20 flex items-center justify-center text-negative group-hover:bg-negative group-hover:text-white transition-colors">
-                <i className="ph ph-arrow-right"></i>
               </div>
             </div>
             <h3 className="text-negative/80 font-medium mb-1">Overdue Amount</h3>

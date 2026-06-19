@@ -229,6 +229,7 @@ async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | nul
   const balanceDue = getBalanceDue(invoice);
   const paymentState = getPaymentState(invoice);
   const statusTone = statusColor(invoice.status);
+  const templateId = invoice.templateId || "classic";
 
   function drawFooter(currentPage: PDFPage, pageIndex: number) {
     addLine(currentPage, PAGE_MARGIN, 48, PAGE_WIDTH - PAGE_MARGIN, 48, rgb(0.9, 0.91, 0.94));
@@ -237,11 +238,35 @@ async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | nul
   }
 
   function drawTableHeader(currentPage: PDFPage, headerY: number) {
-    addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, INK);
-    addText(currentPage, fonts, "WORK", PAGE_MARGIN + 14, headerY - 14, 8.5, "bold", WHITE);
-    addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 184, headerY - 14, 8.5, "bold", WHITE, "right");
-    addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", WHITE, "right");
-    addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 14, headerY - 14, 8.5, "bold", WHITE, "right");
+    if (templateId === "minimal") {
+      addLine(currentPage, PAGE_MARGIN, headerY, PAGE_WIDTH - PAGE_MARGIN, headerY, BORDER);
+      addLine(currentPage, PAGE_MARGIN, headerY - 24, PAGE_WIDTH - PAGE_MARGIN, headerY - 24, BORDER);
+      addText(currentPage, fonts, "WORK", PAGE_MARGIN + 4, headerY - 14, 8.5, "bold", MUTED);
+      addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 184, headerY - 14, 8.5, "bold", MUTED, "right");
+      addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", MUTED, "right");
+      addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 4, headerY - 14, 8.5, "bold", MUTED, "right");
+    } else if (templateId === "detailed") {
+      addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, SOFT);
+      addStrokeRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, BORDER);
+      addLine(currentPage, PAGE_WIDTH - PAGE_MARGIN - 210, headerY, PAGE_WIDTH - PAGE_MARGIN - 210, headerY - 24, BORDER);
+      addLine(currentPage, PAGE_WIDTH - PAGE_MARGIN - 120, headerY, PAGE_WIDTH - PAGE_MARGIN - 120, headerY - 24, BORDER);
+      addText(currentPage, fonts, "WORK ITEM", PAGE_MARGIN + 12, headerY - 14, 8.5, "bold", TEXT);
+      addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 165, headerY - 14, 8.5, "bold", TEXT, "center");
+      addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 70, headerY - 14, 8.5, "bold", TEXT, "center");
+      addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 12, headerY - 14, 8.5, "bold", TEXT, "right");
+    } else if (templateId === "branded") {
+      addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, ACCENT);
+      addText(currentPage, fonts, "WORK", PAGE_MARGIN + 14, headerY - 14, 8.5, "bold", WHITE);
+      addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 184, headerY - 14, 8.5, "bold", WHITE, "right");
+      addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", WHITE, "right");
+      addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 14, headerY - 14, 8.5, "bold", WHITE, "right");
+    } else {
+      addRect(currentPage, PAGE_MARGIN, headerY - 24, CONTENT_WIDTH, 28, INK);
+      addText(currentPage, fonts, "WORK", PAGE_MARGIN + 14, headerY - 14, 8.5, "bold", WHITE);
+      addText(currentPage, fonts, "QTY", PAGE_WIDTH - PAGE_MARGIN - 184, headerY - 14, 8.5, "bold", WHITE, "right");
+      addText(currentPage, fonts, "RATE", PAGE_WIDTH - PAGE_MARGIN - 92, headerY - 14, 8.5, "bold", WHITE, "right");
+      addText(currentPage, fonts, "AMOUNT", PAGE_WIDTH - PAGE_MARGIN - 14, headerY - 14, 8.5, "bold", WHITE, "right");
+    }
   }
 
   function addPage() {
@@ -276,42 +301,156 @@ async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | nul
     invoice.address,
   ].filter(Boolean) as string[];
 
-  addRect(page, 0, PAGE_HEIGHT - 18, PAGE_WIDTH, 18, INK);
-  addRect(page, PAGE_MARGIN, y - 41, 42, 42, INK);
-  addText(page, fonts, businessInitials(businessName), PAGE_MARGIN + 21, y - 26, 13, "bold", WHITE, "center");
-  addText(page, fonts, businessName, PAGE_MARGIN + 56, y - 8, 15, "bold", TEXT);
-  addText(page, fonts, profile?.profession || "Freelance services", PAGE_MARGIN + 56, y - 26, 9.5, "regular", MUTED);
-  addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 40, 8.5, "regular", MUTED);
-  addText(page, fonts, "INVOICE", PAGE_WIDTH - PAGE_MARGIN, y - 4, 25, "bold", TEXT, "right");
-  addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10.5, "semibold", MUTED, "right");
-  addRect(page, PAGE_WIDTH - PAGE_MARGIN - 104, y - 48, 104, 20, statusTone);
-  addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
-  y -= 78;
+  // Render Header according to template
+  if (templateId === "minimal") {
+    addText(page, fonts, businessName, PAGE_MARGIN, y, 18, "bold", TEXT);
+    addText(page, fonts, profile?.profession || "Consultant", PAGE_MARGIN, y - 16, 10, "regular", MUTED);
+    addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN, y - 28, 8.5, "regular", MUTED);
+    
+    addText(page, fonts, "INVOICE", PAGE_WIDTH - PAGE_MARGIN, y, 22, "bold", TEXT, "right");
+    addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 16, 10.5, "semibold", MUTED, "right");
+    addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN, y - 28, 9, "bold", statusTone, "right");
+    y -= 54;
+  } else if (templateId === "bold") {
+    addRect(page, PAGE_MARGIN, y - 64, CONTENT_WIDTH, 64, INK);
+    addText(page, fonts, "INVOICE", PAGE_MARGIN + 16, y - 22, 11, "bold", rgb(0.8, 0.8, 0.8));
+    addText(page, fonts, invoice.id, PAGE_MARGIN + 16, y - 46, 18, "bold", WHITE);
+    
+    addText(page, fonts, `DATE: ${invoice.date || "N/A"}`, PAGE_WIDTH - PAGE_MARGIN - 16, y - 18, 9.5, "semibold", rgb(0.8, 0.8, 0.8), "right");
+    if (invoice.dueDate) {
+      addText(page, fonts, `DUE DATE: ${invoice.dueDate}`, PAGE_WIDTH - PAGE_MARGIN - 16, y - 32, 9.5, "semibold", rgb(0.8, 0.8, 0.8), "right");
+    }
+    addText(page, fonts, `STATUS: ${paymentState.toUpperCase()}`, PAGE_WIDTH - PAGE_MARGIN - 16, y - 46, 9.5, "bold", WHITE, "right");
+    y -= 88;
+  } else if (templateId === "branded") {
+    addRect(page, 0, PAGE_HEIGHT - 22, PAGE_WIDTH, 22, ACCENT);
+    addRect(page, PAGE_MARGIN, y - 41, 42, 42, ACCENT_SOFT);
+    addStrokeRect(page, PAGE_MARGIN, y - 41, 42, 42, ACCENT);
+    addText(page, fonts, businessInitials(businessName), PAGE_MARGIN + 21, y - 26, 13, "bold", ACCENT, "center");
+    
+    addText(page, fonts, businessName, PAGE_MARGIN + 56, y - 8, 15, "bold", TEXT);
+    addText(page, fonts, profile?.profession || "Professional Services", PAGE_MARGIN + 56, y - 24, 9.5, "semibold", ACCENT);
+    addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 38, 8.5, "regular", MUTED);
+    
+    addText(page, fonts, "INVOICE", PAGE_WIDTH - PAGE_MARGIN, y - 4, 25, "bold", TEXT, "right");
+    addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10.5, "semibold", ACCENT, "right");
+    addRect(page, PAGE_WIDTH - PAGE_MARGIN - 104, y - 48, 104, 20, ACCENT);
+    addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
+    y -= 78;
+  } else if (templateId === "detailed") {
+    const headerHeight = 72;
+    addRect(page, PAGE_MARGIN, y - headerHeight, CONTENT_WIDTH, headerHeight, SOFT);
+    addStrokeRect(page, PAGE_MARGIN, y - headerHeight, CONTENT_WIDTH, headerHeight, BORDER);
+    addLine(page, PAGE_MARGIN + CONTENT_WIDTH / 2, y, PAGE_MARGIN + CONTENT_WIDTH / 2, y - headerHeight, BORDER);
+    
+    addText(page, fonts, "SERVICE PROVIDER", PAGE_MARGIN + 16, y - 16, 7.5, "bold", MUTED);
+    addText(page, fonts, businessName, PAGE_MARGIN + 16, y - 34, 12, "bold", TEXT);
+    addText(page, fonts, profile?.profession || "Professional Services", PAGE_MARGIN + 16, y - 48, 9, "regular", MUTED);
+    addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 16, y - 60, 8, "regular", MUTED);
+    
+    addText(page, fonts, "PAYABLE METADATA", PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 16, 7.5, "bold", MUTED);
+    addText(page, fonts, `Invoice Ref:  ${invoice.id}`, PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 32, 9, "bold", TEXT);
+    addText(page, fonts, `Issue Date:   ${invoice.date || "N/A"}`, PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 44, 9, "regular", TEXT);
+    addText(page, fonts, `Due Date:     ${invoice.dueDate || "N/A"}`, PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 56, 9, "regular", TEXT);
+    addText(page, fonts, `Status:       ${paymentState}`, PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 68, 9, "bold", statusTone);
+    y -= headerHeight + 20;
+  } else {
+    addRect(page, 0, PAGE_HEIGHT - 18, PAGE_WIDTH, 18, INK);
+    addRect(page, PAGE_MARGIN, y - 41, 42, 42, INK);
+    addText(page, fonts, businessInitials(businessName), PAGE_MARGIN + 21, y - 26, 13, "bold", WHITE, "center");
+    addText(page, fonts, businessName, PAGE_MARGIN + 56, y - 8, 15, "bold", TEXT);
+    addText(page, fonts, profile?.profession || "Freelance services", PAGE_MARGIN + 56, y - 26, 9.5, "regular", MUTED);
+    addText(page, fonts, [profile?.email, profile?.phone].filter(Boolean).join(" | "), PAGE_MARGIN + 56, y - 40, 8.5, "regular", MUTED);
+    addText(page, fonts, "INVOICE", PAGE_WIDTH - PAGE_MARGIN, y - 4, 25, "bold", TEXT, "right");
+    addText(page, fonts, invoice.id, PAGE_WIDTH - PAGE_MARGIN, y - 24, 10.5, "semibold", MUTED, "right");
+    addRect(page, PAGE_WIDTH - PAGE_MARGIN - 104, y - 48, 104, 20, statusTone);
+    addText(page, fonts, paymentState.toUpperCase(), PAGE_WIDTH - PAGE_MARGIN - 52, y - 42, 8, "bold", WHITE, "center");
+    y -= 78;
+  }
 
   const activePdfCurrency = invoice.currency || currency;
 
-  addRect(page, PAGE_MARGIN, y - 88, CONTENT_WIDTH, 88, ACCENT_SOFT);
-  addText(page, fonts, "TOTAL INVOICE VALUE", PAGE_MARGIN + 20, y - 26, 8.5, "bold", ACCENT);
-  addText(page, fonts, formatPdfCurrency(invoiceTotal, activePdfCurrency), PAGE_MARGIN + 20, y - 57, 24, "bold", TEXT);
-  addText(page, fonts, "Invoice date", PAGE_WIDTH - PAGE_MARGIN - 178, y - 25, 8.5, "bold", MUTED);
-  addText(page, fonts, invoice.date || "Not set", PAGE_WIDTH - PAGE_MARGIN - 178, y - 43, 10, "bold", TEXT);
-  addText(page, fonts, "Due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 25, 8.5, "bold", MUTED);
-  addText(page, fonts, invoice.dueDate || "No due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 43, 10, "bold", TEXT);
-  addText(page, fonts, invoice.templateName || "Classic Invoice", PAGE_WIDTH - PAGE_MARGIN - 20, y - 68, 8.5, "regular", MUTED, "right");
-  y -= 120;
+  // Render Address/Card details according to template
+  if (templateId === "minimal") {
+    addText(page, fonts, "BILLED TO", PAGE_MARGIN, y - 10, 8, "bold", MUTED);
+    y = addTextBlock(page, fonts, clientLines, PAGE_MARGIN, y - 26, 50, 11, "semibold", TEXT);
+    y -= 20;
+  } else if (templateId === "bold") {
+    const cardGap = 18;
+    const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+    const cardHeight = 110;
+    
+    addRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, SOFT);
+    addRect(page, PAGE_MARGIN, y - cardHeight, 4, cardHeight, INK);
+    addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, SOFT);
+    addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, 4, cardHeight, MUTED);
+    
+    addText(page, fonts, "FROM", PAGE_MARGIN + 16, y - 18, 8, "bold", MUTED);
+    addTextBlock(page, fonts, fromLines, PAGE_MARGIN + 16, y - 36, 31);
+    
+    addText(page, fonts, "BILLED TO", PAGE_MARGIN + cardWidth + cardGap + 16, y - 18, 8, "bold", MUTED);
+    addTextBlock(page, fonts, clientLines, PAGE_MARGIN + cardWidth + cardGap + 16, y - 36, 31);
+    y -= cardHeight + 24;
+  } else if (templateId === "branded") {
+    const cardGap = 18;
+    const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+    const cardHeight = 110;
+    
+    addRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, SOFT);
+    addStrokeRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, BORDER);
+    addRect(page, PAGE_MARGIN, y - cardHeight, 4, cardHeight, ACCENT);
+    
+    addText(page, fonts, "CLIENT DETAILS", PAGE_MARGIN + 16, y - 18, 8, "bold", ACCENT);
+    addTextBlock(page, fonts, clientLines, PAGE_MARGIN + 16, y - 36, 31);
+    
+    addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, WHITE);
+    addStrokeRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, BORDER);
+    
+    const rightX = PAGE_MARGIN + cardWidth + cardGap + 16;
+    addText(page, fonts, "Invoice Date", rightX, y - 20, 8, "bold", MUTED);
+    addText(page, fonts, invoice.date || "Not set", rightX, y - 34, 10, "bold", TEXT);
+    addText(page, fonts, "Due Date", rightX + cardWidth / 2, y - 20, 8, "bold", MUTED);
+    addText(page, fonts, invoice.dueDate || "Upon Receipt", rightX + cardWidth / 2, y - 34, 10, "bold", TEXT);
+    addText(page, fonts, "Payment Status", rightX, y - 64, 8, "bold", MUTED);
+    addText(page, fonts, paymentState.toUpperCase(), rightX, y - 78, 10, "bold", ACCENT);
+    y -= cardHeight + 24;
+  } else if (templateId === "detailed") {
+    const boxHeight = 72;
+    addRect(page, PAGE_MARGIN, y - boxHeight, CONTENT_WIDTH, boxHeight, SOFT);
+    addStrokeRect(page, PAGE_MARGIN, y - boxHeight, CONTENT_WIDTH, boxHeight, BORDER);
+    
+    addText(page, fonts, "INVOICE RECIPIENT (BILL TO)", PAGE_MARGIN + 16, y - 16, 7.5, "bold", MUTED);
+    addText(page, fonts, invoice.client, PAGE_MARGIN + 16, y - 34, 11, "bold", TEXT);
+    if (invoice.company) {
+      addText(page, fonts, invoice.company, PAGE_MARGIN + 16, y - 48, 9, "regular", MUTED);
+    }
+    const detailsRightLines = [invoice.email, invoice.phone, invoice.address].filter(Boolean) as string[];
+    addTextBlock(page, fonts, detailsRightLines, PAGE_MARGIN + CONTENT_WIDTH / 2 + 16, y - 34, 35, 9, "regular", MUTED);
+    y -= boxHeight + 24;
+  } else {
+    addRect(page, PAGE_MARGIN, y - 88, CONTENT_WIDTH, 88, ACCENT_SOFT);
+    addText(page, fonts, "TOTAL INVOICE VALUE", PAGE_MARGIN + 20, y - 26, 8.5, "bold", ACCENT);
+    addText(page, fonts, formatPdfCurrency(invoiceTotal, activePdfCurrency), PAGE_MARGIN + 20, y - 57, 24, "bold", TEXT);
+    addText(page, fonts, "Invoice date", PAGE_WIDTH - PAGE_MARGIN - 178, y - 25, 8.5, "bold", MUTED);
+    addText(page, fonts, invoice.date || "Not set", PAGE_WIDTH - PAGE_MARGIN - 178, y - 43, 10, "bold", TEXT);
+    addText(page, fonts, "Due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 25, 8.5, "bold", MUTED);
+    addText(page, fonts, invoice.dueDate || "No due date", PAGE_WIDTH - PAGE_MARGIN - 70, y - 43, 10, "bold", TEXT);
+    addText(page, fonts, invoice.templateName || "Classic Invoice", PAGE_WIDTH - PAGE_MARGIN - 20, y - 68, 8.5, "regular", MUTED, "right");
+    y -= 120;
 
-  const cardGap = 18;
-  const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
-  const cardHeight = 132;
-  addRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, WHITE);
-  addStrokeRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight);
-  addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, WHITE);
-  addStrokeRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight);
-  addText(page, fonts, "FROM", PAGE_MARGIN + 16, y - 24, 8.5, "bold", MUTED);
-  addText(page, fonts, "BILL TO", PAGE_MARGIN + cardWidth + cardGap + 16, y - 24, 8.5, "bold", MUTED);
-  addTextBlock(page, fonts, fromLines, PAGE_MARGIN + 16, y - 46, 31);
-  addTextBlock(page, fonts, clientLines, PAGE_MARGIN + cardWidth + cardGap + 16, y - 46, 31);
-  y -= cardHeight + 34;
+    const cardGap = 18;
+    const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+    const cardHeight = 132;
+    addRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight, WHITE);
+    addStrokeRect(page, PAGE_MARGIN, y - cardHeight, cardWidth, cardHeight);
+    addRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight, WHITE);
+    addStrokeRect(page, PAGE_MARGIN + cardWidth + cardGap, y - cardHeight, cardWidth, cardHeight);
+    addText(page, fonts, "FROM", PAGE_MARGIN + 16, y - 24, 8.5, "bold", MUTED);
+    addText(page, fonts, "BILL TO", PAGE_MARGIN + cardWidth + cardGap + 16, y - 24, 8.5, "bold", MUTED);
+    addTextBlock(page, fonts, fromLines, PAGE_MARGIN + 16, y - 46, 31);
+    addTextBlock(page, fonts, clientLines, PAGE_MARGIN + cardWidth + cardGap + 16, y - 46, 31);
+    y -= cardHeight + 34;
+  }
 
   drawTableHeader(page, y);
   y -= 44;
@@ -327,15 +466,38 @@ async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | nul
     ensureSpace(rowHeight);
 
     const rowTop = y;
-    addRect(page, PAGE_MARGIN, rowTop - rowHeight + 11, CONTENT_WIDTH, rowHeight, itemIndex % 2 === 0 ? SOFT : WHITE);
-    lines.forEach((line, index) => {
-      addText(page, fonts, line, PAGE_MARGIN + 14, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
-    });
-    addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 184, rowTop, 10, "regular", MUTED, "right");
-    addText(page, fonts, formatPdfCurrency(item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
-    addText(page, fonts, formatPdfCurrency(item.quantity * item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop, 10, "bold", TEXT, "right");
-    y -= rowHeight;
-    addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.9, 0.91, 0.94));
+    if (templateId === "minimal") {
+      lines.forEach((line, index) => {
+        addText(page, fonts, line, PAGE_MARGIN + 4, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
+      });
+      addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 184, rowTop, 10, "regular", MUTED, "right");
+      addText(page, fonts, formatPdfCurrency(item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
+      addText(page, fonts, formatPdfCurrency(item.quantity * item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 4, rowTop, 10, "bold", TEXT, "right");
+      y -= rowHeight;
+      addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.93, 0.94, 0.96));
+    } else if (templateId === "detailed") {
+      addStrokeRect(page, PAGE_MARGIN, rowTop - rowHeight + 11, CONTENT_WIDTH, rowHeight, BORDER);
+      addLine(page, PAGE_WIDTH - PAGE_MARGIN - 210, rowTop + 11, PAGE_WIDTH - PAGE_MARGIN - 210, rowTop - rowHeight + 11, BORDER);
+      addLine(page, PAGE_WIDTH - PAGE_MARGIN - 120, rowTop + 11, PAGE_WIDTH - PAGE_MARGIN - 120, rowTop - rowHeight + 11, BORDER);
+      
+      lines.forEach((line, index) => {
+        addText(page, fonts, line, PAGE_MARGIN + 12, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
+      });
+      addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 165, rowTop, 10, "regular", MUTED, "center");
+      addText(page, fonts, formatPdfCurrency(item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
+      addText(page, fonts, formatPdfCurrency(item.quantity * item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 12, rowTop, 10, "bold", TEXT, "right");
+      y -= rowHeight;
+    } else {
+      addRect(page, PAGE_MARGIN, rowTop - rowHeight + 11, CONTENT_WIDTH, rowHeight, itemIndex % 2 === 0 ? SOFT : WHITE);
+      lines.forEach((line, index) => {
+        addText(page, fonts, line, PAGE_MARGIN + 14, rowTop - index * 13, 10, index === 0 ? "semibold" : "regular", index === 0 ? TEXT : MUTED);
+      });
+      addText(page, fonts, String(item.quantity), PAGE_WIDTH - PAGE_MARGIN - 184, rowTop, 10, "regular", MUTED, "right");
+      addText(page, fonts, formatPdfCurrency(item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 92, rowTop, 10, "regular", MUTED, "right");
+      addText(page, fonts, formatPdfCurrency(item.quantity * item.price, activePdfCurrency), PAGE_WIDTH - PAGE_MARGIN - 14, rowTop, 10, "bold", TEXT, "right");
+      y -= rowHeight;
+      addLine(page, PAGE_MARGIN, y + 11, PAGE_WIDTH - PAGE_MARGIN, y + 11, rgb(0.9, 0.91, 0.94));
+    }
   });
 
   ensureSpace(150);
@@ -348,34 +510,110 @@ async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | nul
 
   const summaryX = PAGE_WIDTH - PAGE_MARGIN - 220;
   const summaryTop = y + 44;
-  const discountAmount = invoice.discount || 0;
-  const hasDiscount = discountAmount > 0;
+  const subtotal = invoice.subtotal || invoiceTotal;
+  const discountVal = invoice.discount || 0;
+  const discountType = invoice.discountType || "flat";
+  const discountAmount = discountType === "percent" ? (subtotal * discountVal) / 100 : discountVal;
+  const hasDiscount = discountVal > 0;
   const cardH = hasDiscount ? 144 : 122;
 
-  addRect(page, summaryX, summaryTop - cardH, 220, cardH, WHITE);
-  addStrokeRect(page, summaryX, summaryTop - cardH, 220, cardH);
-  
-  let currentY = summaryTop - 28;
-  addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "regular", MUTED);
-  addText(page, fonts, formatPdfCurrency(invoice.subtotal || invoiceTotal, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
-  
-  if (hasDiscount) {
-    currentY -= 22;
-    addText(page, fonts, "Discount", summaryX + 16, currentY, 10, "regular", MUTED);
-    addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "regular", WARNING, "right");
+  if (templateId === "minimal") {
+    let currentY = summaryTop - 28;
+    addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(subtotal, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    if (hasDiscount) {
+      currentY -= 22;
+      addText(page, fonts, `Discount ${discountType === "percent" ? `(${discountVal}%)` : ""}`, summaryX + 16, currentY, 10, "regular", MUTED);
+      addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "regular", WARNING, "right");
+    }
+    
+    currentY -= 24;
+    addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    currentY -= 20;
+    addLine(page, summaryX + 16, currentY, summaryX + 204, currentY, BORDER);
+    
+    currentY -= 25;
+    addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", TEXT);
+    addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
+    y = currentY - 49;
+  } else if (templateId === "detailed") {
+    addRect(page, summaryX, summaryTop - cardH, 220, cardH, SOFT);
+    addStrokeRect(page, summaryX, summaryTop - cardH, 220, cardH, BORDER);
+    let currentY = summaryTop - 28;
+    addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(subtotal, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    if (hasDiscount) {
+      currentY -= 22;
+      addLine(page, summaryX, currentY + 11, summaryX + 220, currentY + 11, BORDER);
+      addText(page, fonts, `Discount ${discountType === "percent" ? `(${discountVal}%)` : ""}`, summaryX + 16, currentY, 10, "regular", MUTED);
+      addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "regular", WARNING, "right");
+    }
+    
+    currentY -= 24;
+    addLine(page, summaryX, currentY + 11, summaryX + 220, currentY + 11, BORDER);
+    addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    currentY -= 25;
+    addLine(page, summaryX, currentY + 14, summaryX + 220, currentY + 14, BORDER);
+    addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", TEXT);
+    addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
+    y = currentY - 49;
+  } else if (templateId === "branded") {
+    addRect(page, summaryX, summaryTop - cardH, 220, cardH, ACCENT_SOFT);
+    addStrokeRect(page, summaryX, summaryTop - cardH, 220, cardH, ACCENT);
+    
+    let currentY = summaryTop - 28;
+    addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "semibold", ACCENT);
+    addText(page, fonts, formatPdfCurrency(subtotal, activePdfCurrency), summaryX + 204, currentY, 10, "bold", TEXT, "right");
+    
+    if (hasDiscount) {
+      currentY -= 22;
+      addText(page, fonts, `Discount ${discountType === "percent" ? `(${discountVal}%)` : ""}`, summaryX + 16, currentY, 10, "semibold", ACCENT);
+      addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "bold", WARNING, "right");
+    }
+    
+    currentY -= 24;
+    addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "semibold", ACCENT);
+    addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "bold", TEXT, "right");
+    
+    currentY -= 20;
+    addLine(page, summaryX + 16, currentY, summaryX + 204, currentY, ACCENT);
+    
+    currentY -= 25;
+    addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", ACCENT);
+    addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
+    y = currentY - 49;
+  } else {
+    addRect(page, summaryX, summaryTop - cardH, 220, cardH, WHITE);
+    addStrokeRect(page, summaryX, summaryTop - cardH, 220, cardH, BORDER);
+    
+    let currentY = summaryTop - 28;
+    addText(page, fonts, "Subtotal", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(subtotal, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    if (hasDiscount) {
+      currentY -= 22;
+      addText(page, fonts, `Discount ${discountType === "percent" ? `(${discountVal}%)` : ""}`, summaryX + 16, currentY, 10, "regular", MUTED);
+      addText(page, fonts, `-${formatPdfCurrency(discountAmount, activePdfCurrency)}`, summaryX + 204, currentY, 10, "regular", WARNING, "right");
+    }
+    
+    currentY -= 24;
+    addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "regular", MUTED);
+    addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
+    
+    currentY -= 20;
+    addLine(page, summaryX + 16, currentY, summaryX + 204, currentY);
+    
+    currentY -= 25;
+    addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", TEXT);
+    addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
+    y = currentY - 49;
   }
-  
-  currentY -= 24;
-  addText(page, fonts, "Paid", summaryX + 16, currentY, 10, "regular", MUTED);
-  addText(page, fonts, formatPdfCurrency(amountPaid, activePdfCurrency), summaryX + 204, currentY, 10, "regular", TEXT, "right");
-  
-  currentY -= 20;
-  addLine(page, summaryX + 16, currentY, summaryX + 204, currentY);
-  
-  currentY -= 25;
-  addText(page, fonts, "Balance due", summaryX + 16, currentY, 13, "bold", TEXT);
-  addText(page, fonts, formatPdfCurrency(balanceDue, activePdfCurrency), summaryX + 204, currentY, 13, "bold", TEXT, "right");
-  y = currentY - 49;
 
   if (profile?.signature) {
     addText(page, fonts, "Signature on file", summaryX + 204, y, 9, "bold", MUTED, "right");

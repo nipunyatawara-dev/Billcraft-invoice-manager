@@ -119,6 +119,7 @@ export type InvoiceDraft = {
   saveClientMode?: "regular" | "onetime";
   currency?: string;
   discount?: number;
+  discountType?: "flat" | "percent";
   paymentLink?: string;
 };
  
@@ -134,6 +135,7 @@ export type OutsourcingInvoiceDraft = {
   date: string;
   dueDate?: string;
   status: InvoiceStatus;
+  workflowStatus?: InvoiceWorkflowStatus;
   templateId: string;
   templateName: string;
   items: InvoiceItem[];
@@ -144,6 +146,7 @@ export type OutsourcingInvoiceDraft = {
   receiptAttachments?: PaymentAttachment[];
   payments?: PaymentRecord[];
   saveVendorMode?: "regular" | "onetime";
+  currency?: string;
 };
  
 export type ProfilePasswordDraft = {
@@ -550,7 +553,9 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     const items = normalizeLineItems(draft.items);
     const subtotal = getInvoiceItemsTotal(items);
     const discount = Number(draft.discount) || 0;
-    const total = Math.max(0, subtotal - discount);
+    const discountType = draft.discountType || "flat";
+    const discountAmount = discountType === "percent" ? (subtotal * discount) / 100 : discount;
+    const total = Math.max(0, subtotal - discountAmount);
     const activeCurrency = draft.currency || currency;
     const invoice: Invoice = {
       id: draft.id || getNextInvoiceId(snapshot.invoices),
@@ -568,6 +573,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       amount: formatCurrency(total, activeCurrency),
       subtotal,
       discount,
+      discountType,
       total,
       currency: draft.currency || undefined,
       templateId: draft.templateId,
@@ -637,6 +643,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
     const items = normalizeLineItems(draft.items);
     const total = getInvoiceItemsTotal(items);
+    const activeCurrency = draft.currency || currency;
     const invoice: OutsourcingInvoice = {
       id: draft.id || getNextOutsourcingInvoiceId(snapshot.outsourcingInvoices),
       vendorId: draft.vendorId,
@@ -648,9 +655,10 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       avatar: draft.avatar || createAvatar(draft.vendor.trim()),
       date: formatDisplayDate(draft.date),
       dueDate: draft.dueDate ? formatDisplayDate(draft.dueDate) : undefined,
-      amount: formatCurrency(total, currency),
+      amount: formatCurrency(total, activeCurrency),
       subtotal: total,
       total,
+      currency: draft.currency || undefined,
       templateId: draft.templateId,
       templateName: draft.templateName,
       items,
@@ -661,6 +669,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       receiptAttachments: draft.receiptAttachments || [],
       payments: draft.payments || [],
       status: draft.status,
+      workflowStatus: draft.workflowStatus || "Draft",
       statusColor: getStatusColor(draft.status),
       vendorColor: "bg-foreground/10",
     };

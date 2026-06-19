@@ -398,7 +398,7 @@ html.dark {
     width: 100%;
     max-width: 1380px;
     margin-inline: auto;
-    padding: 1.25rem;
+    padding: 1.25rem 2rem;
   }
 
   .app-main-wide {
@@ -791,9 +791,12 @@ html.dark {
   }
 
   @media (min-width: 1024px) {
-    .app-main,
     .app-main-wide {
       padding: 2.25rem 2.5rem;
+    }
+
+    .app-main {
+      padding: 2.25rem 4rem;
     }
 
     .page-heading {
@@ -806,11 +809,15 @@ html.dark {
       --billcraft-toast-top-edge: 0.5rem;
       --billcraft-toast-notification-edge: 3.25rem;
     }
+
+    .app-main {
+      padding: 1.25rem 4rem;
+    }
   }
 
   @media (max-width: 640px) {
     .app-main {
-      padding: 1rem;
+      padding: 1rem 2rem;
     }
 
     .page-heading {

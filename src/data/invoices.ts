@@ -9,6 +9,7 @@ export interface Invoice {
   subtotal?: number;
   total?: number;
   discount?: number;
+  discountType?: "flat" | "percent";
   currency?: string;
   templateId?: string;
   templateName?: string;
@@ -234,6 +235,7 @@ export interface OutsourcingInvoice {
   receiptAttachments?: PaymentAttachment[];
   payments?: PaymentRecord[];
   status: InvoiceStatus;
+  workflowStatus?: InvoiceWorkflowStatus;
   statusColor: string;
   vendorColor: string;
   email: string;
@@ -545,3 +547,15 @@ export function getClientsFromInvoices(invoices: Invoice[]): (Client & { invoice
     totalBilled,
   }));
 }
+
+export const CURRENCIES = [
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+] as const;

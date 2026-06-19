@@ -54,107 +54,366 @@ export function InvoicePreviewModal({
           <span className="material-symbols-outlined text-[18px] text-muted">close</span>
         </button>
       </div>
-      <div className="surface-card p-5">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-card-border pb-5 mb-5">
-          <div className="flex items-center gap-3">
-            {activeProfile?.profilePic ? (
-              <img className="size-12 rounded-xl object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
-            ) : (
-              <div className="size-12 rounded-xl bg-foreground/[0.04] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px] text-muted">person</span>
-              </div>
-            )}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</h3>
-              <p className="text-[12px] text-muted">{activeProfile?.profession || "Invoice profile"}</p>
-            </div>
-          </div>
-          <div className="text-left sm:text-right">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase">{selectedInvoice.templateName || "Classic Invoice"}</p>
-            <p className="text-2xl font-semibold text-foreground font-display">{selectedInvoice.id}</p>
-          </div>
-        </div>
+      <div className="surface-card p-5 overflow-hidden">
+        {(() => {
+          const subtotal = (selectedInvoice.items || []).reduce((sum, item) => sum + item.quantity * item.price, 0);
+          const discountVal = selectedInvoice.discount || 0;
+          const discountAmount = selectedInvoice.discountType === "percent" ? (subtotal * discountVal) / 100 : discountVal;
+          const total = Math.max(0, subtotal - discountAmount);
+          const paymentState = getPaymentState(selectedInvoice);
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-          <div>
-            <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-2">Bill To</p>
-            <div className="flex items-start gap-3">
-              <img className="size-10 rounded-xl object-cover border border-card-border" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
-              <div>
-                <p className="text-[14px] font-semibold text-foreground">{selectedInvoice.client}</p>
-                <p className="text-[12px] text-muted">{selectedInvoice.email || "No email added"}</p>
-                <p className="text-[12px] text-muted">{selectedInvoice.phone || "No phone added"}</p>
-                {selectedInvoice.whatsapp && <p className="text-[12px] text-muted">WhatsApp: {selectedInvoice.whatsapp}</p>}
-                {selectedInvoice.address && <p className="text-[12px] text-muted whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
+          const renderItemsTable = (headerClass = "bg-foreground/[0.04]", rowClass = "border-t border-card-border") => (
+            <div className="overflow-hidden rounded-xl border border-card-border">
+              <div className={`grid grid-cols-[1fr_70px_110px] gap-3 px-4 py-2 text-[10px] font-semibold text-muted tracking-widest uppercase ${headerClass}`}>
+                <span>Work</span>
+                <span className="text-right">Qty</span>
+                <span className="text-right">Amount</span>
               </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="surface-card p-3.5">
-              <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Date</p>
-              <p className="text-[13px] font-semibold text-foreground">{selectedInvoice.date}</p>
-            </div>
-            <div className="surface-card p-3.5">
-              <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Status</p>
-              <p className="text-[13px] font-semibold text-foreground">{getPaymentState(selectedInvoice)}</p>
-            </div>
-            <div className="surface-card p-3.5 col-span-2">
-              <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Work Status</p>
-              <p className="text-[13px] font-semibold text-foreground">{selectedInvoice.workflowStatus || "Draft"}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border border-card-border">
-          <div className="grid grid-cols-[1fr_70px_110px] gap-3 bg-foreground/[0.04] px-4 py-2 text-[10px] font-semibold text-muted tracking-widest uppercase">
-            <span>Work</span>
-            <span className="text-right">Qty</span>
-            <span className="text-right">Amount</span>
-          </div>
-          {(selectedInvoice.items || []).map((item) => (
-            <div key={item.id} className="grid grid-cols-[1fr_70px_110px] gap-3 border-t border-card-border px-4 py-3 text-[13px]">
-              <span className="font-medium text-foreground">{item.description}</span>
-              <span className="text-right text-muted"><AnimatedNumber value={item.quantity} /></span>
-              <span className="text-right font-semibold text-foreground"><AnimatedNumber value={formatCurrency(item.quantity * item.price, activeInvoiceCurrency)} /></span>
-            </div>
-          ))}
-          {(() => {
-            const invoiceViewSubtotal = (selectedInvoice.items || []).reduce((sum, item) => sum + item.quantity * item.price, 0);
-            const invoiceViewDiscount = selectedInvoice.discount || 0;
-            const invoiceViewTotal = getInvoiceTotal(selectedInvoice);
-            return (
-              <>
-                {invoiceViewDiscount > 0 && (
-                  <>
-                    <div className="flex items-center justify-between border-t border-card-border px-4 py-2 text-[13px]">
-                      <span className="text-[12px] text-muted">Subtotal</span>
-                      <span className="font-medium text-foreground">{formatCurrency(invoiceViewSubtotal, activeInvoiceCurrency)}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-2 text-[13px]">
-                      <span className="text-[12px] text-muted">Discount</span>
-                      <span className="font-medium text-accent">-{formatCurrency(invoiceViewDiscount, activeInvoiceCurrency)}</span>
-                    </div>
-                  </>
-                )}
-                <div className="flex items-center justify-between border-t border-card-border px-4 py-4">
-                  <span className="text-[12px] font-semibold text-muted tracking-wider uppercase">Total</span>
-                  <span className="text-2xl font-semibold text-foreground font-display">
-                    {formatCurrency(invoiceViewTotal, activeInvoiceCurrency)}
-                  </span>
+              {(selectedInvoice.items || []).map((item) => (
+                <div key={item.id} className={`grid grid-cols-[1fr_70px_110px] gap-3 px-4 py-3 text-[13px] ${rowClass}`}>
+                  <span className="font-medium text-foreground">{item.description}</span>
+                  <span className="text-right text-muted"><AnimatedNumber value={item.quantity} /></span>
+                  <span className="text-right font-semibold text-foreground"><AnimatedNumber value={formatCurrency(item.quantity * item.price, activeInvoiceCurrency)} /></span>
                 </div>
-              </>
-            );
-          })()}
-        </div>
-
-        {activeProfile?.signature && (
-          <div className="mt-5 flex justify-end">
-            <div className="text-right">
-              <img className="ml-auto h-14 max-w-44 object-contain" alt="Signature" src={activeProfile.signature} />
-              <p className="mt-1 text-[10px] font-semibold text-muted tracking-widest uppercase">Signature</p>
+              ))}
+              {discountVal > 0 && (
+                <>
+                  <div className="flex items-center justify-between border-t border-card-border px-4 py-2 text-[13px]">
+                    <span className="text-[12px] text-muted">Subtotal</span>
+                    <span className="font-medium text-foreground">{formatCurrency(subtotal, activeInvoiceCurrency)}</span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-2 text-[13px]">
+                    <span className="text-[12px] text-muted">
+                      Discount {selectedInvoice.discountType === "percent" ? `(${discountVal}%)` : ""}
+                    </span>
+                    <span className="font-medium text-accent">-{formatCurrency(discountAmount, activeInvoiceCurrency)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between border-t border-card-border px-4 py-4">
+                <span className="text-[12px] font-semibold text-muted tracking-wider uppercase">Total</span>
+                <span className="text-2xl font-semibold text-foreground font-display">
+                  {formatCurrency(total, activeInvoiceCurrency)}
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+
+          const templateId = selectedInvoice.templateId || "classic";
+
+          if (templateId === "minimal") {
+            return (
+              <div className="space-y-6 text-foreground font-sans">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-card-border/50 pb-5">
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-light tracking-tight text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</h3>
+                    <p className="text-[11px] text-muted">{activeProfile?.profession || "Consultant"}</p>
+                    {activeProfile?.email && <p className="text-[10px] text-muted/80">{activeProfile.email}</p>}
+                  </div>
+                  <div className="text-left sm:text-right space-y-1">
+                    <p className="text-[10px] font-bold text-muted tracking-[0.2em] uppercase">Invoice</p>
+                    <p className="text-lg font-mono text-foreground font-semibold">{selectedInvoice.id}</p>
+                    <p className="text-[11px] text-muted">Date: {selectedInvoice.date}</p>
+                    {selectedInvoice.dueDate && <p className="text-[11px] text-muted">Due: {selectedInvoice.dueDate}</p>}
+                    <p className="text-[11px] text-muted">Status: {paymentState}</p>
+                  </div>
+                </div>
+
+                {/* Bill To */}
+                <div className="space-y-1.5">
+                  <p className="text-[9px] font-bold text-muted tracking-widest uppercase">Billed To</p>
+                  <p className="text-[13px] font-medium text-foreground">{selectedInvoice.client}</p>
+                  {selectedInvoice.email && <p className="text-[11px] text-muted">{selectedInvoice.email}</p>}
+                  {selectedInvoice.phone && <p className="text-[11px] text-muted">{selectedInvoice.phone}</p>}
+                  {selectedInvoice.address && <p className="text-[11px] text-muted mt-1 whitespace-pre-line">{selectedInvoice.address}</p>}
+                </div>
+
+                {/* Items Table - Minimal borderless-style */}
+                {renderItemsTable("bg-transparent border-b border-card-border/50", "border-b border-card-border/30")}
+
+                {activeProfile?.signature && (
+                  <div className="mt-6 flex justify-end">
+                    <div className="text-right">
+                      <img className="ml-auto h-12 max-w-40 object-contain mix-blend-multiply dark:mix-blend-normal opacity-80" alt="Signature" src={activeProfile.signature} />
+                      <p className="mt-1 text-[9px] font-bold text-muted tracking-wider uppercase">Authorized Signature</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (templateId === "bold") {
+            return (
+              <div className="space-y-6">
+                {/* Bold Header Banner */}
+                <div className="bg-foreground text-background p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-background/60">Invoice</h3>
+                    <p className="text-3xl font-extrabold font-display tracking-tight mt-1">{selectedInvoice.id}</p>
+                  </div>
+                  <div className="text-[11px] text-background/80 space-y-1 font-mono">
+                    <p><span className="opacity-60">DATE:</span> {selectedInvoice.date}</p>
+                    {selectedInvoice.dueDate && <p><span className="opacity-60">DUE DATE:</span> {selectedInvoice.dueDate}</p>}
+                    <p><span className="opacity-60">STATUS:</span> {paymentState.toUpperCase()}</p>
+                  </div>
+                </div>
+
+                {/* Sender & Client Side-by-Side Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-foreground/[0.02] border-l-4 border-foreground p-4 rounded-r-xl">
+                    <p className="text-[9px] font-extrabold text-muted tracking-widest uppercase mb-1.5">From</p>
+                    <p className="text-[14px] font-bold text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</p>
+                    <p className="text-[12px] text-muted">{activeProfile?.profession || "Professional Services"}</p>
+                    {activeProfile?.email && <p className="text-[11px] text-muted">{activeProfile.email}</p>}
+                  </div>
+                  <div className="bg-foreground/[0.02] border-l-4 border-muted p-4 rounded-r-xl">
+                    <p className="text-[9px] font-extrabold text-muted tracking-widest uppercase mb-1.5 font-mono">Billed To</p>
+                    <p className="text-[14px] font-bold text-foreground">{selectedInvoice.client}</p>
+                    {selectedInvoice.email && <p className="text-[11px] text-muted">{selectedInvoice.email}</p>}
+                    {selectedInvoice.address && <p className="text-[11px] text-muted mt-1 whitespace-pre-line">{selectedInvoice.address}</p>}
+                  </div>
+                </div>
+
+                {/* Items Table - Bold Contrast Header */}
+                {renderItemsTable("bg-foreground text-background font-bold", "border-t border-card-border/80")}
+
+                {activeProfile?.signature && (
+                  <div className="mt-6 flex justify-end">
+                    <div className="text-right bg-foreground/[0.02] p-4 rounded-xl border border-card-border">
+                      <img className="ml-auto h-12 max-w-40 object-contain" alt="Signature" src={activeProfile.signature} />
+                      <p className="mt-1.5 text-[9px] font-extrabold text-foreground tracking-widest uppercase">Signature</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (templateId === "branded") {
+            return (
+              <div className="space-y-6 relative">
+                {/* Brand Top Highlight Bar */}
+                <div className="absolute top-0 left-0 right-0 h-2 bg-accent rounded-t-xl" style={{ margin: "-20px -20px 0 -20px" }} />
+                
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-card-border pb-5 mt-2">
+                  <div className="flex items-center gap-3">
+                    {activeProfile?.profilePic ? (
+                      <img className="size-12 rounded-xl object-cover ring-2 ring-accent/25" alt={activeProfile.name} src={activeProfile.profilePic} />
+                    ) : (
+                      <div className="size-12 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
+                        <span className="material-symbols-outlined text-[20px] text-accent">person</span>
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</h3>
+                      <p className="text-[11px] font-medium text-accent uppercase tracking-wider">{activeProfile?.profession || "Developer"}</p>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="text-[10px] font-bold text-accent tracking-widest uppercase">Branded Invoice</p>
+                    <p className="text-2xl font-bold text-foreground font-display">{selectedInvoice.id}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="border border-accent/15 bg-accent/[0.01] p-4 rounded-xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-accent" />
+                    <p className="text-[9px] font-bold text-accent tracking-widest uppercase mb-1.5">Client Details</p>
+                    <p className="text-[14px] font-bold text-foreground">{selectedInvoice.client}</p>
+                    {selectedInvoice.email && <p className="text-[12px] text-muted">{selectedInvoice.email}</p>}
+                    {selectedInvoice.address && <p className="text-[12px] text-muted whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="border border-card-border p-3 rounded-xl bg-card">
+                      <p className="text-[9px] font-bold text-muted tracking-widest uppercase mb-1">Date</p>
+                      <p className="text-[12px] font-bold text-foreground">{selectedInvoice.date}</p>
+                    </div>
+                    <div className="border border-card-border p-3 rounded-xl bg-card">
+                      <p className="text-[9px] font-bold text-muted tracking-widest uppercase mb-1">Due</p>
+                      <p className="text-[12px] font-bold text-foreground">{selectedInvoice.dueDate || "Upon Receipt"}</p>
+                    </div>
+                    <div className="border border-card-border p-3 rounded-xl bg-card col-span-2 flex items-center justify-between">
+                      <span className="text-[9px] font-bold text-muted tracking-widest uppercase">Payment Status</span>
+                      <span className="text-[12px] font-bold text-accent">{paymentState}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Table - Branded Header */}
+                {renderItemsTable("bg-accent/10 text-accent font-bold", "border-t border-card-border/40")}
+
+                {activeProfile?.signature && (
+                  <div className="mt-6 flex justify-end">
+                    <div className="text-right">
+                      <img className="ml-auto h-12 max-w-40 object-contain ring-1 ring-accent/10 rounded" alt="Signature" src={activeProfile.signature} />
+                      <p className="mt-1 text-[9px] font-bold text-accent tracking-widest uppercase">Signature</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (templateId === "detailed") {
+            return (
+              <div className="space-y-6 text-foreground font-sans">
+                {/* Detailed Grid Header */}
+                <div className="grid grid-cols-2 border border-card-border rounded-xl divide-x divide-card-border bg-foreground/[0.01]">
+                  <div className="p-4 space-y-2">
+                    <p className="text-[9px] font-extrabold text-muted tracking-wider uppercase">Service Provider</p>
+                    <div className="space-y-0.5">
+                      <p className="text-[14px] font-bold text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</p>
+                      <p className="text-[11px] text-muted">{activeProfile?.profession || "Contractor"}</p>
+                      {activeProfile?.email && <p className="text-[11px] text-muted">{activeProfile.email}</p>}
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <p className="text-[9px] font-extrabold text-muted tracking-wider uppercase">Payable Metadata</p>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                      <span className="text-muted">Invoice Ref:</span>
+                      <span className="font-mono font-bold text-foreground">{selectedInvoice.id}</span>
+                      <span className="text-muted">Issue Date:</span>
+                      <span className="text-foreground">{selectedInvoice.date}</span>
+                      <span className="text-muted">Due Date:</span>
+                      <span className="text-foreground">{selectedInvoice.dueDate || "N/A"}</span>
+                      <span className="text-muted">Status:</span>
+                      <span className="text-foreground font-semibold">{paymentState}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Billed To Box */}
+                <div className="border border-card-border rounded-xl p-4 space-y-2 bg-foreground/[0.01]">
+                  <p className="text-[9px] font-extrabold text-muted tracking-wider uppercase">Invoice Recipient (Bill To)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[12px]">
+                    <div>
+                      <p className="font-bold text-[13px] text-foreground">{selectedInvoice.client}</p>
+                      {selectedInvoice.company && <p className="text-muted">{selectedInvoice.company}</p>}
+                    </div>
+                    <div className="text-left sm:text-right space-y-0.5 text-muted">
+                      {selectedInvoice.email && <p>{selectedInvoice.email}</p>}
+                      {selectedInvoice.phone && <p>{selectedInvoice.phone}</p>}
+                      {selectedInvoice.address && <p className="whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Table - Detailed Grid Cell Split */}
+                <div className="border border-card-border rounded-xl overflow-hidden divide-y divide-card-border">
+                  <div className="grid grid-cols-[1fr_80px_120px] divide-x divide-card-border bg-foreground/[0.02] px-4 py-2 text-[10px] font-extrabold text-muted tracking-wider uppercase">
+                    <span>Item Description</span>
+                    <span className="text-center">Quantity</span>
+                    <span className="text-right">Line Total</span>
+                  </div>
+                  {(selectedInvoice.items || []).map((item) => (
+                    <div key={item.id} className="grid grid-cols-[1fr_80px_120px] divide-x divide-card-border px-4 py-3 text-[12.5px] items-center">
+                      <span className="font-semibold text-foreground pr-2">{item.description}</span>
+                      <span className="text-center text-muted font-mono">{item.quantity}</span>
+                      <span className="text-right font-mono font-bold text-foreground">{formatCurrency(item.quantity * item.price, activeInvoiceCurrency)}</span>
+                    </div>
+                  ))}
+                  <div className="p-4 bg-foreground/[0.01]">
+                    <div className="max-w-xs ml-auto space-y-2 text-[12px]">
+                      {discountVal > 0 && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-muted">Subtotal:</span>
+                            <span className="font-mono">{formatCurrency(subtotal, activeInvoiceCurrency)}</span>
+                          </div>
+                          <div className="flex justify-between text-accent font-semibold">
+                            <span>Discount {selectedInvoice.discountType === "percent" ? `(${discountVal}%)` : ""}:</span>
+                            <span className="font-mono">-{formatCurrency(discountAmount, activeInvoiceCurrency)}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between border-t border-card-border pt-2 text-[14px] font-bold text-foreground">
+                        <span>Total Due:</span>
+                        <span className="font-mono font-display text-base">{formatCurrency(total, activeInvoiceCurrency)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {activeProfile?.signature && (
+                  <div className="mt-6 flex justify-end">
+                    <div className="text-right border border-card-border p-3 rounded-xl bg-foreground/[0.01] divide-y divide-card-border">
+                      <img className="ml-auto h-12 max-w-40 object-contain pb-1.5" alt="Signature" src={activeProfile.signature} />
+                      <p className="pt-1.5 text-[9px] font-extrabold text-muted tracking-wider uppercase">Authorized Representative</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Fallback / Classic
+          return (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-card-border pb-5">
+                <div className="flex items-center gap-3">
+                  {activeProfile?.profilePic ? (
+                    <img className="size-12 rounded-xl object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
+                  ) : (
+                    <div className="size-12 rounded-xl bg-foreground/[0.04] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[18px] text-muted">person</span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">{activeProfile?.businessName || activeProfile?.name || "BillCraft"}</h3>
+                    <p className="text-[12px] text-muted">{activeProfile?.profession || "Invoice profile"}</p>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right">
+                  <p className="text-[11px] font-semibold text-muted tracking-wider uppercase">{selectedInvoice.templateName || "Classic Invoice"}</p>
+                  <p className="text-2xl font-semibold text-foreground font-display">{selectedInvoice.id}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-2">Bill To</p>
+                  <div className="flex items-start gap-3">
+                    <img className="size-10 rounded-xl object-cover border border-card-border" alt={selectedInvoice.client} src={selectedInvoice.avatar} />
+                    <div>
+                      <p className="text-[14px] font-semibold text-foreground">{selectedInvoice.client}</p>
+                      <p className="text-[12px] text-muted">{selectedInvoice.email || "No email added"}</p>
+                      <p className="text-[12px] text-muted">{selectedInvoice.phone || "No phone added"}</p>
+                      {selectedInvoice.whatsapp && <p className="text-[12px] text-muted">WhatsApp: {selectedInvoice.whatsapp}</p>}
+                      {selectedInvoice.address && <p className="text-[12px] text-muted whitespace-pre-line mt-1">{selectedInvoice.address}</p>}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="surface-card p-3.5">
+                    <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Date</p>
+                    <p className="text-[13px] font-semibold text-foreground">{selectedInvoice.date}</p>
+                  </div>
+                  <div className="surface-card p-3.5">
+                    <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Status</p>
+                    <p className="text-[13px] font-semibold text-foreground">{paymentState}</p>
+                  </div>
+                  <div className="surface-card p-3.5 col-span-2">
+                    <p className="text-[10px] font-semibold text-muted tracking-widest uppercase mb-1.5">Work Status</p>
+                    <p className="text-[13px] font-semibold text-foreground">{selectedInvoice.workflowStatus || "Draft"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {renderItemsTable()}
+
+              {activeProfile?.signature && (
+                <div className="mt-5 flex justify-end">
+                  <div className="text-right">
+                    <img className="ml-auto h-14 max-w-44 object-contain" alt="Signature" src={activeProfile.signature} />
+                    <p className="mt-1 text-[10px] font-semibold text-muted tracking-widest uppercase">Signature</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       <PaymentSummary currency={currency} record={selectedInvoice} />
