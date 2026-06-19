@@ -78,6 +78,8 @@ type VendorDraft = {
   address?: string;
   avatar?: string;
   notes?: string;
+  paypal?: string;
+  stripe?: string;
 };
 
 export type LocalDataSnapshot = {
@@ -970,6 +972,8 @@ export async function saveVendor(profileId: string, originalVendorId: string | n
     address: draft.address?.trim() || undefined,
     avatar: avatar || createAvatar(draft.name.trim()),
     notes: draft.notes?.trim() || undefined,
+    paypal: draft.paypal?.trim() || undefined,
+    stripe: draft.stripe?.trim() || undefined,
     createdAt: existingVendor?.createdAt || now,
     updatedAt: now,
   });
@@ -994,6 +998,8 @@ export async function saveVendor(profileId: string, originalVendorId: string | n
       company: vendor.company,
       address: vendor.address,
       avatar: vendor.avatar,
+      paypal: vendor.paypal,
+      stripe: vendor.stripe,
     });
   });
 

@@ -12,7 +12,6 @@ import {
   getInvoiceItemsTotal,
   getOutsourcingInvoiceTotal,
   getOutsourcingTotals,
-  getPaymentState,
   type InvoiceItem,
   type InvoiceStatus,
   type InvoiceWorkflowStatus,
@@ -20,16 +19,19 @@ import {
   type PaymentAttachment,
   type PaymentRecord,
   type Vendor,
+  type UserProfile,
   CURRENCIES,
   createAvatar,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
 import { useOutsourcing } from "@/hooks/use-outsourcing";
+import { useUserData, type VendorDraft } from "@/hooks/use-user-data";
+import { exportVendorStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
-const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
-const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
+const STATUS_FILTERS = ["All", "Paid", "Unpaid"] as const;
+const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid"];
 const TEMPLATES = [
   {
     id: "outsourcing",
@@ -61,6 +63,8 @@ type OutsourcingForm = {
   receiptAttachments: PaymentAttachment[];
   saveVendorMode: SaveVendorMode | null;
   currency: string;
+  paypal: string;
+  stripe: string;
 };
 
 function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
@@ -96,6 +100,8 @@ function createEmptyForm(): OutsourcingForm {
     receiptAttachments: [],
     saveVendorMode: null,
     currency: "",
+    paypal: "",
+    stripe: "",
   };
 }
 
@@ -119,6 +125,8 @@ function getFormFromVendor(vendor: Vendor, currentForm: OutsourcingForm): Outsou
     company: vendor.company || "",
     address: vendor.address || "",
     avatar: vendor.avatar,
+    paypal: vendor.paypal || "",
+    stripe: vendor.stripe || "",
     saveVendorMode: null,
   };
 }
@@ -148,11 +156,40 @@ function getOutsourcingForm(invoice: OutsourcingInvoice, vendors: Vendor[]): Out
     receiptAttachments: invoice.receiptAttachments || [],
     saveVendorMode: null,
     currency: invoice.currency || "",
+    paypal: invoice.paypal || matchingVendor?.paypal || "",
+    stripe: invoice.stripe || matchingVendor?.stripe || "",
   };
+}
+
+function getOutsourcingPaymentState(invoice: OutsourcingInvoice): "Paid" | "Unpaid" {
+  return getBalanceDue(invoice) <= 0 ? "Paid" : "Unpaid";
+}
+
+function getVendorPaypalUrl(paypal: string, amount: number) {
+  if (!paypal) return "";
+  const cleaned = paypal.trim();
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+    return cleaned;
+  }
+  let path = cleaned;
+  if (path.startsWith("paypal.me/")) {
+    path = path.slice("paypal.me/".length);
+  }
+  return `https://paypal.me/${path}/${amount.toFixed(2)}`;
+}
+
+function getVendorStripeUrl(stripe: string) {
+  if (!stripe) return "";
+  const cleaned = stripe.trim();
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+    return cleaned;
+  }
+  return `https://${cleaned}`;
 }
 
 export default function Outsourcing() {
   const { vendors, outsourcingInvoices, saveVendor, saveOutsourcingInvoice, exportOutsourcingInvoice } = useOutsourcing();
+  const { activeProfile } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,9 +199,54 @@ export default function Outsourcing() {
   const [form, setForm] = useState<OutsourcingForm>(createEmptyForm);
   const [needsVendorSaveChoice, setNeedsVendorSaveChoice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [activeDetailVendor, setActiveDetailVendor] = useState<Vendor | null>(null);
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [vendorForm, setVendorForm] = useState<VendorDraft>({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    address: "",
+    notes: "",
+    paypal: "",
+    stripe: "",
+    avatar: "",
+  });
+
+  const vendorInvoices = useMemo(() => {
+    if (!activeDetailVendor) return [];
+    return outsourcingInvoices.filter(
+      (invoice) => invoice.vendorId === activeDetailVendor.id || invoice.vendor === activeDetailVendor.name
+    );
+  }, [activeDetailVendor, outsourcingInvoices]);
+
+  const vendorTotalPaid = useMemo(() => {
+    return vendorInvoices.reduce((sum, invoice) => sum + getAmountPaid(invoice), 0);
+  }, [vendorInvoices]);
+
+  const vendorOutstanding = useMemo(() => {
+    return vendorInvoices.reduce((sum, invoice) => sum + getBalanceDue(invoice), 0);
+  }, [vendorInvoices]);
+
+  function openEditVendor(vendor: Vendor) {
+    setEditingVendor(vendor);
+    setVendorForm({
+      name: vendor.name,
+      email: vendor.email || "",
+      phone: vendor.phone || "",
+      company: vendor.company || "",
+      address: vendor.address || "",
+      notes: vendor.notes || "",
+      paypal: vendor.paypal || "",
+      stripe: vendor.stripe || "",
+      avatar: vendor.avatar || "",
+    });
+  }
 
   function openShareModal(invoice: OutsourcingInvoice) {
     setShareInvoice(invoice);
+    setShowPaymentOptions(false);
   }
 
   function getWhatsAppUrl(phone: string, message: string) {
@@ -176,7 +258,10 @@ export default function Outsourcing() {
     return `Hi ${invoice.vendor}, here are the details for payable record ${invoice.id}.`;
   }
 
-  async function updateOutsourcingWorkflowStatus(invoice: OutsourcingInvoice, workflowStatus: InvoiceWorkflowStatus) {
+  async function updateOutsourcingStatus(
+    invoice: OutsourcingInvoice, 
+    updates: { workflowStatus?: InvoiceWorkflowStatus; status?: InvoiceStatus; amountPaid?: number; paidAt?: string }
+  ) {
     const invoiceForm = getOutsourcingForm(invoice, vendors);
     setIsSaving(true);
     try {
@@ -185,7 +270,10 @@ export default function Outsourcing() {
         id: invoice.id,
         vendorId: invoice.vendorId,
         vendor: invoice.vendor,
-        workflowStatus,
+        status: updates.status ?? invoice.status,
+        workflowStatus: updates.workflowStatus ?? invoice.workflowStatus,
+        amountPaid: updates.amountPaid !== undefined ? updates.amountPaid : invoice.amountPaid,
+        paidAt: updates.paidAt !== undefined ? updates.paidAt : invoice.paidAt,
         saveVendorMode: "onetime",
         templateName: invoice.templateName || TEMPLATES.find(t => t.id === (invoice.templateId || invoiceForm.templateId))?.name || TEMPLATES[0].name,
       }).then((savedInvoice) => {
@@ -196,11 +284,11 @@ export default function Outsourcing() {
       }), {
         loading: {
           title: "Updating status...",
-          description: `Setting status of ${invoice.id} to ${workflowStatus}.`,
+          description: "Saving changes to your outsourcing record.",
         },
         success: {
           title: "Status updated",
-          description: `Successfully marked ${invoice.id} as ${workflowStatus}.`,
+          description: `Successfully updated status for ${invoice.id}.`,
         },
         error: (error) => ({
           title: "Update failed",
@@ -233,7 +321,8 @@ export default function Outsourcing() {
 
   const filteredInvoices = useMemo(() => outsourcingInvoices.filter((invoice) => {
     const normalizedSearch = searchQuery.toLowerCase();
-    const matchesStatus = activeFilter === "All" || invoice.status === activeFilter;
+    const state = getOutsourcingPaymentState(invoice);
+    const matchesStatus = activeFilter === "All" || state === activeFilter;
     const matchesSearch = searchQuery === "" ||
       invoice.vendor.toLowerCase().includes(normalizedSearch) ||
       invoice.id.toLowerCase().includes(normalizedSearch) ||
@@ -360,6 +449,51 @@ export default function Outsourcing() {
     reader.readAsDataURL(file);
   }
 
+  function handleEditVendorImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setVendorForm((currentForm) => ({ ...currentForm, avatar: reader.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleSaveVendor(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!vendorForm.name.trim() || isSaving) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const saved = await saveVendor(editingVendor ? editingVendor.id : null, vendorForm);
+      if (saved) {
+        if (activeDetailVendor && activeDetailVendor.id === saved.id) {
+          setActiveDetailVendor(saved);
+        }
+        notify.success({
+          title: "Vendor saved",
+          description: `${saved.name} details have been updated.`,
+        });
+      }
+      setEditingVendor(null);
+    } catch (err) {
+      console.error(err);
+      notify.error({
+        title: "Save failed",
+        description: getToastErrorMessage(err, "Unable to save vendor details."),
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   function updateItem(index: number, updates: Partial<InvoiceItem>) {
     setForm((currentForm) => ({
       ...currentForm,
@@ -449,6 +583,8 @@ export default function Outsourcing() {
         payments: form.payments,
         saveVendorMode: form.vendorMode === "new" ? saveVendorMode || form.saveVendorMode || "onetime" : "onetime",
         currency: form.currency || undefined,
+        paypal: form.paypal || undefined,
+        stripe: form.stripe || undefined,
       }).then((savedInvoice) => {
         if (!savedInvoice) {
           throw new Error("Create a profile before saving payables.");
@@ -521,7 +657,7 @@ export default function Outsourcing() {
         </div>
 
         {/* Bento Metrics Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {/* Total Payables */}
           <div className="bg-gradient-to-br from-card to-accent/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300">
             <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-accent/10 rounded-full blur-xl pointer-events-none group-hover:bg-accent/20 transition-colors"></div>
@@ -550,31 +686,17 @@ export default function Outsourcing() {
             </div>
           </div>
 
-          {/* Pending */}
-          <div className="bg-gradient-to-br from-card to-foreground/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-foreground/20 hover:shadow-xl transition-all duration-300">
-            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-foreground/5 rounded-full blur-xl pointer-events-none group-hover:bg-foreground/10 transition-colors"></div>
+          {/* Unpaid */}
+          <div className="bg-gradient-to-br from-card to-amber-500/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300">
+            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/20 transition-colors"></div>
             <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-2xl bg-foreground/5 flex items-center justify-center text-foreground/60 ring-1 ring-foreground/10">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 ring-1 ring-amber-500/20">
                 <span className="material-symbols-outlined text-[20px] font-bold">pending</span>
               </div>
             </div>
             <div className="relative z-10">
-              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Pending</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.pendingAmount, currency)} /></p>
-            </div>
-          </div>
-
-          {/* Overdue */}
-          <div className="bg-gradient-to-br from-card to-negative/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-negative/30 hover:shadow-xl hover:shadow-negative/5 transition-all duration-300">
-            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-negative/10 rounded-full blur-xl pointer-events-none group-hover:bg-negative/20 transition-colors"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-2xl bg-negative/10 flex items-center justify-center text-negative ring-1 ring-negative/20">
-                <span className="material-symbols-outlined text-[20px] font-bold">error</span>
-              </div>
-            </div>
-            <div className="relative z-10">
-              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Overdue</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.overdueAmount, currency)} /></p>
+              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Unpaid</p>
+              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.totalAmount - totals.paidAmount, currency)} /></p>
             </div>
           </div>
         </div>
@@ -615,11 +737,10 @@ export default function Outsourcing() {
               {filteredInvoices.map((invoice) => (
                 (() => {
                   const balanceDue = getBalanceDue(invoice);
-                  const paymentState = getPaymentState(invoice);
+                  const paymentState = getOutsourcingPaymentState(invoice);
                   const activeInvoiceCurrency = invoice.currency || currency;
                   const paidAmount = getAmountPaid(invoice);
                   const totalAmount = getOutsourcingInvoiceTotal(invoice);
-                  const progressPercent = totalAmount > 0 ? Math.min((paidAmount / totalAmount) * 100, 100) : 0;
 
                   return (
                     <button
@@ -631,7 +752,7 @@ export default function Outsourcing() {
                       <div className="flex items-center gap-4 relative z-10">
                         {/* Avatar with Status Ring */}
                         <div className={`size-11 rounded-2xl overflow-hidden shrink-0 ring-2 ${
-                          paymentState === "Paid" ? "ring-positive/40" : paymentState === "Overdue" ? "ring-negative/40" : "ring-foreground/15"
+                          paymentState === "Paid" ? "ring-positive/40" : "ring-foreground/15"
                         } border-2 border-background shadow-xs`}>
                           <img className="w-full h-full object-cover" alt={invoice.vendor} src={invoice.avatar} />
                         </div>
@@ -654,7 +775,7 @@ export default function Outsourcing() {
 
                         {/* Status Pill */}
                         <span className={`px-3 py-1.5 text-[10px] font-bold rounded-full tracking-wide uppercase shrink-0 ${
-                          paymentState === "Paid" ? "bg-positive/10 text-positive" : paymentState === "Overdue" ? "bg-negative/10 text-negative" : "bg-foreground/[0.06] text-foreground/60"
+                          paymentState === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
                         }`}>
                           {paymentState}
                         </span>
@@ -670,22 +791,6 @@ export default function Outsourcing() {
                           <span onClick={(event) => { event.stopPropagation(); handleExportOutsourcingInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-xl text-muted hover:text-accent hover:bg-accent/10 transition-colors" title="Download">
                             <span className="material-symbols-outlined text-[16px] font-bold">download</span>
                           </span>
-                        </div>
-                      </div>
-
-                      {/* Payment progress indicator (visual wow factor) */}
-                      <div className="mt-4 pt-3 border-t border-card-border/40 flex flex-col gap-2 relative z-10">
-                        <div className="flex justify-between items-center text-[10px] font-bold text-muted uppercase tracking-wider">
-                          <span>Payment Progress</span>
-                          <span>{progressPercent.toFixed(0)}% ({formatCurrency(paidAmount, activeInvoiceCurrency)} / {formatCurrency(totalAmount, activeInvoiceCurrency)})</span>
-                        </div>
-                        <div className="w-full bg-foreground/[0.04] h-1.5 rounded-full overflow-hidden relative">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              paymentState === "Paid" ? "bg-positive" : paymentState === "Overdue" ? "bg-negative" : "bg-accent"
-                            }`} 
-                            style={{ width: `${progressPercent}%` }}
-                          />
                         </div>
                       </div>
 
@@ -738,9 +843,7 @@ export default function Outsourcing() {
                       type="button"
                       key={vendor.id}
                       onClick={() => {
-                        const initialForm = createEmptyForm();
-                        setForm(getFormFromVendor(vendor, initialForm));
-                        setModalMode("create");
+                        setActiveDetailVendor(vendor);
                       }}
                       className="w-full flex items-center justify-between p-2.5 rounded-2xl hover:bg-foreground/[0.03] border border-transparent hover:border-card-border/60 transition-all duration-300 group/vendor text-left"
                     >
@@ -907,6 +1010,14 @@ export default function Outsourcing() {
                           <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="outsourcing-vendor-phone">Phone Number</label>
                           <input id="outsourcing-vendor-phone" type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} placeholder="+1 (555) 019-9000" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
                         </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="outsourcing-vendor-paypal">PayPal Username / Link</label>
+                          <input id="outsourcing-vendor-paypal" value={form.paypal} onChange={(event) => setForm({ ...form, paypal: event.target.value })} placeholder="e.g. paypal.me/username" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="outsourcing-vendor-stripe">Stripe Link</label>
+                          <input id="outsourcing-vendor-stripe" value={form.stripe} onChange={(event) => setForm({ ...form, stripe: event.target.value })} placeholder="e.g. buy.stripe.com/abc" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                        </div>
                         <div className="sm:col-span-2 space-y-1.5">
                           <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="outsourcing-address">Vendor Address</label>
                           <textarea id="outsourcing-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Payee billing address" className="field-control min-h-20 px-3.5 py-2.5 resize-none text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
@@ -1046,9 +1157,9 @@ export default function Outsourcing() {
                       <p className="text-3xl font-extrabold text-foreground font-display mt-1">{selectedInvoice.id}</p>
                     </div>
                     <span className={`px-3 py-1.5 text-[10px] font-bold rounded-full tracking-wide uppercase shrink-0 ${
-                      getPaymentState(selectedInvoice) === "Paid" ? "bg-positive/10 text-positive" : getPaymentState(selectedInvoice) === "Overdue" ? "bg-negative/10 text-negative" : "bg-foreground/[0.06] text-foreground/60"
+                      getOutsourcingPaymentState(selectedInvoice) === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
                     }`}>
-                      {getPaymentState(selectedInvoice)}
+                      {getOutsourcingPaymentState(selectedInvoice)}
                     </span>
                   </div>
 
@@ -1099,7 +1210,7 @@ export default function Outsourcing() {
                   </div>
                 </div>
 
-                <PaymentSummary currency={selectedInvoice.currency || currency} record={selectedInvoice} title="Payment Tracking" />
+                <PaymentSummary currency={selectedInvoice.currency || currency} record={selectedInvoice} title="Payment Tracking" isOutsourcing />
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t border-card-border/50">
                   <button onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary px-4 py-2.5 text-xs font-semibold rounded-xl">
@@ -1138,26 +1249,121 @@ export default function Outsourcing() {
               {/* Status workflow */}
               <div className="surface-card p-4 border border-card-border rounded-2xl space-y-3 bg-foreground/[0.01]">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Workflow Progress</span>
-                <div className="grid grid-cols-3 gap-2">
-                  <button 
-                    onClick={() => { void updateOutsourcingWorkflowStatus(shareInvoice, "Sent"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl ${shareInvoice.workflowStatus === "Sent" ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" : ""}`}
-                  >
-                    Mark as Sent
-                  </button>
-                  <button 
-                    onClick={() => { void updateOutsourcingWorkflowStatus(shareInvoice, "Work Confirmed"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" : ""}`}
-                  >
-                    Confirm Work
-                  </button>
-                  <button 
-                    onClick={() => { void updateOutsourcingWorkflowStatus(shareInvoice, "Delivered"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl ${shareInvoice.workflowStatus === "Delivered" ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" : ""}`}
-                  >
-                    Mark Delivered
-                  </button>
-                </div>
+                
+                {showPaymentOptions ? (
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-semibold text-muted block mb-1 text-center">Choose Payment Method</span>
+                    <div className="grid grid-cols-1 gap-2">
+                      {shareInvoice.paypal && (
+                        <a 
+                          href={getVendorPaypalUrl(shareInvoice.paypal, getOutsourcingInvoiceTotal(shareInvoice))}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            void updateOutsourcingStatus(shareInvoice, { 
+                              status: "Paid", 
+                              amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
+                              paidAt: todayInputValue() 
+                            });
+                            setShareInvoice(null);
+                            setShowPaymentOptions(false);
+                          }}
+                          className="btn-primary bg-[#0070ba] hover:bg-[#003087] text-white text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">payment</span>
+                          Pay via PayPal
+                        </a>
+                      )}
+                      
+                      {shareInvoice.stripe && (
+                        <a 
+                          href={getVendorStripeUrl(shareInvoice.stripe)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            void updateOutsourcingStatus(shareInvoice, { 
+                              status: "Paid", 
+                              amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
+                              paidAt: todayInputValue() 
+                            });
+                            setShareInvoice(null);
+                            setShowPaymentOptions(false);
+                          }}
+                          className="btn-primary bg-[#635bff] hover:bg-[#0a2540] text-white text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">credit_card</span>
+                          Pay via Stripe
+                        </a>
+                      )}
+
+                      <button 
+                        onClick={() => {
+                          void updateOutsourcingStatus(shareInvoice, { 
+                            status: "Paid", 
+                            amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
+                            paidAt: todayInputValue() 
+                          });
+                          setShareInvoice(null);
+                          setShowPaymentOptions(false);
+                        }}
+                        className="btn-secondary text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5 hover:bg-foreground/[0.04]"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">done</span>
+                        Mark Paid Manually
+                      </button>
+
+                      <button 
+                        type="button"
+                        onClick={() => setShowPaymentOptions(false)}
+                        className="btn-ghost text-[10px] text-muted py-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      onClick={() => {
+                        const total = getOutsourcingInvoiceTotal(shareInvoice);
+                        const hasLinks = Boolean(shareInvoice.paypal || shareInvoice.stripe);
+                        if (hasLinks) {
+                          setShowPaymentOptions(true);
+                        } else {
+                          void updateOutsourcingStatus(shareInvoice, { 
+                            status: "Paid", 
+                            amountPaid: total, 
+                            paidAt: todayInputValue() 
+                          });
+                          setShareInvoice(null);
+                        }
+                      }}
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl flex items-center justify-center gap-1 ${
+                        getOutsourcingPaymentState(shareInvoice) === "Paid" 
+                          ? "bg-positive/15 text-positive border-positive/20 font-bold shadow-2xs" 
+                          : ""
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">payments</span>
+                      {getOutsourcingPaymentState(shareInvoice) === "Paid" ? "Paid" : "Pay"}
+                    </button>
+                    
+                    <button 
+                      onClick={() => { 
+                        void updateOutsourcingStatus(shareInvoice, { workflowStatus: "Delivered" }); 
+                        setShareInvoice(null); 
+                      }}
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl flex items-center justify-center gap-1 ${
+                        shareInvoice.workflowStatus === "Delivered" 
+                          ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" 
+                          : ""
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">package</span>
+                      {shareInvoice.workflowStatus === "Delivered" ? "Delivered" : "Mark Delivered"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Share Channels */}
@@ -1226,6 +1432,298 @@ export default function Outsourcing() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vendor Details Modal */}
+      {activeDetailVendor && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setActiveDetailVendor(null)} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6 border-b border-card-border pb-4">
+              <div className="flex items-center gap-3">
+                <img className="size-11 rounded-xl object-cover border border-card-border shadow-3xs" alt={activeDetailVendor.name} src={activeDetailVendor.avatar || createAvatar(activeDetailVendor.name)} />
+                <div>
+                  <h2 className="text-xl font-bold text-foreground font-display leading-tight">{activeDetailVendor.name}</h2>
+                  <p className="text-[11px] text-muted">{activeDetailVendor.company || "Individual Vendor"}</p>
+                </div>
+              </div>
+              <button onClick={() => setActiveDetailVendor(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-colors">
+                <span className="material-symbols-outlined text-[20px] text-muted">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Statistics Grid */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Outstanding</p>
+                  <p className={`mt-1 font-display text-lg font-bold ${vendorOutstanding > 0 ? "text-amber-500" : "text-foreground"}`}>
+                    <AnimatedNumber value={formatCurrency(vendorOutstanding, currency)} />
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Total Paid</p>
+                  <p className="mt-1 font-display text-lg font-bold text-positive">
+                    <AnimatedNumber value={formatCurrency(vendorTotalPaid, currency)} />
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Payables Count</p>
+                  <p className="mt-1 font-display text-lg font-bold text-foreground">
+                    <AnimatedNumber value={vendorInvoices.length} />
+                  </p>
+                </div>
+              </div>
+
+              {/* Vendor Info Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 surface-card p-5 border border-card-border rounded-3xl">
+                <div className="space-y-3 text-[12px] text-muted">
+                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1">Contact Info</p>
+                  {activeDetailVendor.email && (
+                    <p className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-foreground/30">mail</span>
+                      <span className="text-foreground">{activeDetailVendor.email}</span>
+                    </p>
+                  )}
+                  {activeDetailVendor.phone && (
+                    <p className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-foreground/30">phone</span>
+                      <span className="text-foreground">{activeDetailVendor.phone}</span>
+                    </p>
+                  )}
+                  {activeDetailVendor.address && (
+                    <div className="flex items-start gap-2 pt-1">
+                      <span className="material-symbols-outlined text-[16px] text-foreground/30 mt-0.5">location_on</span>
+                      <div>
+                        <p className="font-semibold text-foreground/75">Billing Address</p>
+                        <p className="mt-0.5 whitespace-pre-line leading-relaxed">{activeDetailVendor.address}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 text-[12px] text-muted">
+                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1">Payment & Notes</p>
+                  {activeDetailVendor.paypal && (
+                    <p className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-[#0070ba] font-bold">payment</span>
+                      <span className="font-semibold text-foreground">PayPal:</span>
+                      <span className="text-foreground">{activeDetailVendor.paypal}</span>
+                    </p>
+                  )}
+                  {activeDetailVendor.stripe && (
+                    <p className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-[#635bff] font-bold">credit_card</span>
+                      <span className="font-semibold text-foreground">Stripe Link:</span>
+                      <span className="text-foreground truncate max-w-[200px]">{activeDetailVendor.stripe}</span>
+                    </p>
+                  )}
+                  {activeDetailVendor.notes && (
+                    <div className="pt-1">
+                      <p className="font-semibold text-foreground/75">Notes</p>
+                      <p className="mt-0.5 whitespace-pre-line leading-relaxed">{activeDetailVendor.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Payables Ledger Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-card-border pb-2">
+                  <h3 className="text-xs font-bold text-muted tracking-wider uppercase">Payables Ledger</h3>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void exportVendorStatementPdf(activeDetailVendor, vendorInvoices, activeProfile, currency)}
+                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-semibold"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                      Statement PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const initialForm = createEmptyForm();
+                        setForm(getFormFromVendor(activeDetailVendor, initialForm));
+                        setModalMode("create");
+                        setActiveDetailVendor(null);
+                      }}
+                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-semibold"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">add</span>
+                      Create Payable
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border border-card-border">
+                  <div className="grid grid-cols-[1fr_90px_110px_90px] gap-3 bg-foreground/[0.03] px-4 py-2.5 text-[10px] font-bold text-muted tracking-widest uppercase border-b border-card-border">
+                    <span>Payable ID</span>
+                    <span>Date</span>
+                    <span className="text-right">Amount</span>
+                    <span className="text-right">Status</span>
+                  </div>
+                  <div className="divide-y divide-card-border/60 max-h-[250px] overflow-y-auto pr-1">
+                    {vendorInvoices.length > 0 ? (
+                      vendorInvoices.map((invoice) => {
+                        const amount = getOutsourcingInvoiceTotal(invoice);
+                        const status = getOutsourcingPaymentState(invoice);
+
+                        return (
+                          <div
+                            key={invoice.id}
+                            onClick={() => {
+                              setActiveDetailVendor(null);
+                              openViewModal(invoice);
+                            }}
+                            className="grid grid-cols-[1fr_90px_110px_90px] gap-3 px-4 py-3 text-[12px] hover:bg-foreground/[0.02] transition-colors cursor-pointer"
+                          >
+                            <span className="font-bold text-foreground truncate">{invoice.id}</span>
+                            <span className="text-muted font-medium">{invoice.date}</span>
+                            <span className="text-right font-extrabold text-foreground">
+                              {formatCurrency(amount, invoice.currency || currency)}
+                            </span>
+                            <span className="text-right">
+                              <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full tracking-wide uppercase ${
+                                status === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
+                              }`}>
+                                {status}
+                              </span>
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="px-4 py-8 text-center text-[12px] text-muted">
+                        No payables recorded for this vendor yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2.5 pt-4 border-t border-card-border/50">
+                <button
+                  type="button"
+                  onClick={() => setActiveDetailVendor(null)}
+                  className="btn-ghost px-4 py-2.5 text-xs font-semibold rounded-xl hover:bg-foreground/[0.04]"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openEditVendor(activeDetailVendor)}
+                  className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15"
+                >
+                  Edit Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vendor Form Modal (Editing Details) */}
+      {editingVendor && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setEditingVendor(null)} />
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-muted">engineering</span>
+                <h2 className="text-lg font-bold text-foreground leading-none font-display">Edit Vendor</h2>
+              </div>
+              <button onClick={() => setEditingVendor(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleSaveVendor} className="flex-1 flex flex-col min-h-0 bg-background/35">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+                
+                {/* Avatar Upload */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Identity Image</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="size-14 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
+                      {vendorForm.avatar ? (
+                        <img className="w-full h-full object-cover" alt="Vendor preview" src={vendorForm.avatar} />
+                      ) : (
+                        <span className="material-symbols-outlined text-foreground/20 text-[24px]">image</span>
+                      )}
+                    </div>
+                    <label className="btn-secondary text-[11px] min-h-8 px-3.5 py-1.5 cursor-pointer rounded-xl font-semibold transition-all">
+                      <span>{vendorForm.avatar ? "Change Image" : "Add Image"}</span>
+                      <input className="sr-only" type="file" accept="image/*" onChange={handleEditVendorImageChange} />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Profile Information */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Profile Details</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-name">Vendor Name</label>
+                      <input id="edit-vendor-name" required value={vendorForm.name} onChange={(event) => setVendorForm({ ...vendorForm, name: event.target.value })} placeholder="Vendor Name" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-company">Company</label>
+                      <input id="edit-vendor-company" value={vendorForm.company || ""} onChange={(event) => setVendorForm({ ...vendorForm, company: event.target.value })} placeholder="Company Name" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-email">Email Address</label>
+                        <input id="edit-vendor-email" type="email" value={vendorForm.email || ""} onChange={(event) => setVendorForm({ ...vendorForm, email: event.target.value })} placeholder="vendor@example.com" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-phone">Phone Number</label>
+                        <input id="edit-vendor-phone" type="tel" value={vendorForm.phone || ""} onChange={(event) => setVendorForm({ ...vendorForm, phone: event.target.value })} placeholder="+1 (555) 019-9000" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-address">Billing Address</label>
+                      <textarea id="edit-vendor-address" value={vendorForm.address || ""} onChange={(event) => setVendorForm({ ...vendorForm, address: event.target.value })} placeholder="Vendor address" className="field-control min-h-20 px-3.5 py-2.5 resize-none text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payments & Notes */}
+                <div className="surface-card p-4 space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Payments & Notes</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-paypal">PayPal Username / Link</label>
+                      <input id="edit-vendor-paypal" value={vendorForm.paypal || ""} onChange={(event) => setVendorForm({ ...vendorForm, paypal: event.target.value })} placeholder="e.g. paypal.me/username" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-stripe">Stripe Link</label>
+                      <input id="edit-vendor-stripe" value={vendorForm.stripe || ""} onChange={(event) => setVendorForm({ ...vendorForm, stripe: event.target.value })} placeholder="e.g. buy.stripe.com/abc" className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-notes">Internal Notes</label>
+                      <textarea id="edit-vendor-notes" value={vendorForm.notes || ""} onChange={(event) => setVendorForm({ ...vendorForm, notes: event.target.value })} placeholder="Notes about payment terms, rates or credentials..." className="field-control min-h-20 px-3.5 py-2.5 resize-none text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0">
+                <button type="button" onClick={() => setEditingVendor(null)} className="btn-ghost px-4 py-2.5 text-xs font-semibold rounded-xl hover:bg-foreground/[0.04]">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15" disabled={isSaving}>
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

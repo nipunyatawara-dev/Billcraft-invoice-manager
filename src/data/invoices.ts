@@ -209,6 +209,8 @@ export interface Vendor {
   company?: string;
   address?: string;
   notes?: string;
+  paypal?: string;
+  stripe?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -242,6 +244,8 @@ export interface OutsourcingInvoice {
   phone: string;
   company?: string;
   address?: string;
+  paypal?: string;
+  stripe?: string;
   createdAt?: string;
   updatedAt?: string;
 }

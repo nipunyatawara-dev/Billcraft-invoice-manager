@@ -60,7 +60,7 @@ function attachmentLabel(attachment: PaymentAttachment) {
   return `${attachment.name} (${sizeInKb} KB)`;
 }
 
-function paymentStateClass(state: ReturnType<typeof getPaymentState>) {
+function paymentStateClass(state: string) {
   if (state === "Paid") {
     return "bg-positive/15 text-positive";
   }
@@ -253,12 +253,13 @@ type PaymentSummaryProps = {
   currency: string;
   record: PaymentTrackable;
   title?: string;
+  isOutsourcing?: boolean;
 };
 
-export function PaymentSummary({ currency, record, title = "Payment Tracking" }: PaymentSummaryProps) {
+export function PaymentSummary({ currency, record, title = "Payment Tracking", isOutsourcing = false }: PaymentSummaryProps) {
   const amountPaid = getAmountPaid(record);
   const balanceDue = getBalanceDue(record);
-  const paymentState = getPaymentState(record);
+  const paymentState = isOutsourcing ? (balanceDue <= 0 ? "Paid" : "Unpaid") : getPaymentState(record);
   const payments = record.payments || [];
   const topLevelAttachments = record.receiptAttachments || [];
   const hasAttachments = topLevelAttachments.length > 0 || payments.some((payment) => (payment.receiptAttachments || []).length > 0);

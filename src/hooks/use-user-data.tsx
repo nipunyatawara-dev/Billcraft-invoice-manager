@@ -90,6 +90,8 @@ export type VendorDraft = {
   address?: string;
   avatar?: string;
   notes?: string;
+  paypal?: string;
+  stripe?: string;
 };
  
 export type InvoiceDraft = {
@@ -147,6 +149,8 @@ export type OutsourcingInvoiceDraft = {
   payments?: PaymentRecord[];
   saveVendorMode?: "regular" | "onetime";
   currency?: string;
+  paypal?: string;
+  stripe?: string;
 };
  
 export type ProfilePasswordDraft = {
@@ -672,6 +676,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       workflowStatus: draft.workflowStatus || "Draft",
       statusColor: getStatusColor(draft.status),
       vendorColor: "bg-foreground/10",
+      paypal: draft.paypal,
+      stripe: draft.stripe,
     };
 
     setError(null);
@@ -690,6 +696,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
           company: draft.company,
           address: draft.address,
           avatar: draft.avatar,
+          paypal: draft.paypal,
+          stripe: draft.stripe,
         }
         : undefined,
     });
