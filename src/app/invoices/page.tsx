@@ -1046,7 +1046,7 @@ export default function Invoices() {
               as="h1"
               text="Invoices"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
               delayMs={70}
             />
           </div>
@@ -1058,27 +1058,27 @@ export default function Invoices() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Billed</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} /></p>
+            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Total Billed</p>
+            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Total</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-[var(--muted)]">invoices</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Total</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-muted">invoices</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Collected</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Collected</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Attention</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={totals.unpaidCount + totals.overdueCount} /> <span className="text-[12px] font-normal text-[var(--accent)]">pending</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Attention</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={totals.unpaidCount + totals.overdueCount} /> <span className="text-[12px] font-normal text-accent">pending</span></p>
           </div>
         </div>
 
         {/* Bulk Action Controls */}
         {selectedInvoiceIds.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 mb-4 bg-[var(--accent)]/5 border border-[var(--accent)]/15 rounded-xl animate-in slide-in-from-top-3 duration-250">
-            <span className="text-[11px] font-extrabold text-[var(--accent)] uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 mb-4 bg-accent/5 border border-accent/15 rounded-xl animate-in slide-in-from-top-3 duration-250">
+            <span className="text-[11px] font-extrabold text-accent uppercase tracking-wider">
               Bulk Actions ({selectedInvoiceIds.length}):
             </span>
             <button
@@ -1094,7 +1094,7 @@ export default function Invoices() {
             <button
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
-              className="btn-secondary text-[11px] min-h-7 px-3 py-1 font-semibold text-[var(--negative)] hover:bg-[var(--negative)]/10 hover:border-transparent flex items-center gap-1"
+              className="btn-secondary text-[11px] min-h-7 px-3 py-1 font-semibold text-negative hover:bg-negative/10 hover:border-transparent flex items-center gap-1"
             >
               {isBulkDeleting ? "Deleting..." : <>
                 <span className="material-symbols-outlined text-[13px]">delete</span>
@@ -1113,7 +1113,7 @@ export default function Invoices() {
               {isStatusDropdownOpen && (
                 <>
                   <button type="button" aria-label="Close status dropdown" className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)} />
-                  <div className="absolute left-0 bottom-full mb-1 w-[130px] bg-[var(--card)] border border-[var(--card-border)] rounded-xl shadow-lg z-20 py-1">
+                  <div className="absolute left-0 bottom-full mb-1 w-[130px] bg-card border border-card-border rounded-xl shadow-lg z-20 py-1">
                     {STATUSES.map((status) => (
                       <button
                         key={status}
@@ -1121,7 +1121,7 @@ export default function Invoices() {
                           void handleBulkStatusChange(status);
                           setIsStatusDropdownOpen(false);
                         }}
-                        className="w-full text-left px-3 py-1.5 text-[11px] font-semibold text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.04] transition-colors"
+                        className="w-full text-left px-3 py-1.5 text-[11px] font-semibold text-foreground hover:bg-foreground/[0.04] transition-colors"
                       >
                         {status}
                       </button>
@@ -1148,14 +1148,14 @@ export default function Invoices() {
           currency={currency}
         />
 
-        <div className="flex items-center justify-between mt-6 pt-5 border-t border-[var(--card-border)]">
-          <p className="text-[11px] text-[var(--muted)] font-medium">Showing <AnimatedNumber value={filteredInvoices.length} /> of <AnimatedNumber value={invoices.length} /> invoices</p>
+        <div className="flex items-center justify-between mt-6 pt-5 border-t border-card-border">
+          <p className="text-[11px] text-muted font-medium">Showing <AnimatedNumber value={filteredInvoices.length} /> of <AnimatedNumber value={invoices.length} /> invoices</p>
         </div>
       </main>
 
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <button aria-label="Close modal" className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
           {isFormMode ? (
             <InvoiceFormModal
               modalMode={modalMode}
@@ -1208,11 +1208,11 @@ export default function Invoices() {
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setPendingTaskInvoice(null)} />
           <div className="modal-surface relative max-w-md w-full p-6 text-center animate-in zoom-in-95 duration-200">
-            <div className="size-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)] mx-auto mb-4">
+            <div className="size-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent mx-auto mb-4">
               <span className="material-symbols-outlined text-[24px]">task_alt</span>
             </div>
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-1.5 font-display">Create to-do cards for this invoice?</h3>
-            <p className="text-[12px] text-[var(--muted)] leading-relaxed mb-6">
+            <h3 className="text-lg font-bold text-foreground mb-1.5 font-display">Create to-do cards for this invoice?</h3>
+            <p className="text-[12px] text-muted leading-relaxed mb-6">
               Automatically add {pendingTaskInvoice.items?.length || 1} task card{(pendingTaskInvoice.items?.length || 1) === 1 ? "" : "s"} to your To-Do board matching the line items on {pendingTaskInvoice.id}.
             </p>
             <div className="flex gap-2">
@@ -1241,62 +1241,62 @@ export default function Invoices() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setShareInvoice(null)} />
           <div className="modal-surface relative max-w-lg w-full p-6 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-[var(--foreground)] flex items-center gap-1.5 font-display">
-                <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">send</span>
+              <h3 className="text-base font-bold text-foreground flex items-center gap-1.5 font-display">
+                <span className="material-symbols-outlined text-[18px] text-accent">send</span>
                 Send Invoice & Delivery Link
               </h3>
-              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04]">
-                <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">close</span>
+              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04]">
+                <span className="material-symbols-outlined text-[16px] text-muted">close</span>
               </button>
             </div>
             
-            <p className="text-[12px] text-[var(--muted)] mb-5 leading-normal">
+            <p className="text-[12px] text-muted mb-5 leading-normal">
               Manage work confirmation workflow and copy delivery links to share with {shareInvoice.client}.
             </p>
 
             <div className="space-y-4">
               {/* Delivery link */}
               {shareInvoice.deliveryLink ? (
-                <div className="surface-card p-4 border border-[var(--card-border)] rounded-xl">
+                <div className="surface-card p-4 border border-card-border rounded-xl">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Product Delivery Link</span>
+                    <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Product Delivery Link</span>
                     <button 
                       onClick={() => {
                         void navigator.clipboard.writeText(shareInvoice.deliveryLink || "");
                         notify.success({ title: "Link copied", description: "Delivery link copied to clipboard." });
                       }}
-                      className="text-[10px] font-extrabold text-[var(--accent)] hover:underline uppercase"
+                      className="text-[10px] font-extrabold text-accent hover:underline uppercase"
                     >
                       Copy Link
                     </button>
                   </div>
-                  <p className="text-[12px] text-[var(--foreground)] font-mono truncate select-all">{shareInvoice.deliveryLink}</p>
+                  <p className="text-[12px] text-foreground font-mono truncate select-all">{shareInvoice.deliveryLink}</p>
                 </div>
               ) : (
-                <div className="surface-card p-4 border border-dashed border-[var(--card-border)] rounded-xl text-center text-[12px] text-[var(--muted)]">
+                <div className="surface-card p-4 border border-dashed border-card-border rounded-xl text-center text-[12px] text-muted">
                   No work delivery link added to this invoice.
                 </div>
               )}
 
               {/* Status workflow */}
-              <div className="surface-card p-4 border border-[var(--card-border)] rounded-xl space-y-3">
-                <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider block">Workflow Progress</span>
+              <div className="surface-card p-4 border border-card-border rounded-xl space-y-3">
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Workflow Progress</span>
                 <div className="grid grid-cols-2 gap-2">
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Sent"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Sent" ? "bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Sent" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark as Sent
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Work Confirmed"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Confirm Work
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Delivered"); setShareInvoice(null); }}
-                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Delivered" ? "bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 font-bold" : ""}`}
+                    className={`btn-secondary text-[11px] py-1.5 ${shareInvoice.workflowStatus === "Delivered" ? "bg-accent/10 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark Delivered
                   </button>

@@ -274,7 +274,7 @@ export default function Clients() {
               as="h1"
               text="Clients"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
               delayMs={70}
             />
           </div>
@@ -286,20 +286,20 @@ export default function Clients() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={formatCurrency(totalRevenue, currency)} /></p>
+            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
+            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={formatCurrency(totalRevenue, currency)} /></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Regular Clients</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={clients.length} /> <span className="text-[12px] font-normal text-[var(--positive)]">saved</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Regular Clients</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={clients.length} /> <span className="text-[12px] font-normal text-positive">saved</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Invoices</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-[var(--muted)]">total</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Invoices</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-muted">total</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Avg / Client</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} /></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Avg / Client</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} /></p>
           </div>
         </div>
 
@@ -329,23 +329,23 @@ export default function Clients() {
                   onKeyDown={(event) => handleClientCardKeyDown(event, client.id)}
                   className={`surface-card p-5 cursor-pointer transition-smooth group ${
                     isSelected
-                      ? "border-[var(--accent)]/30 rounded-b-none"
-                      : "border-[var(--card-border)] hover:border-[var(--foreground)]/12"
+                      ? "border-accent/30 rounded-b-none"
+                      : "border-card-border hover:border-foreground/12"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="size-12 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
+                    <div className="size-12 rounded-xl border border-card-border overflow-hidden shrink-0">
                       <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="font-semibold text-[14px] text-[var(--foreground)] truncate">{client.name}</h3>
-                          <p className="text-[11px] text-[var(--muted)] mt-0.5 truncate">{client.email || client.whatsapp || client.company || "No contact details"}</p>
+                          <h3 className="font-semibold text-[14px] text-foreground truncate">{client.name}</h3>
+                          <p className="text-[11px] text-muted mt-0.5 truncate">{client.email || client.whatsapp || client.company || "No contact details"}</p>
                         </div>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(client); }}
-                          className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth opacity-0 group-hover:opacity-100"
+                          className="size-7 flex items-center justify-center rounded-full text-foreground/20 hover:text-accent hover:bg-accent/10 transition-smooth opacity-0 group-hover:opacity-100"
                           aria-label={`Edit ${client.name}`}
                         >
                           <span className="material-symbols-outlined text-[14px]">edit</span>
@@ -354,26 +354,26 @@ export default function Clients() {
 
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                         <div>
-                          <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(client.totalBilled, currency)} /></p>
-                          <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Total Billed</p>
+                          <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(client.totalBilled, currency)} /></p>
+                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase">Total Billed</p>
                         </div>
-                        <div className="w-px h-7 bg-[var(--card-border)]" />
+                        <div className="w-px h-7 bg-card-border" />
                         <div>
-                          <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={client.invoices.length} /></p>
-                          <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase">Invoices</p>
+                          <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={client.invoices.length} /></p>
+                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase">Invoices</p>
                         </div>
-                        <div className="w-px h-7 bg-[var(--card-border)]" />
+                        <div className="w-px h-7 bg-card-border" />
                         <div className="flex flex-wrap gap-1.5">
-                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--positive)]/15 text-[var(--positive)]"><AnimatedNumber value={breakdown.paid} /> paid</span>}
-                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
-                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-[var(--accent)]/15 text-[var(--accent)]"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
+                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-positive/15 text-positive"><AnimatedNumber value={breakdown.paid} /> paid</span>}
+                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-foreground/[0.06] text-foreground/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
+                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-accent/15 text-accent"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--card-border)]">
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-[var(--muted)]">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted">
                       {client.phone && (
                         <span className="flex items-center gap-1">
                           <span className="material-symbols-outlined text-[13px]">phone</span>
@@ -393,7 +393,7 @@ export default function Clients() {
                         </span>
                       )}
                     </div>
-                    <span className={`material-symbols-outlined text-[16px] text-[var(--foreground)]/20 transition-transform duration-200 ${isSelected ? "rotate-180" : ""}`}>
+                    <span className={`material-symbols-outlined text-[16px] text-foreground/20 transition-transform duration-200 ${isSelected ? "rotate-180" : ""}`}>
                       expand_more
                     </span>
                   </div>
@@ -410,38 +410,38 @@ export default function Clients() {
                       transition={{ duration: shouldReduceMotion ? 0.01 : 0.24, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="rounded-b-2xl border border-t-0 border-[var(--accent)]/30 bg-[var(--foreground)]/[0.02] overflow-hidden">
-                        <div className="grid grid-cols-1 gap-3 border-b border-[var(--card-border)] p-5 lg:grid-cols-4">
-                          <div className="rounded-xl border border-[var(--card-border)] p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Outstanding</p>
-                            <p className="mt-1 font-display text-lg font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(outstandingBalance, currency)} /></p>
+                      <div className="rounded-b-2xl border border-t-0 border-accent/30 bg-foreground/[0.02] overflow-hidden">
+                        <div className="grid grid-cols-1 gap-3 border-b border-card-border p-5 lg:grid-cols-4">
+                          <div className="rounded-xl border border-card-border p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Outstanding</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-foreground"><AnimatedNumber value={formatCurrency(outstandingBalance, currency)} /></p>
                           </div>
-                          <div className="rounded-xl border border-[var(--card-border)] p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Avg Pay Time</p>
-                            <p className="mt-1 font-display text-lg font-semibold text-[var(--foreground)]">{averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}</p>
+                          <div className="rounded-xl border border-card-border p-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Avg Pay Time</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-foreground">{averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}</p>
                           </div>
-                          <div className="rounded-xl border border-[var(--card-border)] p-3 lg:col-span-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Delivery Location</p>
+                          <div className="rounded-xl border border-card-border p-3 lg:col-span-2">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Delivery Location</p>
                             {client.deliveryLink ? (
                               <a
                                 href={client.deliveryLink}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="mt-1 block truncate text-[12px] font-semibold text-[var(--accent)]"
+                                className="mt-1 block truncate text-[12px] font-semibold text-accent"
                                 onClick={(event) => event.stopPropagation()}
                               >
                                 {client.deliveryLink}
                               </a>
                             ) : (
-                              <p className="mt-1 line-clamp-2 text-[12px] text-[var(--muted)]">No finished-work folder saved yet.</p>
+                              <p className="mt-1 line-clamp-2 text-[12px] text-muted">No finished-work folder saved yet.</p>
                             )}
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-                          <div className="border-b border-[var(--card-border)] lg:border-b-0 lg:border-r">
+                          <div className="border-b border-card-border lg:border-b-0 lg:border-r">
                             <div className="flex items-center justify-between gap-3 px-5 py-3">
-                              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">Invoices</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">Invoices</p>
                               <div className="flex items-center gap-2">
                                 <button type="button" onClick={() => handleExportStatement(client)} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
                                   <span className="material-symbols-outlined text-[14px]">account_balance_wallet</span>
@@ -454,29 +454,29 @@ export default function Clients() {
                               </div>
                             </div>
                             {selectedClientData.invoices.length > 0 ? selectedClientData.invoices.map((invoice) => (
-                              <div key={invoice.id} className="flex items-center justify-between gap-3 border-t border-[var(--card-border)] px-5 py-3 transition-smooth hover:bg-[var(--foreground)]/[0.02]">
+                              <div key={invoice.id} className="flex items-center justify-between gap-3 border-t border-card-border px-5 py-3 transition-smooth hover:bg-foreground/[0.02]">
                                 <div className="flex min-w-0 items-center gap-2.5">
-                                  <span className="material-symbols-outlined text-[16px] text-[var(--foreground)]/25">receipt_long</span>
+                                  <span className="material-symbols-outlined text-[16px] text-foreground/25">receipt_long</span>
                                   <div className="min-w-0">
-                                    <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{invoice.id}</p>
-                                    <p className="text-[11px] text-[var(--muted)]">{invoice.date} · <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected</p>
+                                    <p className="truncate text-[13px] font-semibold text-foreground">{invoice.id}</p>
+                                    <p className="text-[11px] text-muted">{invoice.date} · <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected</p>
                                   </div>
                                 </div>
                                 <div className="shrink-0 text-right">
-                                  <p className="text-[13px] font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                                  <p className="text-[10px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(getBalanceDue(invoice), currency)} /> due</p>
+                                  <p className="text-[13px] font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                                  <p className="text-[10px] font-medium text-muted"><AnimatedNumber value={formatCurrency(getBalanceDue(invoice), currency)} /> due</p>
                                 </div>
                               </div>
                             )) : (
-                              <div className="border-t border-[var(--card-border)] px-5 py-5 text-[12px] text-[var(--muted)]">No invoices for this client yet.</div>
+                              <div className="border-t border-card-border px-5 py-5 text-[12px] text-muted">No invoices for this client yet.</div>
                             )}
                           </div>
 
                           <div>
                             <div className="px-5 py-3">
-                              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">Contact History</p>
+                              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted">Contact History</p>
                             </div>
-                            <div className="space-y-0 border-t border-[var(--card-border)]">
+                            <div className="space-y-0 border-t border-card-border">
                               {[
                                 client.createdAt ? { icon: "person_add", label: "Client added", date: client.createdAt } : null,
                                 client.updatedAt && client.updatedAt !== client.createdAt ? { icon: "edit_note", label: "Contact updated", date: client.updatedAt } : null,
@@ -486,11 +486,11 @@ export default function Clients() {
                                   date: invoice.paidAt || invoice.date,
                                 })),
                               ].filter(Boolean).map((event) => (
-                                <div key={`${event!.label}-${event!.date}`} className="flex items-start gap-2.5 border-b border-[var(--card-border)] px-5 py-3 last:border-b-0">
-                                  <span className="material-symbols-outlined mt-0.5 text-[15px] text-[var(--foreground)]/25">{event!.icon}</span>
+                                <div key={`${event!.label}-${event!.date}`} className="flex items-start gap-2.5 border-b border-card-border px-5 py-3 last:border-b-0">
+                                  <span className="material-symbols-outlined mt-0.5 text-[15px] text-foreground/25">{event!.icon}</span>
                                   <div>
-                                    <p className="text-[12px] font-semibold text-[var(--foreground)]">{event!.label}</p>
-                                    <p className="text-[11px] text-[var(--muted)]">{formatDisplayDate(event!.date)}</p>
+                                    <p className="text-[12px] font-semibold text-foreground">{event!.label}</p>
+                                    <p className="text-[11px] text-muted">{formatDisplayDate(event!.date)}</p>
                                   </div>
                                 </div>
                               ))}
@@ -508,51 +508,51 @@ export default function Clients() {
 
         {filteredClients.length === 0 && (
           <div className="text-center py-16">
-            <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">person_search</span>
-            <AnimatedText as="p" text="No regular clients found" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
+            <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">person_search</span>
+            <AnimatedText as="p" text="No regular clients found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
       </main>
 
       {showClientModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <button aria-label="Close modal" className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">person</span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-muted">person</span>
                 <AnimatedText
                   as="h2"
                   text={clientModalTitle}
                   effect="fade-through"
-                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  className="text-lg font-bold text-foreground leading-none font-display"
                   replayKey={clientModalTitle}
                 />
               </div>
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Scrollable Form Body */}
-            <form onSubmit={handleSaveClient} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+            <form onSubmit={handleSaveClient} className="flex-1 flex flex-col min-h-0 bg-background/35">
               <div className="flex-1 overflow-y-auto p-6 space-y-5">
                 
                 {/* 1. Identity & Brand Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Identity & Brand</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Identity & Brand</h3>
                   
                   <div className="flex items-center gap-4">
-                    <div className="size-14 rounded-2xl border border-[var(--card-border)] overflow-hidden bg-[var(--foreground)]/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
+                    <div className="size-14 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
                       {form.avatar ? (
                         <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
                       ) : (
-                        <span className="material-symbols-outlined text-[24px] text-[var(--foreground)]/20">person</span>
+                        <span className="material-symbols-outlined text-[24px] text-foreground/20">person</span>
                       )}
                     </div>
-                    <label className="btn-secondary text-[11px] min-h-7 px-3 py-1 cursor-pointer hover:bg-[var(--foreground)]/[0.04] transition-smooth">
+                    <label className="btn-secondary text-[11px] min-h-7 px-3 py-1 cursor-pointer hover:bg-foreground/[0.04] transition-smooth">
                       <span>{form.avatar ? "Change Avatar" : "Upload Picture"}</span>
                       <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
                     </label>
@@ -560,9 +560,9 @@ export default function Clients() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-name">Client Name</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-name">Client Name</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">person</span>
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">person</span>
                         <input
                           id="client-name"
                           required
@@ -574,9 +574,9 @@ export default function Clients() {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-company">Company</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-company">Company</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">business</span>
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">business</span>
                         <input
                           id="client-company"
                           value={form.company}
@@ -591,13 +591,13 @@ export default function Clients() {
 
                 {/* 2. Contact Coordinates Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Contact Coordinates</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Contact Coordinates</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-email">Email Address</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-email">Email Address</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">mail</span>
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">mail</span>
                         <input
                           id="client-email"
                           type="email"
@@ -609,9 +609,9 @@ export default function Clients() {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-phone">Phone Number</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-phone">Phone Number</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">phone</span>
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">phone</span>
                         <input
                           id="client-phone"
                           value={form.phone}
@@ -624,9 +624,9 @@ export default function Clients() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-whatsapp">WhatsApp Contact</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-whatsapp">WhatsApp Contact</label>
                     <div className="relative flex items-center">
-                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">chat</span>
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">chat</span>
                       <input
                         id="client-whatsapp"
                         value={form.whatsapp}
@@ -640,12 +640,12 @@ export default function Clients() {
 
                 {/* 3. Deliverables & Notes Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Work Delivery & Notes</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Work Delivery & Notes</h3>
                   
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-delivery-link">Finished Work Folder</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-delivery-link">Finished Work Folder</label>
                     <div className="relative flex items-center">
-                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">folder_shared</span>
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">folder_shared</span>
                       <input
                         id="client-delivery-link"
                         type="url"
@@ -658,7 +658,7 @@ export default function Clients() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-address">Billing Address</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-address">Billing Address</label>
                     <textarea
                       id="client-address"
                       value={form.address}
@@ -669,7 +669,7 @@ export default function Clients() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="client-notes">Relationship Notes</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="client-notes">Relationship Notes</label>
                     <textarea
                       id="client-notes"
                       value={form.notes}
@@ -683,7 +683,7 @@ export default function Clients() {
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
                 <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                   Cancel
                 </button>

@@ -61,7 +61,7 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
     <div className={`relative z-20 search-field flex items-center ${className}`}>
       <div
         ref={containerRef}
-        className={`relative h-10 bg-[var(--field)] border border-[var(--card-border)] rounded-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${
+        className={`relative h-10 bg-field border border-card-border rounded-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${
           isExpanded || value ? 'w-[260px] sm:w-[320px] shadow-sm' : 'w-10'
         }`}
       >
@@ -73,7 +73,7 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
           onKeyDown={handleKeyDown}
           onFocus={() => setIsExpanded(true)}
           placeholder={placeholder}
-          className={`absolute left-0 w-full h-full bg-transparent outline-none pl-4 pr-11 text-[13px] font-semibold text-[var(--foreground)] placeholder-[var(--muted)]/50 transition-opacity duration-300 ${
+          className={`absolute left-0 w-full h-full bg-transparent outline-none pl-4 pr-11 text-[13px] font-semibold text-foreground placeholder-muted/50 transition-opacity duration-300 ${
             isExpanded || value
               ? 'opacity-100 pointer-events-auto delay-100'
               : 'opacity-0 pointer-events-none'
@@ -84,8 +84,8 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
           onClick={handleSearchClick}
           className={`absolute right-1 top-1 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 shrink-0 ${
             isExpanded || value 
-              ? 'bg-[var(--foreground)]/[0.04] text-[var(--muted)] hover:bg-[var(--foreground)]/[0.08] hover:text-[var(--foreground)]' 
-              : 'bg-transparent text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] hover:text-[var(--foreground)]'
+              ? 'bg-foreground/[0.04] text-muted hover:bg-foreground/[0.08] hover:text-foreground' 
+              : 'bg-transparent text-muted hover:bg-foreground/[0.04] hover:text-foreground'
           }`}
           aria-label={isExpanded && value ? "Clear search" : "Search"}
         >

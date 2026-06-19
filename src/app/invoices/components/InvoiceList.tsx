@@ -61,8 +61,8 @@ export function InvoiceList({
               onClick={() => setActiveFilter(filter)}
               className={`px-3 py-1.5 text-[11px] font-semibold rounded-full transition-smooth active:scale-[0.95] tracking-wide uppercase ${
                 activeFilter === filter
-                  ? "bg-[var(--action)] text-[var(--action-text)]"
-                  : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.04] border border-[var(--card-border)]"
+                  ? "bg-action text-action-text"
+                  : "text-muted hover:bg-foreground/[0.04] border border-card-border"
               }`}
             >
               {filter}
@@ -72,11 +72,11 @@ export function InvoiceList({
       </div>
 
       {filteredInvoices.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 mb-2 bg-[var(--card)]/40 border border-[var(--card-border)]/40 rounded-xl">
+        <div className="flex items-center justify-between px-4 py-2.5 mb-2 bg-card/40 border border-card-border/40 rounded-xl">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="relative flex items-center justify-center size-5 rounded-full border-2 border-[var(--card-border)] hover:border-[var(--accent)] cursor-pointer transition-smooth shrink-0 bg-[var(--field)] shadow-xs"
+              className="relative flex items-center justify-center size-5 rounded-full border-2 border-card-border hover:border-accent cursor-pointer transition-smooth shrink-0 bg-field shadow-xs"
               onClick={() => {
                 if (isAllSelected) {
                   setSelectedInvoiceIds([]);
@@ -86,19 +86,19 @@ export function InvoiceList({
               }}
             >
               {isAllSelected && (
-                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent)] transition-all duration-200">
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-accent transition-all duration-200">
                   <span className="material-symbols-outlined text-[12px] text-white font-extrabold select-none">check</span>
                 </span>
               )}
             </button>
-            <span className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase select-none">
+            <span className="text-[11px] font-semibold text-muted tracking-wider uppercase select-none">
               Select All ({filteredInvoices.length})
             </span>
           </div>
           {selectedInvoiceIds.length > 0 && (
             <button
               onClick={() => setSelectedInvoiceIds([])}
-              className="text-[11px] font-bold text-[var(--muted)] hover:text-[var(--foreground)] tracking-wider uppercase transition-smooth"
+              className="text-[11px] font-bold text-muted hover:text-foreground tracking-wider uppercase transition-smooth"
             >
               Clear Selection ({selectedInvoiceIds.length})
             </button>
@@ -116,7 +116,7 @@ export function InvoiceList({
             <div
               key={invoice.id}
               onClick={() => openViewModal(invoice)}
-              className="surface-card w-full cursor-pointer p-4 lg:p-5 hover:border-[var(--foreground)]/12 transition-smooth group"
+              className="surface-card w-full cursor-pointer p-4 lg:p-5 hover:border-foreground/12 transition-smooth group"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -130,7 +130,7 @@ export function InvoiceList({
                 {/* Checkbox Selector */}
                 <button
                   type="button"
-                  className="relative flex items-center justify-center size-5 rounded-full border-2 border-[var(--card-border)] hover:border-[var(--accent)] cursor-pointer transition-smooth shrink-0 bg-[var(--field)] shadow-xs"
+                  className="relative flex items-center justify-center size-5 rounded-full border-2 border-card-border hover:border-accent cursor-pointer transition-smooth shrink-0 bg-field shadow-xs"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isChecked) {
@@ -141,55 +141,55 @@ export function InvoiceList({
                   }}
                 >
                   {isChecked && (
-                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent)] transition-all duration-200">
+                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-accent transition-all duration-200">
                       <span className="material-symbols-outlined text-[12px] text-white font-extrabold select-none">check</span>
                     </span>
                   )}
                 </button>
 
-                <div className="size-10 rounded-xl border border-[var(--card-border)] overflow-hidden shrink-0">
+                <div className="size-10 rounded-xl border border-card-border overflow-hidden shrink-0">
                   <img className="w-full h-full object-cover" alt={invoice.client} src={invoice.avatar} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-[14px] text-[var(--foreground)] group-hover:text-[var(--accent)] transition-smooth truncate">{invoice.client}</h3>
-                  <p className="text-[11px] text-[var(--muted)] mt-0.5 flex items-center gap-1.5">
+                  <h3 className="font-semibold text-[14px] text-foreground group-hover:text-accent transition-smooth truncate">{invoice.client}</h3>
+                  <p className="text-[11px] text-muted mt-0.5 flex items-center gap-1.5">
                     <span className="font-medium">{invoice.id}</span>
-                    <span className="w-0.5 h-0.5 rounded-full bg-[var(--foreground)]/15" />
+                    <span className="w-0.5 h-0.5 rounded-full bg-foreground/15" />
                     {invoice.date}
-                    <span className="hidden sm:inline w-0.5 h-0.5 rounded-full bg-[var(--foreground)]/15" />
+                    <span className="hidden sm:inline w-0.5 h-0.5 rounded-full bg-foreground/15" />
                     <span className="hidden sm:inline">{invoice.templateName || "Classic Invoice"}</span>
                   </p>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="text-lg font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                  <p className="text-[10px] text-[var(--foreground)]/25 tracking-wide uppercase mt-0.5">
+                  <p className="text-lg font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                  <p className="text-[10px] text-foreground/25 tracking-wide uppercase mt-0.5">
                     <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected
                   </p>
                 </div>
                 <span className={`px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 ${invoice.statusColor}`}>
                   {paymentState}
                 </span>
-                <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 bg-[var(--foreground)]/[0.05] text-[var(--muted)]">
+                <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-semibold rounded-full tracking-wide uppercase shrink-0 bg-foreground/[0.05] text-muted">
                   {invoice.workflowStatus || "Draft"}
                 </span>
                 <div className="hidden sm:flex gap-0.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="View">
+                  <span onClick={(event) => { event.stopPropagation(); openViewModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="View">
                     <span className="material-symbols-outlined text-[16px]">visibility</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Send/Share">
+                  <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Send/Share">
                     <span className="material-symbols-outlined text-[16px]">send</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Export PDF">
+                  <span onClick={(event) => { event.stopPropagation(); handleExportInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Export PDF">
                     <span className="material-symbols-outlined text-[16px]">download</span>
                   </span>
-                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth" title="Edit">
+                  <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-full text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth" title="Edit">
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                   </span>
                 </div>
               </div>
               <div className="flex items-center justify-between mt-3 sm:hidden">
-                <p className="text-base font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                <p className="text-[11px] font-medium text-[var(--muted)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
+                <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                <p className="text-[11px] font-medium text-muted"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
               </div>
             </div>
           );
@@ -197,8 +197,8 @@ export function InvoiceList({
 
         {filteredInvoices.length === 0 && (
           <div className="text-center py-16">
-            <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">receipt_long</span>
-            <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
+            <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">receipt_long</span>
+            <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
       </div>

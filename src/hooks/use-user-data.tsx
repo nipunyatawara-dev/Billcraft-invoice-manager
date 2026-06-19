@@ -22,6 +22,18 @@ import {
   type TrashItem,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
+
+export type {
+  Client,
+  Invoice,
+  Vendor,
+  OutsourcingInvoice,
+  Expense,
+  CatalogItem,
+  UserProfile as Profile
+} from "@/data/invoices";
+export type { TodoTask } from "@/data/todos";
+
 import { useCurrency } from "@/hooks/use-currency";
 import { exportInvoicePdf, exportOutsourcingInvoicePdf } from "@/lib/pdf-export";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -254,7 +266,7 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
     invoices: (snapshot.invoices || []).map((invoice) => ({
       ...invoice,
       statusColor: getStatusColor(invoice.status),
-      clientColor: invoice.clientColor || "bg-[var(--foreground)]/10",
+      clientColor: invoice.clientColor || "bg-foreground/10",
       avatar: invoice.avatar || createAvatar(invoice.client),
       items: invoice.items || [],
     })),
@@ -262,7 +274,7 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
     outsourcingInvoices: (snapshot.outsourcingInvoices || []).map((invoice) => ({
       ...invoice,
       statusColor: getStatusColor(invoice.status),
-      vendorColor: invoice.vendorColor || "bg-[var(--foreground)]/10",
+      vendorColor: invoice.vendorColor || "bg-foreground/10",
       avatar: invoice.avatar || createAvatar(invoice.vendor),
       items: invoice.items || [],
     })),
@@ -570,7 +582,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       status: draft.status,
       workflowStatus: draft.workflowStatus || "Draft",
       statusColor: getStatusColor(draft.status),
-      clientColor: "bg-[var(--foreground)]/10",
+      clientColor: "bg-foreground/10",
     };
 
     setError(null);
@@ -650,7 +662,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
       payments: draft.payments || [],
       status: draft.status,
       statusColor: getStatusColor(draft.status),
-      vendorColor: "bg-[var(--foreground)]/10",
+      vendorColor: "bg-foreground/10",
     };
 
     setError(null);

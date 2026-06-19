@@ -62,14 +62,14 @@ function attachmentLabel(attachment: PaymentAttachment) {
 
 function paymentStateClass(state: ReturnType<typeof getPaymentState>) {
   if (state === "Paid") {
-    return "bg-[var(--positive)]/15 text-[var(--positive)]";
+    return "bg-positive/15 text-positive";
   }
 
   if (state === "Overdue" || state === "Partially Paid") {
-    return "bg-[var(--accent)]/15 text-[var(--accent)]";
+    return "bg-accent/15 text-accent";
   }
 
-  return "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60";
+  return "bg-foreground/[0.06] text-foreground/60";
 }
 
 type PaymentTrackingFormProps = {
@@ -123,10 +123,10 @@ export function PaymentTrackingForm({
 
   return (
     <div className="surface-card overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-[var(--card-border)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-card-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{title}</p>
-          <p className="mt-0.5 text-[11px] text-[var(--muted)]">Track partial payments, method, receipt files, and notes.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{title}</p>
+          <p className="mt-0.5 text-[11px] text-muted">Track partial payments, method, receipt files, and notes.</p>
         </div>
         <button type="button" onClick={() => onPaymentsChange([...payments, createPaymentRecord(balanceDue)])} className="btn-secondary min-h-8 px-3 py-1.5 text-[11px]">
           <span className="material-symbols-outlined text-[14px]">add</span>
@@ -134,28 +134,28 @@ export function PaymentTrackingForm({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 border-b border-card-border bg-foreground/[0.03] p-4 sm:grid-cols-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Total</p>
-          <p className="font-display text-lg font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(total, currency)} /></p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Total</p>
+          <p className="font-display text-lg font-semibold text-foreground"><AnimatedNumber value={formatCurrency(total, currency)} /></p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Amount Paid</p>
-          <p className="font-display text-lg font-semibold text-[var(--positive)]"><AnimatedNumber value={formatCurrency(Math.min(amountPaid, total), currency)} /></p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Amount Paid</p>
+          <p className="font-display text-lg font-semibold text-positive"><AnimatedNumber value={formatCurrency(Math.min(amountPaid, total), currency)} /></p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Balance</p>
-          <p className="font-display text-lg font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /></p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Balance</p>
+          <p className="font-display text-lg font-semibold text-foreground"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /></p>
         </div>
       </div>
 
       {payments.length > 0 ? (
-        <div className="divide-y divide-[var(--card-border)]">
+        <div className="divide-y divide-card-border">
           {payments.map((payment, index) => (
             <div key={payment.id} className="space-y-3 p-4">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[120px_150px_1fr_40px]">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor={`payment-amount-${payment.id}`}>Amount</label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted" htmlFor={`payment-amount-${payment.id}`}>Amount</label>
                   <input
                     id={`payment-amount-${payment.id}`}
                     type="number"
@@ -167,7 +167,7 @@ export function PaymentTrackingForm({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor={`payment-date-${payment.id}`}>Paid At</label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted" htmlFor={`payment-date-${payment.id}`}>Paid At</label>
                   <input
                     id={`payment-date-${payment.id}`}
                     type="date"
@@ -177,7 +177,7 @@ export function PaymentTrackingForm({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor={`payment-method-${payment.id}`}>Method</label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted" htmlFor={`payment-method-${payment.id}`}>Method</label>
                   <select
                     id={`payment-method-${payment.id}`}
                     value={payment.method}
@@ -188,7 +188,7 @@ export function PaymentTrackingForm({
                   </select>
                 </div>
                 <div className="flex md:items-end">
-                  <button type="button" onClick={() => onPaymentsChange(payments.filter((_, paymentIndex) => paymentIndex !== index))} className="size-9 rounded-full text-[var(--muted)] transition-smooth hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]" aria-label="Remove payment">
+                  <button type="button" onClick={() => onPaymentsChange(payments.filter((_, paymentIndex) => paymentIndex !== index))} className="size-9 rounded-full text-muted transition-smooth hover:bg-accent/10 hover:text-accent" aria-label="Remove payment">
                     <span className="material-symbols-outlined text-[17px]">delete</span>
                   </button>
                 </div>
@@ -196,7 +196,7 @@ export function PaymentTrackingForm({
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor={`payment-notes-${payment.id}`}>Payment Note</label>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted" htmlFor={`payment-notes-${payment.id}`}>Payment Note</label>
                   <input
                     id={`payment-notes-${payment.id}`}
                     value={payment.notes || ""}
@@ -215,10 +215,10 @@ export function PaymentTrackingForm({
               {(payment.receiptAttachments || []).length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {(payment.receiptAttachments || []).map((attachment) => (
-                    <span key={attachment.id} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--card-border)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+                    <span key={attachment.id} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-card-border px-2 py-1 text-[10px] font-semibold text-muted">
                       <span className="material-symbols-outlined text-[13px]">description</span>
                       <span className="truncate">{attachmentLabel(attachment)}</span>
-                      <button type="button" onClick={() => removeReceipt(index, attachment.id)} className="text-[var(--foreground)]/30 transition-smooth hover:text-[var(--accent)]" aria-label={`Remove ${attachment.name}`}>
+                      <button type="button" onClick={() => removeReceipt(index, attachment.id)} className="text-foreground/30 transition-smooth hover:text-accent" aria-label={`Remove ${attachment.name}`}>
                         <span className="material-symbols-outlined text-[13px]">close</span>
                       </button>
                     </span>
@@ -230,13 +230,13 @@ export function PaymentTrackingForm({
         </div>
       ) : (
         <div className="p-5 text-center">
-          <span className="material-symbols-outlined mb-2 block text-[32px] text-[var(--foreground)]/10">payments</span>
-          <p className="text-[12px] font-medium text-[var(--muted)]">No payments recorded yet.</p>
+          <span className="material-symbols-outlined mb-2 block text-[32px] text-foreground/10">payments</span>
+          <p className="text-[12px] font-medium text-muted">No payments recorded yet.</p>
         </div>
       )}
 
-      <div className="border-t border-[var(--card-border)] p-4">
-        <label className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]" htmlFor="payment-notes">Overall Payment Notes</label>
+      <div className="border-t border-card-border p-4">
+        <label className="text-[10px] font-semibold uppercase tracking-wider text-muted" htmlFor="payment-notes">Overall Payment Notes</label>
         <textarea
           id="payment-notes"
           value={paymentNotes}
@@ -265,45 +265,45 @@ export function PaymentSummary({ currency, record, title = "Payment Tracking" }:
 
   return (
     <div className="surface-card overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-[var(--card-border)] p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-card-border p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{title}</p>
-          <p className="mt-0.5 text-[11px] text-[var(--muted)]">{payments.length > 0 ? `${payments.length} payment record${payments.length === 1 ? "" : "s"} saved` : "No payment records yet"}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{title}</p>
+          <p className="mt-0.5 text-[11px] text-muted">{payments.length > 0 ? `${payments.length} payment record${payments.length === 1 ? "" : "s"} saved` : "No payment records yet"}</p>
         </div>
         <span className={`inline-flex w-fit items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${paymentStateClass(paymentState)}`}>
           {paymentState}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 border-b border-card-border bg-foreground/[0.03] p-4 sm:grid-cols-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Amount Paid</p>
-          <p className="font-display text-lg font-semibold text-[var(--positive)]"><AnimatedNumber value={formatCurrency(amountPaid, currency)} /></p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Amount Paid</p>
+          <p className="font-display text-lg font-semibold text-positive"><AnimatedNumber value={formatCurrency(amountPaid, currency)} /></p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Balance Due</p>
-          <p className="font-display text-lg font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /></p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Balance Due</p>
+          <p className="font-display text-lg font-semibold text-foreground"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /></p>
         </div>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Latest Method</p>
-          <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{record.paymentMethod || payments[0]?.method || "Not recorded"}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Latest Method</p>
+          <p className="truncate text-[13px] font-semibold text-foreground">{record.paymentMethod || payments[0]?.method || "Not recorded"}</p>
         </div>
       </div>
 
       {payments.length > 0 && (
-        <div className="divide-y divide-[var(--card-border)]">
+        <div className="divide-y divide-card-border">
           {payments.map((payment) => (
             <div key={payment.id} className="p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-[13px] font-semibold text-[var(--foreground)]"><AnimatedNumber value={formatCurrency(payment.amount, currency)} /></p>
-                  <p className="text-[11px] text-[var(--muted)]">{payment.paidAt || "No date"} via {payment.method || "unknown method"}</p>
-                  {payment.notes && <p className="mt-1 text-[11px] text-[var(--muted)]">{payment.notes}</p>}
+                  <p className="text-[13px] font-semibold text-foreground"><AnimatedNumber value={formatCurrency(payment.amount, currency)} /></p>
+                  <p className="text-[11px] text-muted">{payment.paidAt || "No date"} via {payment.method || "unknown method"}</p>
+                  {payment.notes && <p className="mt-1 text-[11px] text-muted">{payment.notes}</p>}
                 </div>
                 {(payment.receiptAttachments || []).length > 0 && (
                   <div className="flex flex-wrap gap-1.5 sm:justify-end">
                     {(payment.receiptAttachments || []).map((attachment) => (
-                      <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer" className="inline-flex max-w-[220px] items-center gap-1 rounded-full border border-[var(--card-border)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)] transition-smooth hover:text-[var(--accent)]">
+                      <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer" className="inline-flex max-w-[220px] items-center gap-1 rounded-full border border-card-border px-2 py-1 text-[10px] font-semibold text-muted transition-smooth hover:text-accent">
                         <span className="material-symbols-outlined text-[13px]">description</span>
                         <span className="truncate">{attachment.name}</span>
                       </a>
@@ -317,14 +317,14 @@ export function PaymentSummary({ currency, record, title = "Payment Tracking" }:
       )}
 
       {record.paymentNotes && (
-        <div className="border-t border-[var(--card-border)] p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Notes</p>
-          <p className="mt-1 whitespace-pre-line text-[12px] text-[var(--muted)]">{record.paymentNotes}</p>
+        <div className="border-t border-card-border p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">Notes</p>
+          <p className="mt-1 whitespace-pre-line text-[12px] text-muted">{record.paymentNotes}</p>
         </div>
       )}
 
       {!hasAttachments && payments.length === 0 && !record.paymentNotes && (
-        <div className="p-5 text-center text-[12px] font-medium text-[var(--muted)]">Payment details will appear here once recorded.</div>
+        <div className="p-5 text-center text-[12px] font-medium text-muted">Payment details will appear here once recorded.</div>
       )}
     </div>
   );

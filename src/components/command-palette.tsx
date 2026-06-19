@@ -214,6 +214,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
   // Bound check selectedIndex
   useEffect(() => {
     if (selectedIndex >= flatItems.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedIndex(Math.max(0, flatItems.length - 1));
     }
   }, [flatItems, selectedIndex]);
@@ -265,11 +266,11 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: -8 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-xl transform overflow-hidden rounded-2xl bg-[var(--card)]/90 backdrop-blur-lg border border-[var(--card-border)] text-left shadow-2xl transition-all flex flex-col max-h-[55vh]"
+          className="relative w-full max-w-xl transform overflow-hidden rounded-2xl bg-card/90 backdrop-blur-lg border border-card-border text-left shadow-2xl transition-all flex flex-col max-h-[55vh]"
         >
             {/* Input Bar */}
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--card-border)] shrink-0 bg-[var(--card)]/40">
-              <i className="ph ph-magnifying-glass text-lg text-[var(--muted)]"></i>
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-card-border shrink-0 bg-card/40">
+              <i className="ph ph-magnifying-glass text-lg text-muted"></i>
               <input
                 type="text"
                 placeholder="Search everything or type a command..."
@@ -279,13 +280,13 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                   setSelectedIndex(0);
                 }}
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-sm text-[var(--foreground)] outline-none border-none placeholder-[var(--muted)]/50"
+                className="flex-1 bg-transparent text-sm text-foreground outline-none border-none placeholder-muted/50"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={onClose}
-                className="text-[10px] font-bold text-[var(--muted)] hover:text-[var(--foreground)] border border-[var(--card-border)] rounded-md px-2 py-0.5 uppercase tracking-wide bg-[var(--background)] transition-colors"
+                className="text-[10px] font-bold text-muted hover:text-foreground border border-card-border rounded-md px-2 py-0.5 uppercase tracking-wide bg-background transition-colors"
               >
                 Esc
               </button>
@@ -298,15 +299,15 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
             >
               {flatItems.length === 0 ? (
                 <div className="py-12 text-center">
-                  <i className="ph ph-magnifying-glass text-3xl text-[var(--muted)]/30 block mb-2"></i>
-                  <p className="text-[13px] text-[var(--muted)] font-medium">No results found for &ldquo;{searchQuery}&rdquo;</p>
+                  <i className="ph ph-magnifying-glass text-3xl text-muted/30 block mb-2"></i>
+                  <p className="text-[13px] text-muted font-medium">No results found for &ldquo;{searchQuery}&rdquo;</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {searchResults.map((group) => {
                     return (
                       <div key={group.group} className="space-y-1">
-                        <div className="px-3 py-1.5 text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">
+                        <div className="px-3 py-1.5 text-[10px] font-bold text-muted uppercase tracking-wider">
                           {group.group}
                         </div>
                         <div className="space-y-0.5">
@@ -325,12 +326,12 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                                 }}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                                   isActive
-                                    ? "bg-[var(--action)] text-[var(--action-text)] shadow-md translate-x-0.5"
-                                    : "text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.03]"
+                                    ? "bg-action text-action-text shadow-md translate-x-0.5"
+                                    : "text-foreground hover:bg-foreground/[0.03]"
                                 }`}
                               >
                                 <span className="flex items-center justify-center shrink-0">
-                                  <i className={`${item.icon} text-lg ${isActive ? "text-[var(--action-text)]" : "text-[var(--muted)]"}`}></i>
+                                  <i className={`${item.icon} text-lg ${isActive ? "text-action-text" : "text-muted"}`}></i>
                                 </span>
                                 <span className="text-sm font-medium truncate flex-1">{item.label}</span>
                                 {isActive && (
@@ -350,13 +351,13 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
             </div>
 
             {/* Sticky Navigation Footer Help */}
-            <div className="px-4 py-2 border-t border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex justify-between items-center text-[10px] text-[var(--muted)] shrink-0 font-medium select-none">
+            <div className="px-4 py-2 border-t border-card-border bg-foreground/[0.02] flex justify-between items-center text-[10px] text-muted shrink-0 font-medium select-none">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 border border-[var(--card-border)] rounded bg-[var(--card)] font-sans">↑↓</kbd> Navigate
+                  <kbd className="px-1.5 py-0.5 border border-card-border rounded bg-card font-sans">↑↓</kbd> Navigate
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 border border-[var(--card-border)] rounded bg-[var(--card)] font-sans">Enter</kbd> Open
+                  <kbd className="px-1.5 py-0.5 border border-card-border rounded bg-card font-sans">Enter</kbd> Open
                 </span>
               </div>
               <div>Press Escape to exit</div>

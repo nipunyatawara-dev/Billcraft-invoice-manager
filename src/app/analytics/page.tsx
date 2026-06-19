@@ -324,9 +324,9 @@ function getSavedAnalyticsPreferences(activePreferences?: AnalyticsPreferences) 
 function EmptyChartState({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
     <div className="flex min-h-[190px] flex-1 flex-col items-center justify-center text-center">
-      <span className="material-symbols-outlined mb-3 text-[38px] text-[var(--foreground)]/10">{icon}</span>
-      <AnimatedText as="p" text={title} effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" replayKey={title} />
-      <p className="mt-1 max-w-[240px] text-[11px] font-medium text-[var(--muted)]">{description}</p>
+      <span className="material-symbols-outlined mb-3 text-[38px] text-foreground/10">{icon}</span>
+      <AnimatedText as="p" text={title} effect="per-word-crossfade" className="text-[13px] font-semibold text-foreground" replayKey={title} />
+      <p className="mt-1 max-w-[240px] text-[11px] font-medium text-muted">{description}</p>
     </div>
   );
 }
@@ -348,11 +348,11 @@ function ChartWidgetShell({
     <div className={`surface-card flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-[15px] font-semibold text-[var(--foreground)]">{title}</h3>
-          <p className="mt-0.5 text-[11px] font-medium text-[var(--muted)]">{description}</p>
+          <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>
+          <p className="mt-0.5 text-[11px] font-medium text-muted">{description}</p>
         </div>
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04]">
-          <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.04]">
+          <span className="material-symbols-outlined text-[16px] text-muted">{icon}</span>
         </div>
       </div>
       {children}
@@ -378,8 +378,8 @@ function RevenueFlowWidget({
     <div className="surface-card group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="mb-0.5 text-lg font-semibold text-[var(--foreground)]">Client Billing Flow</h3>
-          <p className="text-[12px] font-medium text-[var(--muted)]">
+          <h3 className="mb-0.5 text-lg font-semibold text-foreground">Client Billing Flow</h3>
+          <p className="text-[12px] font-medium text-muted">
             {filteredInvoices.length > 0 ? (
               <>
                 <AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} />{" "}
@@ -390,14 +390,14 @@ function RevenueFlowWidget({
             )}
           </p>
         </div>
-        <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--accent)]/10">
-          <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">monitoring</span>
+        <div className="flex size-9 items-center justify-center rounded-xl bg-accent/10">
+          <span className="material-symbols-outlined text-[18px] text-accent">monitoring</span>
         </div>
       </div>
 
       {filteredInvoices.length > 0 ? (
         <>
-          <div className="mt-3 flex flex-1 items-end gap-1.5 border-t border-[var(--card-border)] pt-4">
+          <div className="mt-3 flex flex-1 items-end gap-1.5 border-t border-card-border pt-4">
             {revenueChartData.map((day) => {
               const barHeight = revenueChartMax > 0 ? Math.max((day.total / revenueChartMax) * 90, 4) : 4;
 
@@ -405,30 +405,30 @@ function RevenueFlowWidget({
                 <div
                   key={day.key}
                   className={`group/bar relative flex-1 cursor-pointer rounded-t-lg transition-all ${
-                    day.total > 0 ? "bg-[var(--accent)]/35 hover:bg-[var(--accent)]/45" : "bg-[var(--foreground)]/[0.06]"
+                    day.total > 0 ? "bg-accent/35 hover:bg-accent/45" : "bg-foreground/[0.06]"
                   }`}
                   style={{ height: `${barHeight}%` }}
                 >
-                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-[var(--accent)] opacity-0 transition-opacity group-hover/bar:opacity-100">
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold text-accent opacity-0 transition-opacity group-hover/bar:opacity-100">
                     <AnimatedNumber value={formatCurrency(day.total, currency)} />
                   </span>
                 </div>
               );
             })}
           </div>
-          <div className="mt-2.5 flex justify-between px-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--foreground)]/25">
+          <div className="mt-2.5 flex justify-between px-1 text-[9px] font-semibold uppercase tracking-widest text-foreground/25">
             {revenueChartData.map((day) => <span key={day.key}>{day.label}</span>)}
           </div>
         </>
       ) : (
-        <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-[var(--card-border)] pt-4 text-center">
-          <span className="material-symbols-outlined mb-3 text-[42px] text-[var(--foreground)]/10">monitoring</span>
-          <AnimatedText as="p" text="No client billing to chart" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
+        <div className="mt-3 flex flex-1 flex-col items-center justify-center border-t border-card-border pt-4 text-center">
+          <span className="material-symbols-outlined mb-3 text-[42px] text-foreground/10">monitoring</span>
+          <AnimatedText as="p" text="No client billing to chart" effect="per-word-crossfade" className="text-[13px] font-semibold text-foreground" />
           <AnimatedText
             as="p"
             text={`Invoices in ${activeRangeLabel.toLowerCase()} will appear here.`}
             effect="fade-through"
-            className="mt-1 text-[11px] text-[var(--muted)]"
+            className="mt-1 text-[11px] text-muted"
             replayKey={`revenue-empty-caption-${activeRangeLabel}`}
           />
         </div>
@@ -449,23 +449,23 @@ function PaidRatioWidget({
   return (
     <div className="surface-featured relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
       <div className="relative z-10 mb-3 flex items-center justify-between">
-        <p className="text-[13px] font-medium tracking-wide text-[var(--featured-text)]/50">Paid Ratio</p>
-        <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--featured-text)]/10">
-          <span className="material-symbols-outlined text-[18px] text-[var(--featured-text)]/60">pie_chart</span>
+        <p className="text-[13px] font-medium tracking-wide text-featured-text/50">Paid Ratio</p>
+        <div className="flex size-9 items-center justify-center rounded-xl bg-featured-text/10">
+          <span className="material-symbols-outlined text-[18px] text-featured-text/60">pie_chart</span>
         </div>
       </div>
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
         <div className="relative mb-3 size-32">
           <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
             <path
-              className="text-[var(--featured-text)]/10"
+              className="text-featured-text/10"
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               fill="none"
               stroke="currentColor"
               strokeWidth="3"
             />
             <path
-              className="text-[var(--accent)]"
+              className="text-accent"
               strokeDasharray={`${paidRatio}, 100`}
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               fill="none"
@@ -475,12 +475,12 @@ function PaidRatioWidget({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-2xl font-semibold text-[var(--featured-text)]">
+            <span className="font-display text-2xl font-semibold text-featured-text">
               <AnimatedNumber value={`${paidRatio}%`} />
             </span>
           </div>
         </div>
-        <p className="text-center text-[12px] font-medium text-[var(--featured-text)]/50">
+        <p className="text-center text-[12px] font-medium text-featured-text/50">
           {filteredInvoices.length > 0 ? (
             <>
               <AnimatedNumber value={`${paidRatio}%`} />{" "}
@@ -511,16 +511,16 @@ function MetricWidget({
   value: React.ReactNode;
 }) {
   return (
-    <div className="surface-card group flex min-h-[140px] flex-col justify-between p-5 transition-smooth hover:border-[var(--foreground)]/12 lg:p-6">
+    <div className="surface-card group flex min-h-[140px] flex-col justify-between p-5 transition-smooth hover:border-foreground/12 lg:p-6">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{title}</p>
-        <div className="flex size-8 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04] transition-transform group-hover:scale-105">
-          <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{icon}</span>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{title}</p>
+        <div className="flex size-8 items-center justify-center rounded-xl bg-foreground/[0.04] transition-transform group-hover:scale-105">
+          <span className="material-symbols-outlined text-[16px] text-muted">{icon}</span>
         </div>
       </div>
       <div>
-        <h3 className="font-display mb-0.5 text-xl font-semibold text-[var(--foreground)] lg:text-2xl">{value}</h3>
-        <p className="text-[11px] font-medium text-[var(--muted)]">{caption}</p>
+        <h3 className="font-display mb-0.5 text-xl font-semibold text-foreground lg:text-2xl">{value}</h3>
+        <p className="text-[11px] font-medium text-muted">{caption}</p>
       </div>
     </div>
   );
@@ -589,24 +589,24 @@ function TopClientWidget({
   topClient?: ReturnType<typeof getClientsFromInvoices>[number];
 }) {
   return (
-    <div className="surface-card group relative flex min-h-[140px] flex-col justify-between overflow-hidden p-5 transition-smooth hover:border-[var(--foreground)]/12 md:col-span-2 lg:col-span-2 lg:p-6">
-      <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-24 bg-gradient-to-l from-[var(--accent)]/[0.04] to-transparent" />
+    <div className="surface-card group relative flex min-h-[140px] flex-col justify-between overflow-hidden p-5 transition-smooth hover:border-foreground/12 md:col-span-2 lg:col-span-2 lg:p-6">
+      <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-24 bg-gradient-to-l from-accent/[0.04] to-transparent" />
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Top Client</p>
-        <div className="flex size-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 transition-transform group-hover:scale-105">
-          <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">star</span>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Top Client</p>
+        <div className="flex size-8 items-center justify-center rounded-xl bg-accent/10 transition-transform group-hover:scale-105">
+          <span className="material-symbols-outlined text-[16px] text-accent">star</span>
         </div>
       </div>
       <div className="relative z-10 flex items-end justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="font-display mb-0.5 truncate text-lg font-semibold text-[var(--foreground)] lg:text-xl">{topClient?.name || "No client yet"}</h3>
-          <p className="text-[11px] font-medium text-[var(--muted)]">Highest billed client by invoice total</p>
+          <h3 className="font-display mb-0.5 truncate text-lg font-semibold text-foreground lg:text-xl">{topClient?.name || "No client yet"}</h3>
+          <p className="text-[11px] font-medium text-muted">Highest billed client by invoice total</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-base font-semibold text-[var(--foreground)]">
+          <p className="text-base font-semibold text-foreground">
             <AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} />
           </p>
-          <p className="text-[10px] font-semibold text-[var(--muted)]">Total</p>
+          <p className="text-[10px] font-semibold text-muted">Total</p>
         </div>
       </div>
     </div>
@@ -691,7 +691,7 @@ function StatusMixWidget({
             tooltipVariant="frosted-glass"
             legendVariant="circle"
           />
-          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--card-border)] pt-3">
+          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-card-border pt-3">
             <StatusMiniStat label="Paid" value={formatCurrency(totals.paidAmount, currency)} />
             <StatusMiniStat label="Unpaid" value={formatCurrency(totals.pendingAmount, currency)} />
             <StatusMiniStat label="Overdue" value={formatCurrency(totals.overdueAmount, currency)} />
@@ -707,8 +707,8 @@ function StatusMixWidget({
 function StatusMiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="truncate text-[12px] font-semibold text-[var(--foreground)]">{value}</p>
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="truncate text-[12px] font-semibold text-foreground">{value}</p>
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-muted">{label}</p>
     </div>
   );
 }
@@ -831,10 +831,10 @@ function CollectionGaugeWidget({
             legendVariant="rounded-square"
           />
           <div className="mt-2 text-center">
-            <p className="font-display text-3xl font-semibold text-[var(--foreground)]">
+            <p className="font-display text-3xl font-semibold text-foreground">
               <AnimatedNumber value={`${collectionRate}%`} />
             </p>
-            <p className="mt-1 text-[11px] font-medium text-[var(--muted)]">Collected by value</p>
+            <p className="mt-1 text-[11px] font-medium text-muted">Collected by value</p>
           </div>
         </>
       ) : (
@@ -861,10 +861,10 @@ function CustomizePanel({
 }) {
   return (
     <div className="surface-card mb-3 overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-[var(--card-border)] p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-card-border p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-[15px] font-semibold text-[var(--foreground)]">Customize analytics</h2>
-          <p className="mt-0.5 text-[11px] font-medium text-[var(--muted)]">Choose visible widgets and move them into your preferred order.</p>
+          <h2 className="text-[15px] font-semibold text-foreground">Customize analytics</h2>
+          <p className="mt-0.5 text-[11px] font-medium text-muted">Choose visible widgets and move them into your preferred order.</p>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={onReset} className="btn-secondary active:scale-[0.97]">
@@ -875,7 +875,7 @@ function CustomizePanel({
           </button>
         </div>
       </div>
-      <div className="divide-y divide-[var(--card-border)]">
+      <div className="divide-y divide-card-border">
         {draftPreferences.widgetOrder.map((widgetId, index) => {
           const definition = WIDGET_DEFINITION_MAP.get(widgetId);
           const isVisible = draftPreferences.visibleWidgetIds.includes(widgetId);
@@ -887,12 +887,12 @@ function CustomizePanel({
           return (
             <div key={widgetId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--foreground)]/[0.04]">
-                  <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">{definition.icon}</span>
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.04]">
+                  <span className="material-symbols-outlined text-[18px] text-muted">{definition.icon}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-semibold text-[var(--foreground)]">{definition.title}</p>
-                  <p className="text-[11px] font-medium text-[var(--muted)]">{definition.description}</p>
+                  <p className="truncate text-[13px] font-semibold text-foreground">{definition.title}</p>
+                  <p className="text-[11px] font-medium text-muted">{definition.description}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -920,11 +920,11 @@ function CustomizePanel({
                   aria-checked={isVisible}
                   onClick={() => onToggle(widgetId)}
                   className={`relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
-                    isVisible ? "bg-[var(--action)]" : "bg-[var(--foreground)]/12"
+                    isVisible ? "bg-action" : "bg-foreground/12"
                   }`}
                   aria-label={`${isVisible ? "Hide" : "Show"} ${definition.title}`}
                 >
-                  <span className={`pointer-events-none mt-1 inline-block size-4 rounded-full bg-[var(--action-text)] shadow transition duration-200 ease-in-out ${
+                  <span className={`pointer-events-none mt-1 inline-block size-4 rounded-full bg-action-text shadow transition duration-200 ease-in-out ${
                     isVisible ? "translate-x-5" : "translate-x-1"
                   }`} />
                 </button>
@@ -1167,7 +1167,7 @@ export default function Analytics() {
             as="h1"
             text="Analytics"
             effect="micro-scale-fade"
-            className="text-3xl font-semibold leading-[1.1] text-[var(--foreground)] lg:text-[40px]"
+            className="text-3xl font-semibold leading-[1.1] text-foreground lg:text-[40px]"
             delayMs={70}
           />
         </div>
@@ -1175,7 +1175,7 @@ export default function Analytics() {
           <button
             type="button"
             onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
-            className={`btn-primary active:scale-[0.97] ${isCustomizeOpen ? "bg-[var(--action-hover)] text-[var(--action-hover-text)]" : ""}`}
+            className={`btn-primary active:scale-[0.97] ${isCustomizeOpen ? "bg-action-hover text-[var(--action-hover-text)]" : ""}`}
           >
             <span className="material-symbols-outlined text-[16px]">tune</span>
             Customize
@@ -1238,9 +1238,9 @@ export default function Analytics() {
         </div>
       ) : (
         <div className="surface-card p-10 text-center">
-          <span className="material-symbols-outlined mb-3 block text-[42px] text-[var(--foreground)]/10">analytics</span>
-          <AnimatedText as="p" text="No analytics widgets visible" effect="per-word-crossfade" className="text-[13px] font-semibold text-[var(--foreground)]" />
-          <p className="mt-1 text-[11px] font-medium text-[var(--muted)]">Turn one on in Customize to rebuild this page.</p>
+          <span className="material-symbols-outlined mb-3 block text-[42px] text-foreground/10">analytics</span>
+          <AnimatedText as="p" text="No analytics widgets visible" effect="per-word-crossfade" className="text-[13px] font-semibold text-foreground" />
+          <p className="mt-1 text-[11px] font-medium text-muted">Turn one on in Customize to rebuild this page.</p>
         </div>
       )}
     </main>

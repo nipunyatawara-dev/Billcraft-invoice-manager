@@ -30,9 +30,9 @@ export function NotificationsTab() {
       
       {/* Notifications Intro */}
       <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-3xl group">
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--action)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="absolute inset-0 bg-gradient-to-r from-action/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         <div className="flex flex-col sm:flex-row items-start gap-4 relative z-10">
-          <div className="size-14 rounded-2xl bg-[var(--action)]/10 text-[var(--action)] flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          <div className="size-14 rounded-2xl bg-action/10 text-action flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
             <span className="material-symbols-outlined text-[28px]">notifications_active</span>
           </div>
           <div>
@@ -40,10 +40,10 @@ export function NotificationsTab() {
               as="h2"
               text="Notification Preferences"
               effect="micro-scale-fade"
-              className="text-2xl font-bold text-[var(--featured-text)] font-display mb-2 tracking-tight"
+              className="text-2xl font-bold text-featured-text font-display mb-2 tracking-tight"
               delayMs={70}
             />
-            <p className="text-[14px] text-[var(--featured-text)]/70 font-medium">Control where alerts appear and what events trigger a notification.</p>
+            <p className="text-[14px] text-featured-text/70 font-medium">Control where alerts appear and what events trigger a notification.</p>
           </div>
         </div>
       </div>
@@ -51,11 +51,11 @@ export function NotificationsTab() {
       <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h3 className="text-[16px] font-bold text-[var(--foreground)] tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">view_sidebar</span>
+            <h3 className="text-[16px] font-bold text-foreground tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-accent">view_sidebar</span>
               Toast Position
             </h3>
-            <p className="text-[13px] text-[var(--muted)] mt-1">Choose where app notifications appear on your screen.</p>
+            <p className="text-[13px] text-muted mt-1">Choose where app notifications appear on your screen.</p>
           </div>
         </div>
         
@@ -72,8 +72,8 @@ export function NotificationsTab() {
                 onClick={() => selectToastPosition(position.id, position.label)}
                 className={`flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border-2 px-4 text-[13px] font-bold transition-all duration-300 active:scale-95 group ${
                   isSelected
-                    ? "border-[var(--action)] bg-[var(--action)]/10 text-[var(--action)] shadow-sm"
-                    : "border-[var(--card-border)] bg-[var(--background)]/50 text-[var(--muted)] hover:border-[var(--accent)]/50 hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.02]"
+                    ? "border-action bg-action/10 text-action shadow-sm"
+                    : "border-card-border bg-background/50 text-muted hover:border-accent/50 hover:text-foreground hover:bg-foreground/[0.02]"
                 }`}
               >
                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{position.icon}</span>
@@ -85,27 +85,27 @@ export function NotificationsTab() {
       </div>
 
       <div className="surface-card rounded-3xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-        <div className="p-6 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01]">
-          <h3 className="text-[16px] font-bold text-[var(--foreground)] tracking-tight flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-[var(--accent)]">toggle_on</span>
+        <div className="p-6 border-b border-card-border bg-foreground/[0.01]">
+          <h3 className="text-[16px] font-bold text-foreground tracking-tight flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-accent">toggle_on</span>
             System Alerts
           </h3>
-          <p className="text-[13px] text-[var(--muted)] mt-1">Manage automated alerts sent by BillCraft.</p>
+          <p className="text-[13px] text-muted mt-1">Manage automated alerts sent by BillCraft.</p>
         </div>
         
-        <div className="divide-y divide-[var(--card-border)]">
+        <div className="divide-y divide-card-border">
           {[
             { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices nearing their due date.", state: invoiceReminders, toggle: setInvoiceReminders, icon: "mark_email_unread" },
             // Could add more toggles here easily in the future
           ].map((item) => (
-            <div key={item.label} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4 hover:bg-[var(--foreground)]/[0.02] transition-colors">
+            <div key={item.label} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4 hover:bg-foreground/[0.02] transition-colors">
               <div className="flex gap-4 items-start">
-                <div className="size-10 rounded-full bg-[var(--foreground)]/[0.05] flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[20px] text-[var(--muted)]">{item.icon}</span>
+                <div className="size-10 rounded-full bg-foreground/[0.05] flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px] text-muted">{item.icon}</span>
                 </div>
                 <div>
-                  <h4 className="text-[14px] font-bold text-[var(--foreground)] mb-1">{item.label}</h4>
-                  <p className="text-[12px] text-[var(--muted)] max-w-sm">{item.desc}</p>
+                  <h4 className="text-[14px] font-bold text-foreground mb-1">{item.label}</h4>
+                  <p className="text-[12px] text-muted max-w-sm">{item.desc}</p>
                 </div>
               </div>
               <button 
@@ -113,9 +113,9 @@ export function NotificationsTab() {
                 role="switch"
                 aria-checked={item.state}
                 onClick={() => togglePreference(item.label, item.state, item.toggle)}
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-all duration-300 ease-in-out border-2 border-transparent shadow-inner focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:ring-offset-2 ${
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-all duration-300 ease-in-out border-2 border-transparent shadow-inner focus:outline-none focus:ring-2 focus:ring-accent/30 focus:ring-offset-2 ${
                   item.state 
-                    ? 'bg-[var(--accent)]' 
+                    ? 'bg-accent' 
                     : 'bg-black/20 dark:bg-white/20 hover:bg-black/30 dark:hover:bg-white/30'
                 }`}
               >

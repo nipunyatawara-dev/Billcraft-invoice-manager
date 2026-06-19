@@ -14,8 +14,38 @@
   --color-palette-7: #12b886;
   --color-palette-8: #ff3b55;
 
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-text: var(--action-text);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-featured: var(--featured);
+  --color-featured-text: var(--featured-text);
+  --color-featured-muted: var(--featured-muted);
+  --color-chrome: var(--chrome);
+  --color-chrome-border: var(--chrome-border);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-field: var(--field);
+  --color-chart-soft: var(--chart-soft);
+  --color-chart-strong: var(--chart-strong);
+
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Newsreader', 'Georgia', 'Times New Roman', serif;
+
+  --radius: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -39,6 +69,39 @@ html[data-font="outfit"] {
 html[data-font="plus-jakarta-sans"] {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Base Radius (Default mapping if none applied) */
+html {
+  --radius: 0.375rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
+
+/* Squircle Mode (Classic / Sharper) */
+html[data-radius="squircle"] {
+  --radius: 0.25rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+}
+
+/* Rounded Mode (Soft / Modern) */
+html[data-radius="rounded"] {
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
 }
 
 html {
@@ -381,7 +444,7 @@ html.dark {
   .surface-featured {
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: 1rem;
+    border-radius: var(--radius-2xl);
     box-shadow:
       0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent),
       0 4px 12px color-mix(in srgb, var(--foreground) 4%, transparent),
@@ -395,7 +458,7 @@ html.dark {
   .skeleton-block {
     display: block;
     overflow: hidden;
-    border-radius: 1rem;
+    border-radius: var(--radius-2xl);
     background:
       linear-gradient(
         90deg,
@@ -551,7 +614,7 @@ html.dark {
   .field-control {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-xl);
     background: var(--field, var(--card));
     color: var(--foreground);
     font-size: 0.875rem;
@@ -625,7 +688,7 @@ html.dark {
   .modal-surface {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: 1.25rem;
+    border-radius: var(--radius-3xl);
     background: var(--background);
     box-shadow:
       0 8px 32px color-mix(in srgb, #080808 12%, transparent),

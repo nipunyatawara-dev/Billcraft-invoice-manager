@@ -82,7 +82,7 @@ function formatDueDate(dueDate?: string) {
 
 function getDueTone(dueDate?: string, stage?: TodoStageId) {
   if (!dueDate || stage === "done") {
-    return "text-[var(--muted)]";
+    return "text-muted";
   }
 
   const today = new Date(todayInputValue());
@@ -90,14 +90,14 @@ function getDueTone(dueDate?: string, stage?: TodoStageId) {
   const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / 86400000);
 
   if (daysUntilDue < 0) {
-    return "text-[var(--accent)]";
+    return "text-accent";
   }
 
   if (daysUntilDue <= 2) {
-    return "text-[var(--foreground)]";
+    return "text-foreground";
   }
 
-  return "text-[var(--muted)]";
+  return "text-muted";
 }
 
 function getWhatsAppUrl(phone: string, message: string) {
@@ -711,7 +711,7 @@ export default function TodoPage() {
               as="h1"
               text="To-Do"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
               delayMs={70}
             />
           </div>
@@ -764,20 +764,20 @@ export default function TodoPage() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Active Tasks</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display"><AnimatedNumber value={stats.active} /> <span className="text-[12px] font-normal text-[var(--featured-muted)]">open</span></p>
+            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Active Tasks</p>
+            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={stats.active} /> <span className="text-[12px] font-normal text-featured-muted">open</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">In Progress</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={stats.inProgress} /> <span className="text-[12px] font-normal text-[var(--muted)]">moving</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">In Progress</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.inProgress} /> <span className="text-[12px] font-normal text-muted">moving</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Due Soon</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={stats.dueSoon} /> <span className="text-[12px] font-normal text-[var(--accent)]">watch</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Due Soon</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.dueSoon} /> <span className="text-[12px] font-normal text-accent">watch</span></p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Completed</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display"><AnimatedNumber value={stats.completed} /> <span className="text-[12px] font-normal text-[var(--positive)]">done</span></p>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Completed</p>
+            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.completed} /> <span className="text-[12px] font-normal text-positive">done</span></p>
           </div>
         </div>
 
@@ -797,22 +797,22 @@ export default function TodoPage() {
                 }}
                 onDrop={(event) => handleColumnDrop(event, stage.id)}
                 className={`surface-card p-3 min-h-[320px] md:min-h-[520px] flex flex-col transition-smooth ${
-                  isColumnTarget ? "border-[var(--accent)]/50 bg-[var(--foreground)]/[0.03]" : ""
+                  isColumnTarget ? "border-accent/50 bg-foreground/[0.03]" : ""
                 }`}
               >
                 <div className="flex items-center justify-between gap-3 pb-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-xl bg-[var(--foreground)]/[0.04] flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[16px] text-[var(--muted)]">{stage.icon}</span>
+                    <div className="size-8 rounded-xl bg-foreground/[0.04] flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[16px] text-muted">{stage.icon}</span>
                     </div>
                     <div className="min-w-0">
-                      <h2 className="text-[13px] font-semibold text-[var(--foreground)] truncate">{stage.label}</h2>
-                      <p className="text-[10px] font-semibold text-[var(--foreground)]/25 tracking-wide uppercase"><AnimatedNumber value={stageTasks.length} /> cards</p>
+                      <h2 className="text-[13px] font-semibold text-foreground truncate">{stage.label}</h2>
+                      <p className="text-[10px] font-semibold text-foreground/25 tracking-wide uppercase"><AnimatedNumber value={stageTasks.length} /> cards</p>
                     </div>
                   </div>
                   <button
                     onClick={() => openCreateModal(stage.id)}
-                    className="size-7 rounded-full flex items-center justify-center text-[var(--foreground)]/25 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                    className="size-7 rounded-full flex items-center justify-center text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth"
                     aria-label={`Add task to ${stage.label}`}
                   >
                     <span className="material-symbols-outlined text-[16px]">add</span>
@@ -821,10 +821,10 @@ export default function TodoPage() {
 
                 <div className="space-y-2.5 flex-1">
                   {loading && stageTasks.length === 0 ? (
-                    <div className="rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.03] p-4">
-                      <div className="h-3 w-24 rounded-full bg-[var(--foreground)]/10 mb-3" />
-                      <div className="h-2 w-full rounded-full bg-[var(--foreground)]/10 mb-2" />
-                      <div className="h-2 w-2/3 rounded-full bg-[var(--foreground)]/10" />
+                    <div className="rounded-xl border border-card-border bg-foreground/[0.03] p-4">
+                      <div className="h-3 w-24 rounded-full bg-foreground/10 mb-3" />
+                      <div className="h-2 w-full rounded-full bg-foreground/10 mb-2" />
+                      <div className="h-2 w-2/3 rounded-full bg-foreground/10" />
                     </div>
                   ) : stageTasks.length > 0 ? (
                     stageTasks.map((task) => {
@@ -837,7 +837,7 @@ export default function TodoPage() {
 
                       return (
                         <div key={task.id} className="relative group/tile">
-                          {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-1 rounded-full bg-[var(--accent)] animate-pulse" />}
+                          {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-1 rounded-full bg-accent animate-pulse" />}
                           <div
                             draggable
                             onDragStart={(event) => {
@@ -872,15 +872,15 @@ export default function TodoPage() {
                               boxShadow: isGroupHovered && task.jobColor ? `0 8px 30px ${task.jobColor}25` : undefined,
                             }}
                             className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 cursor-grab active:cursor-grabbing transition-all duration-300 ${
-                              isDragging ? "opacity-40 scale-[0.96] border-[var(--card-border)]" : ""
+                              isDragging ? "opacity-40 scale-[0.96] border-card-border" : ""
                             } ${
-                              isDimmed ? "opacity-35 scale-[0.98] blur-[0.2px] border-[var(--card-border)]" : ""
+                              isDimmed ? "opacity-35 scale-[0.98] blur-[0.2px] border-card-border" : ""
                             } ${
                               isSelected
-                                ? "border-[var(--accent)] bg-gradient-to-br from-[var(--accent)]/[0.06] to-[var(--accent)]/[0.01] ring-2 ring-[var(--accent)]/45 shadow-[0_8px_30px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
+                                ? "border-accent bg-gradient-to-br from-accent/[0.06] to-accent/[0.01] ring-2 ring-accent/45 shadow-[0_8px_30px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
                                 : !isDimmed
-                                  ? "border-[var(--card-border)] bg-[var(--card)]/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-[var(--foreground)]/20 hover:-translate-y-1"
-                                  : "bg-[var(--card)]/65 backdrop-blur-[6px]"
+                                  ? "border-card-border bg-card/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-foreground/20 hover:-translate-y-1"
+                                  : "bg-card/65 backdrop-blur-[6px]"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
@@ -905,12 +905,12 @@ export default function TodoPage() {
                                     </span>
                                   )}
                                   {task.tags.slice(0, 2).map((tag) => (
-                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-[var(--foreground)]/[0.04] text-[9.5px] font-bold text-[var(--muted)] tracking-wider uppercase">
+                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-foreground/[0.04] text-[9.5px] font-bold text-muted tracking-wider uppercase">
                                       {tag}
                                     </span>
                                   ))}
                                 </div>
-                                <h3 className="text-[14.5px] font-bold text-[var(--foreground)] leading-snug tracking-tight group-hover/tile:text-[var(--accent)] transition-colors duration-200">
+                                <h3 className="text-[14.5px] font-bold text-foreground leading-snug tracking-tight group-hover/tile:text-accent transition-colors duration-200">
                                   {task.title}
                                 </h3>
                               </div>
@@ -919,7 +919,7 @@ export default function TodoPage() {
                                   e.stopPropagation();
                                   openEditModal(task);
                                 }}
-                                className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/20 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95"
+                                className="size-7 flex items-center justify-center rounded-full text-foreground/20 hover:text-accent hover:bg-accent/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95"
                                 aria-label={`Edit ${task.title}`}
                               >
                                 <span className="material-symbols-outlined text-[15px]">edit</span>
@@ -927,14 +927,14 @@ export default function TodoPage() {
                             </div>
 
                             {task.description && (
-                              <p className="mt-2 text-[12px] leading-relaxed text-[var(--foreground)]/70 font-medium">
+                              <p className="mt-2 text-[12px] leading-relaxed text-foreground/70 font-medium">
                                 {task.description}
                               </p>
                             )}
 
-                            <div className="mt-3.5 pt-3.5 border-t border-[var(--card-border)]/65 flex flex-wrap items-center gap-x-3.5 gap-y-2 text-[11px] font-semibold">
-                              <span className="inline-flex items-center gap-1.5 text-[var(--muted)] min-w-0">
-                                <span className="material-symbols-outlined text-[14px] text-[var(--muted)]/75">business_center</span>
+                            <div className="mt-3.5 pt-3.5 border-t border-card-border/65 flex flex-wrap items-center gap-x-3.5 gap-y-2 text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1.5 text-muted min-w-0">
+                                <span className="material-symbols-outlined text-[14px] text-muted/75">business_center</span>
                                 <span className="truncate">{task.client || "General"}</span>
                               </span>
                               <span className={`inline-flex items-center gap-1.5 ${getDueTone(task.dueDate, task.stage)}`}>
@@ -942,8 +942,8 @@ export default function TodoPage() {
                                 {formatDueDate(task.dueDate)}
                               </span>
                               {task.estimate && (
-                                <span className="inline-flex items-center gap-1.5 text-[var(--muted)]">
-                                  <span className="material-symbols-outlined text-[14px] text-[var(--muted)]/75">timer</span>
+                                <span className="inline-flex items-center gap-1.5 text-muted">
+                                  <span className="material-symbols-outlined text-[14px] text-muted/75">timer</span>
                                   {task.estimate}
                                 </span>
                               )}
@@ -960,7 +960,7 @@ export default function TodoPage() {
                                     const parsedPrice = parseFloat(task.estimate ? task.estimate.replace(/[^\d.]/g, "") : "");
                                     setOutsourcePrice(!isNaN(parsedPrice) ? parsedPrice.toString() : "");
                                   }}
-                                  className="w-full btn-secondary min-h-8 rounded-xl px-3 py-1.5 text-[11px] border-[var(--accent)]/20 hover:border-[var(--accent)]/50 text-[var(--accent)] bg-[var(--accent)]/[0.01] hover:bg-[var(--accent)]/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
+                                  className="w-full btn-secondary min-h-8 rounded-xl px-3 py-1.5 text-[11px] border-accent/20 hover:border-accent/50 text-accent bg-accent/[0.01] hover:bg-accent/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
                                 >
                                   <span className="material-symbols-outlined text-[14px]">handshake</span>
                                   Outsource Task
@@ -988,7 +988,7 @@ export default function TodoPage() {
                                       target="_blank"
                                       rel="noreferrer"
                                       onClick={(event) => event.stopPropagation()}
-                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-[var(--positive)] hover:text-[var(--positive)]"
+                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-positive hover:text-positive"
                                     >
                                       <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
                                       Upload
@@ -1023,10 +1023,10 @@ export default function TodoPage() {
                   ) : (
                     <button
                       onClick={() => openCreateModal(stage.id)}
-                      className="w-full min-h-[160px] rounded-xl border border-dashed border-[var(--card-border)] bg-[var(--foreground)]/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
+                      className="w-full min-h-[160px] rounded-xl border border-dashed border-card-border bg-foreground/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-accent/40 hover:bg-accent/5"
                     >
-                      <span className="material-symbols-outlined text-[30px] text-[var(--foreground)]/12 mb-2">add_task</span>
-                      <AnimatedText as="span" text="Add a card" effect="per-word-crossfade" className="text-[12px] font-semibold text-[var(--muted)]" />
+                      <span className="material-symbols-outlined text-[30px] text-foreground/12 mb-2">add_task</span>
+                      <AnimatedText as="span" text="Add a card" effect="per-word-crossfade" className="text-[12px] font-semibold text-muted" />
                     </button>
                   )}
                 </div>
@@ -1040,38 +1040,38 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close task editor"
-            className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200"
+            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closeModal}
           />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">assignment</span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-muted">assignment</span>
                 <AnimatedText
                   as="h2"
                   text={taskModalTitle}
                   effect="fade-through"
-                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  className="text-lg font-bold text-foreground leading-none font-display"
                   replayKey={taskModalTitle}
                 />
               </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Scrollable Form Body */}
-            <form onSubmit={handleTaskSubmit} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+            <form onSubmit={handleTaskSubmit} className="flex-1 flex flex-col min-h-0 bg-background/35">
               <div className="flex-1 overflow-y-auto p-6 space-y-5">
                 
                 {/* 1. Task Description & Scope Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Task Definition</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Task Definition</h3>
                   
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-title">Title</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-title">Title</label>
                     <input
                       id="task-title"
                       required
@@ -1083,7 +1083,7 @@ export default function TodoPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-description">Description</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-description">Description</label>
                     <textarea
                       id="task-description"
                       value={form.description}
@@ -1095,7 +1095,7 @@ export default function TodoPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-stage">Stage</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-stage">Stage</label>
                       <div className="relative flex items-center">
                         <select
                           id="task-stage"
@@ -1103,19 +1103,19 @@ export default function TodoPage() {
                           onChange={(event) => setForm({ ...form, stage: event.target.value as TodoStageId })}
                           className="field-control px-3 py-1.5 text-[13px] appearance-none"
                         >
-                          {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id} className="text-[var(--foreground)] bg-[var(--background)]">{stage.label}</option>)}
+                          {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id} className="text-foreground bg-background">{stage.label}</option>)}
                         </select>
-                        <span className="material-symbols-outlined absolute right-3 text-[16px] text-[var(--muted)] pointer-events-none">expand_more</span>
+                        <span className="material-symbols-outlined absolute right-3 text-[16px] text-muted pointer-events-none">expand_more</span>
                       </div>
                     </div>
 
                     {/* Priority Selector as button pills */}
                     <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Priority Level</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Priority Level</label>
                       <div className="flex gap-1">
                         {TODO_PRIORITIES.map((p) => {
                           const isSelected = form.priority === p;
-                          let colorClass = "border-[var(--card-border)] text-[var(--muted)] bg-[var(--card)] hover:border-[var(--foreground)]/10";
+                          let colorClass = "border-card-border text-muted bg-card hover:border-foreground/10";
                           if (isSelected) {
                             if (p === "Low") colorClass = "bg-slate-500/10 border-slate-500 text-slate-500 shadow-xs";
                             else if (p === "Medium") colorClass = "bg-blue-500/10 border-blue-500 text-blue-500 shadow-xs";
@@ -1140,11 +1140,11 @@ export default function TodoPage() {
 
                 {/* 2. Relations, Deadlines & Tags Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Relations & Constraints</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Relations & Constraints</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-client-select">Client Link</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-client-select">Client Link</label>
                       {clientMode === "select" ? (
                         <div className="relative flex items-center">
                           <select
@@ -1161,13 +1161,13 @@ export default function TodoPage() {
                             }}
                             className="field-control px-3 py-1.5 text-[13px] appearance-none"
                           >
-                            <option value="" className="text-[var(--foreground)] bg-[var(--background)]">General</option>
+                            <option value="" className="text-foreground bg-background">General</option>
                             {clients.map((c) => (
-                              <option key={c.id} value={c.name} className="text-[var(--foreground)] bg-[var(--background)]">{c.name}</option>
+                              <option key={c.id} value={c.name} className="text-foreground bg-background">{c.name}</option>
                             ))}
-                            <option value="__custom__" className="text-[var(--foreground)] bg-[var(--background)]">+ Add Custom...</option>
+                            <option value="__custom__" className="text-foreground bg-background">+ Add Custom...</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-3 text-[16px] text-[var(--muted)] pointer-events-none">expand_more</span>
+                          <span className="material-symbols-outlined absolute right-3 text-[16px] text-muted pointer-events-none">expand_more</span>
                         </div>
                       ) : (
                         <div className="flex gap-1.5 items-center">
@@ -1184,7 +1184,7 @@ export default function TodoPage() {
                               setClientMode("select");
                               setForm({ ...form, client: "" });
                             }}
-                            className="text-[9px] font-bold text-[var(--accent)] hover:underline shrink-0"
+                            className="text-[9px] font-bold text-accent hover:underline shrink-0"
                           >
                             Saved
                           </button>
@@ -1193,7 +1193,7 @@ export default function TodoPage() {
                     </div>
 
                     <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-due">Due Date</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-due">Due Date</label>
                       <input
                         id="task-due"
                         type="date"
@@ -1204,9 +1204,9 @@ export default function TodoPage() {
                     </div>
 
                     <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-estimate">Estimate / Effort</label>
+                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-estimate">Estimate / Effort</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">timer</span>
+                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">timer</span>
                         <input
                           id="task-estimate"
                           value={form.estimate}
@@ -1219,9 +1219,9 @@ export default function TodoPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="task-tags">Category Tags</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-tags">Category Tags</label>
                     <div className="relative flex items-center">
-                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-[var(--muted)]/50">tag</span>
+                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">tag</span>
                       <input
                         id="task-tags"
                         value={form.tags}
@@ -1236,13 +1236,13 @@ export default function TodoPage() {
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
                 {editingTaskId ? (
                   <button
                     type="button"
                     onClick={() => void deleteTask(editingTaskId)}
                     disabled={isSaving}
-                    className="text-[11px] font-bold text-[var(--negative)] hover:underline active:scale-[0.97] transition-all"
+                    className="text-[11px] font-bold text-negative hover:underline active:scale-[0.97] transition-all"
                   >
                     Delete Task
                   </button>
@@ -1273,18 +1273,18 @@ export default function TodoPage() {
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <p className="section-eyebrow">Outsource Task</p>
-                <h2 className="text-xl font-semibold text-[var(--foreground)] font-display truncate max-w-[280px]">
+                <h2 className="text-xl font-semibold text-foreground font-display truncate max-w-[280px]">
                   {outsourcingTask.title}
                 </h2>
               </div>
-              <button type="button" onClick={() => setOutsourcingTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              <button type="button" onClick={() => setOutsourcingTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-muted">close</span>
               </button>
             </div>
 
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Subcontractor Selection</label>
+                <label className="text-[11px] font-semibold text-muted tracking-wider uppercase">Subcontractor Selection</label>
                 {vendorMode === "select" ? (
                   <div className="space-y-2">
                     <select
@@ -1300,24 +1300,24 @@ export default function TodoPage() {
                       }}
                       className="field-control px-3 py-2 w-full"
                     >
-                      <option value="" className="text-[var(--foreground)] bg-[var(--background)]">-- Select a Subcontractor --</option>
+                      <option value="" className="text-foreground bg-background">-- Select a Subcontractor --</option>
                       {vendors.map((v) => (
-                        <option key={v.id} value={v.id} className="text-[var(--foreground)] bg-[var(--background)]">{v.name} {v.company ? `(${v.company})` : ""}</option>
+                        <option key={v.id} value={v.id} className="text-foreground bg-background">{v.name} {v.company ? `(${v.company})` : ""}</option>
                       ))}
-                      <option value="__new__" className="text-[var(--foreground)] bg-[var(--background)]">+ Add New Subcontractor...</option>
+                      <option value="__new__" className="text-foreground bg-background">+ Add New Subcontractor...</option>
                     </select>
                   </div>
                 ) : (
-                  <div className="space-y-3 border border-dashed border-[var(--card-border)] rounded-xl p-3 bg-[var(--foreground)]/[0.01]">
+                  <div className="space-y-3 border border-dashed border-card-border rounded-xl p-3 bg-foreground/[0.01]">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-[var(--accent)] font-medium">New Subcontractor Info</span>
+                      <span className="text-[12px] font-semibold text-accent font-medium">New Subcontractor Info</span>
                       <button
                         type="button"
                         onClick={() => {
                           setVendorMode("select");
                           setSelectedVendorId("");
                         }}
-                        className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] transition-smooth font-medium"
+                        className="text-[10px] text-muted hover:text-foreground transition-smooth font-medium"
                       >
                         Choose Saved
                       </button>
@@ -1352,9 +1352,9 @@ export default function TodoPage() {
                         id="save-vendor-checkbox"
                         checked={saveVendorMode === "regular"}
                         onChange={(e) => setSaveVendorMode(e.target.checked ? "regular" : "onetime")}
-                        className="rounded border-[var(--card-border)] text-[var(--accent)] focus:ring-[var(--accent)]"
+                        className="rounded border-card-border text-accent focus:ring-accent"
                       />
-                      <label htmlFor="save-vendor-checkbox" className="text-[11px] text-[var(--muted)] cursor-pointer">
+                      <label htmlFor="save-vendor-checkbox" className="text-[11px] text-muted cursor-pointer">
                         Save to Subcontractors directory
                       </label>
                     </div>
@@ -1363,9 +1363,9 @@ export default function TodoPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase">Outsourcing Price</label>
+                <label className="text-[11px] font-semibold text-muted tracking-wider uppercase">Outsourcing Price</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-[var(--muted)] text-[13px] font-medium">$</span>
+                  <span className="absolute left-3 top-2 text-muted text-[13px] font-medium">$</span>
                   <input
                     type="number"
                     step="0.01"
@@ -1379,7 +1379,7 @@ export default function TodoPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-[var(--card-border)]">
+            <div className="flex justify-end gap-2 pt-4 border-t border-card-border">
               <button type="button" onClick={() => setOutsourcingTask(null)} className="btn-ghost" disabled={isSaving}>
                 Cancel
               </button>
@@ -1399,17 +1399,17 @@ export default function TodoPage() {
             onClick={() => setInformTask(null)}
           />
           <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4 relative animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
-              <h3 className="text-lg font-semibold text-[var(--foreground)] font-display flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px] text-[var(--accent)]">info</span>
+            <div className="flex items-center justify-between border-b border-card-border pb-3">
+              <h3 className="text-lg font-semibold text-foreground font-display flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-accent">info</span>
                 Inform Client
               </h3>
-              <button onClick={() => setInformTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">close</span>
+              <button onClick={() => setInformTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth">
+                <span className="material-symbols-outlined text-[18px] text-muted">close</span>
               </button>
             </div>
             
-            <p className="text-[12px] text-[var(--muted)]">Select how you want to inform <strong>{informTask.client || "Client"}</strong> that <strong>{informTask.title}</strong> is completed:</p>
+            <p className="text-[12px] text-muted">Select how you want to inform <strong>{informTask.client || "Client"}</strong> that <strong>{informTask.title}</strong> is completed:</p>
             
             <div className="space-y-2">
               {(() => {
@@ -1452,20 +1452,20 @@ export default function TodoPage() {
                         target={channel.external ? "_blank" : undefined}
                         rel={channel.external ? "noreferrer" : undefined}
                         onClick={() => setInformTask(null)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-[var(--card-border)] bg-[var(--card)] hover:border-[var(--accent)]/55 hover:bg-[var(--accent)]/[0.03] transition-smooth group"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-card-border bg-card hover:border-accent/55 hover:bg-accent/[0.03] transition-smooth group"
                       >
-                        <span className="size-10 rounded-xl bg-[var(--accent)]/10 text-[var(--accent)] group-hover:bg-[var(--accent)] group-hover:text-[var(--action-text)] flex items-center justify-center shrink-0 transition-smooth">
+                        <span className="size-10 rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-action-text flex items-center justify-center shrink-0 transition-smooth">
                           <span className="material-symbols-outlined text-[18px]">{channel.icon}</span>
                         </span>
                         <div className="text-left">
-                          <span className="block text-[13px] font-semibold text-[var(--foreground)]">{channel.label}</span>
-                          <span className="block text-[10px] text-[var(--muted)]">Send instantly via {channel.label.toLowerCase()}</span>
+                          <span className="block text-[13px] font-semibold text-foreground">{channel.label}</span>
+                          <span className="block text-[10px] text-muted">Send instantly via {channel.label.toLowerCase()}</span>
                         </div>
-                        <span className="ml-auto material-symbols-outlined text-[18px] text-[var(--muted)] group-hover:text-[var(--accent)] transition-smooth">chevron_right</span>
+                        <span className="ml-auto material-symbols-outlined text-[18px] text-muted group-hover:text-accent transition-smooth">chevron_right</span>
                       </a>
                     ))}
                     {contactChannels.length === 0 && (
-                      <div className="text-center py-6 text-[12px] text-[var(--muted)]">
+                      <div className="text-center py-6 text-[12px] text-muted">
                         No contact details found for this client. Please edit the client in directory to add an email or phone number.
                       </div>
                     )}

@@ -177,9 +177,9 @@ export function normalizeAnalyticsPreferences(preferences?: Partial<AnalyticsPre
 }
 
 const STATUS_STYLES: Record<InvoiceStatus, string> = {
-  Paid: "bg-[var(--positive)]/15 text-[var(--positive)]",
-  Unpaid: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
-  Overdue: "bg-[var(--accent)]/15 text-[var(--accent)]",
+  Paid: "bg-positive/15 text-positive",
+  Unpaid: "bg-foreground/[0.06] text-foreground/60",
+  Overdue: "bg-accent/15 text-accent",
 };
 
 // Removed unused export INVOICES

@@ -54,9 +54,9 @@ export function createDefaultTodoTasks(): TodoTask[] {
 
 export function getTodoPriorityStyles(priority: TodoPriority) {
   const styles: Record<TodoPriority, string> = {
-    Low: "bg-[var(--positive)]/12 text-[var(--positive)]",
-    Medium: "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/60",
-    High: "bg-[var(--accent)]/15 text-[var(--accent)]",
+    Low: "bg-positive/12 text-positive",
+    Medium: "bg-foreground/[0.06] text-foreground/60",
+    High: "bg-accent/15 text-accent",
   };
 
   return styles[priority];

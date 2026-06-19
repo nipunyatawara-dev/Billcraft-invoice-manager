@@ -87,7 +87,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="relative p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors rounded-full hover:bg-[var(--foreground)]/[0.04]">
+      <button className="relative p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/[0.04]">
         <i className="ph ph-sun text-2xl"></i>
       </button>
     );
@@ -99,7 +99,7 @@ export function ThemeToggle() {
       type="button"
       onClick={() => handleToggle(nextTheme)}
       disabled={isAnimating}
-      className="relative p-2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors rounded-full hover:bg-[var(--foreground)]/[0.04]"
+      className="relative p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/[0.04]"
       aria-label={`Switch to ${nextTheme} mode`}
     >
       <i className={`ph text-2xl ${activeTheme === "light" ? "ph-sun ph-fill" : "ph-moon ph-fill"}`}></i>

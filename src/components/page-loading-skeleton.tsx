@@ -84,7 +84,7 @@ function DashboardSkeleton() {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-lg border border-[var(--card-border)] p-3">
+              <div key={index} className="rounded-lg border border-card-border p-3">
                 <SkeletonBlock className="h-6 w-10 mb-2" />
                 <SkeletonBlock className="h-3 w-14" />
               </div>
@@ -135,7 +135,7 @@ function RecordsSkeleton() {
       </div>
       <div className="surface-card p-4 sm:p-5 min-h-[320px]">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className={`flex items-center gap-4 py-4 ${index > 0 ? "border-t border-[var(--card-border)]" : ""}`}>
+          <div key={index} className={`flex items-center gap-4 py-4 ${index > 0 ? "border-t border-card-border" : ""}`}>
             <SkeletonBlock className="size-11 rounded-lg shrink-0" />
             <div className="flex-1 min-w-0">
               <SkeletonBlock className="h-4 w-40 mb-2" />
@@ -162,7 +162,7 @@ function AnalyticsSkeleton() {
             </div>
             <SkeletonBlock className="size-9 rounded-lg" />
           </div>
-          <div className="flex h-48 items-end gap-2 border-t border-[var(--card-border)] pt-6">
+          <div className="flex h-48 items-end gap-2 border-t border-card-border pt-6">
             {[35, 54, 42, 76, 58, 88, 64].map((height, index) => (
               <SkeletonBlock key={index} className="flex-1 rounded-t-lg" style={{ height: `${height}%` }} />
             ))}
@@ -206,7 +206,7 @@ function KanbanSkeleton() {
             </div>
             <div className="space-y-2.5">
               {Array.from({ length: columnIndex === 0 ? 2 : 1 }).map((_, cardIndex) => (
-                <div key={cardIndex} className="rounded-lg border border-[var(--card-border)] bg-[var(--background)]/45 p-3">
+                <div key={cardIndex} className="rounded-lg border border-card-border bg-background/45 p-3">
                   <div className="flex gap-1.5 mb-3">
                     <SkeletonBlock className="h-5 w-16 rounded-md" />
                     <SkeletonBlock className="h-5 w-14 rounded-md" />
@@ -214,7 +214,7 @@ function KanbanSkeleton() {
                   <SkeletonBlock className="h-4 w-44 max-w-full mb-3" />
                   <SkeletonBlock className="h-3 w-full mb-2" />
                   <SkeletonBlock className="h-3 w-4/5 mb-4" />
-                  <div className="pt-3 border-t border-[var(--card-border)] flex gap-3">
+                  <div className="pt-3 border-t border-card-border flex gap-3">
                     <SkeletonBlock className="h-4 w-24" />
                     <SkeletonBlock className="h-4 w-16" />
                     <SkeletonBlock className="h-4 w-12" />

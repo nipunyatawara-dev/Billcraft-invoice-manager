@@ -88,10 +88,10 @@ export function SecurityTab() {
               as="h2"
               text="Account Security"
               effect="micro-scale-fade"
-              className="text-2xl font-bold text-[var(--featured-text)] font-display mb-1.5 tracking-tight"
+              className="text-2xl font-bold text-featured-text font-display mb-1.5 tracking-tight"
               delayMs={70}
             />
-            <p className="text-[14px] text-[var(--featured-text)]/70 font-medium">Manage your password, recovery hint, and control data retention.</p>
+            <p className="text-[14px] text-featured-text/70 font-medium">Manage your password, recovery hint, and control data retention.</p>
           </div>
         </div>
       </div>
@@ -101,10 +101,10 @@ export function SecurityTab() {
         <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-[18px] font-bold text-[var(--foreground)] tracking-tight">Profile Password</h3>
-              <p className="text-[12px] font-semibold text-[var(--muted)] mt-1 tracking-wide uppercase">{formatPasswordChangedAt(activeProfile?.passwordChangedAt)}</p>
+              <h3 className="text-[18px] font-bold text-foreground tracking-tight">Profile Password</h3>
+              <p className="text-[12px] font-semibold text-muted mt-1 tracking-wide uppercase">{formatPasswordChangedAt(activeProfile?.passwordChangedAt)}</p>
             </div>
-            <div className="size-10 rounded-full bg-[var(--action)]/10 text-[var(--action)] flex items-center justify-center group-hover:bg-[var(--action)] group-hover:text-[var(--action-text)] transition-colors duration-300">
+            <div className="size-10 rounded-full bg-action/10 text-action flex items-center justify-center group-hover:bg-action group-hover:text-action-text transition-colors duration-300">
               <span className="material-symbols-outlined text-[20px]">lock</span>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function SecurityTab() {
           <div className="space-y-4">
             {activeProfile?.hasPassword && (
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-2" htmlFor="current-password">
+                <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="current-password">
                   <span className="material-symbols-outlined text-[14px] opacity-70">key</span>
                   Current Password
                 </label>
@@ -121,13 +121,13 @@ export function SecurityTab() {
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-2" htmlFor="new-password">
+              <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="new-password">
                 <span className="material-symbols-outlined text-[14px] opacity-70">vpn_key_alert</span>
                 New Password
               </label>
@@ -137,13 +137,13 @@ export function SecurityTab() {
                 minLength={6}
                 value={passwordForm.password}
                 onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
-                className="w-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
-              <p className="text-[11px] text-[var(--muted)]/80 pl-1">Minimum 6 characters. Numbers-only is fine.</p>
+              <p className="text-[11px] text-muted/80 pl-1">Minimum 6 characters. Numbers-only is fine.</p>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-2" htmlFor="confirm-new-password">
+              <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="confirm-new-password">
                 <span className="material-symbols-outlined text-[14px] opacity-70">password</span>
                 Confirm New Password
               </label>
@@ -153,7 +153,7 @@ export function SecurityTab() {
                 minLength={6}
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                className="w-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
             </div>
           </div>
@@ -174,8 +174,8 @@ export function SecurityTab() {
         <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group h-fit">
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-[18px] font-bold text-[var(--foreground)] tracking-tight">Recovery Hint</h3>
-              <p className="text-[12px] font-medium text-[var(--muted)] mt-1">Saved separately from your password.</p>
+              <h3 className="text-[18px] font-bold text-foreground tracking-tight">Recovery Hint</h3>
+              <p className="text-[12px] font-medium text-muted mt-1">Saved separately from your password.</p>
             </div>
             <div className="size-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
               <span className="material-symbols-outlined text-[20px]">psychology</span>
@@ -185,7 +185,7 @@ export function SecurityTab() {
           <div className="space-y-4">
             {activeProfile?.hasPassword && (
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-2" htmlFor="hint-current-password">
+                <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="hint-current-password">
                   <span className="material-symbols-outlined text-[14px] opacity-70">key</span>
                   Current Password
                 </label>
@@ -194,13 +194,13 @@ export function SecurityTab() {
                   type="password"
                   value={hintForm.currentPassword}
                   onChange={(e) => setHintForm({ ...hintForm, currentPassword: e.target.value })}
-                  className="w-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-[var(--muted)] tracking-wider uppercase flex items-center gap-2" htmlFor="password-hint">
+              <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="password-hint">
                 <span className="material-symbols-outlined text-[14px] opacity-70">lightbulb</span>
                 Hint
               </label>
@@ -209,7 +209,7 @@ export function SecurityTab() {
                 type="text"
                 value={hintForm.passwordHint}
                 onChange={(e) => setHintForm({ ...hintForm, passwordHint: e.target.value })}
-                className="w-full bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
             </div>
           </div>

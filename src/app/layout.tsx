@@ -31,6 +31,8 @@ const paletteBootstrapScript = `
   const darkKey = "billcraft.dark-palette.v1";
   const fontKey = "billcraft.font.v1";
   const fontIds = new Set(["inter", "open-sans", "google-sans-flex", "outfit", "plus-jakarta-sans"]);
+  const radiusKey = "billcraft.radius.v1";
+  const radiusIds = new Set(["squircle", "rounded"]);
 
   const readPalette = (key, fallback) => {
     try {
@@ -50,9 +52,19 @@ const paletteBootstrapScript = `
     }
   };
 
+  const readRadius = (key, fallback) => {
+    try {
+      const storedRadius = window.localStorage.getItem(key);
+      return radiusIds.has(storedRadius) ? storedRadius : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-6");
   document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-7");
   document.documentElement.dataset.font = readFont(fontKey, "inter");
+  document.documentElement.dataset.radius = readRadius(radiusKey, "rounded");
 })();
 `;
 

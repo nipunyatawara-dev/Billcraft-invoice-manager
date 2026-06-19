@@ -180,22 +180,22 @@ export function DataTab() {
       {/* Hero Intro */}
       <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-3xl group">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djIwaC0ydi0yMEgzNHYyaDJoMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--action)]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="absolute inset-0 bg-gradient-to-br from-action/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
-          <div className="size-16 sm:size-20 rounded-2xl bg-[var(--action)] text-[var(--action-text)] flex items-center justify-center shrink-0 shadow-lg shadow-[var(--action)]/30 transform group-hover:-translate-y-1 transition-transform duration-500">
+          <div className="size-16 sm:size-20 rounded-2xl bg-action text-action-text flex items-center justify-center shrink-0 shadow-lg shadow-action/30 transform group-hover:-translate-y-1 transition-transform duration-500">
             <span className="material-symbols-outlined text-[32px] sm:text-[40px]">database</span>
           </div>
           <div className="text-center sm:text-left">
-            <AnimatedText as="p" text="System Storage" effect="micro-scale-fade" className="text-[11px] font-bold text-[var(--featured-text)]/50 tracking-widest uppercase mb-2" />
+            <AnimatedText as="p" text="System Storage" effect="micro-scale-fade" className="text-[11px] font-bold text-featured-text/50 tracking-widest uppercase mb-2" />
             <AnimatedText
               as="h2"
               text="Your Data Ownership"
               effect="micro-scale-fade"
-              className="text-2xl sm:text-3xl font-bold text-[var(--featured-text)] font-display mb-2 tracking-tight"
+              className="text-2xl sm:text-3xl font-bold text-featured-text font-display mb-2 tracking-tight"
               delayMs={70}
             />
-            <p className="text-[14px] text-[var(--featured-text)]/70 font-medium max-w-xl">Export your profiles, clients, invoices, vendors, and tasks anytime. You fully own your BillCraft data.</p>
+            <p className="text-[14px] text-featured-text/70 font-medium max-w-xl">Export your profiles, clients, invoices, vendors, and tasks anytime. You fully own your BillCraft data.</p>
           </div>
         </div>
       </div>
@@ -213,11 +213,11 @@ export function DataTab() {
             <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
               <span className="material-symbols-outlined text-6xl">{item.icon}</span>
             </div>
-            <div className="flex items-center gap-2 text-[var(--action)] mb-2">
+            <div className="flex items-center gap-2 text-action mb-2">
               <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
             </div>
-            <p className="text-[10px] font-bold text-[var(--muted)] tracking-wider uppercase">{item.label}</p>
-            <p className="mt-1 text-2xl font-black text-[var(--foreground)] font-display tracking-tight">{item.value}</p>
+            <p className="text-[10px] font-bold text-muted tracking-wider uppercase">{item.label}</p>
+            <p className="mt-1 text-2xl font-black text-foreground font-display tracking-tight">{item.value}</p>
           </div>
         ))}
       </div>
@@ -225,20 +225,20 @@ export function DataTab() {
       {/* Export Options */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* JSON Export */}
-        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group border border-[var(--card-border)] hover:border-[var(--action)]/30">
+        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group border border-card-border hover:border-action/30">
           <div>
-            <div className="size-12 rounded-full bg-[var(--action)]/10 text-[var(--action)] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-[var(--action)] group-hover:text-[var(--action-text)] transition-all duration-300">
+            <div className="size-12 rounded-full bg-action/10 text-action flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-action group-hover:text-action-text transition-all duration-300">
               <span className="material-symbols-outlined text-[24px]">data_object</span>
             </div>
-            <h3 className="text-[18px] font-bold text-[var(--foreground)] tracking-tight mb-2">JSON Export</h3>
-            <p className="text-[13px] text-[var(--muted)] leading-relaxed mb-6">Complete snapshot containing nested invoice items, payments, and full profile metadata. Best for backups or transferring to another system.</p>
+            <h3 className="text-[18px] font-bold text-foreground tracking-tight mb-2">JSON Export</h3>
+            <p className="text-[13px] text-muted leading-relaxed mb-6">Complete snapshot containing nested invoice items, payments, and full profile metadata. Best for backups or transferring to another system.</p>
           </div>
           
           <button
             type="button"
             onClick={() => requestExport("json")}
             disabled={loading || isExporting}
-            className="w-full py-3 px-4 bg-[var(--foreground)]/[0.03] hover:bg-[var(--action)] hover:text-[var(--action-text)] text-[var(--foreground)] font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all duration-300 border border-[var(--card-border)] hover:border-transparent active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3 px-4 bg-foreground/[0.03] hover:bg-action hover:text-action-text text-foreground font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all duration-300 border border-card-border hover:border-transparent active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
             Download JSON
@@ -246,20 +246,20 @@ export function DataTab() {
         </div>
 
         {/* CSV Export */}
-        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group border border-[var(--card-border)] hover:border-[var(--accent)]/30">
+        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group border border-card-border hover:border-accent/30">
           <div>
-            <div className="size-12 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-[var(--accent)] group-hover:text-white transition-all duration-300">
+            <div className="size-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-accent group-hover:text-white transition-all duration-300">
               <span className="material-symbols-outlined text-[24px]">table_chart</span>
             </div>
-            <h3 className="text-[18px] font-bold text-[var(--foreground)] tracking-tight mb-2">CSV Export</h3>
-            <p className="text-[13px] text-[var(--muted)] leading-relaxed mb-6">Spreadsheet-friendly rows grouped by data category. Ideal for opening in Excel, Google Sheets, or Numbers for manual accounting.</p>
+            <h3 className="text-[18px] font-bold text-foreground tracking-tight mb-2">CSV Export</h3>
+            <p className="text-[13px] text-muted leading-relaxed mb-6">Spreadsheet-friendly rows grouped by data category. Ideal for opening in Excel, Google Sheets, or Numbers for manual accounting.</p>
           </div>
           
           <button
             type="button"
             onClick={() => requestExport("csv")}
             disabled={loading || isExporting}
-            className="w-full py-3 px-4 bg-[var(--foreground)]/[0.03] hover:bg-[var(--accent)] hover:text-white text-[var(--foreground)] font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all duration-300 border border-[var(--card-border)] hover:border-transparent active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full py-3 px-4 bg-foreground/[0.03] hover:bg-accent hover:text-white text-foreground font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 transition-all duration-300 border border-card-border hover:border-transparent active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
             Download CSV
@@ -270,12 +270,12 @@ export function DataTab() {
       {/* Export Password Modal (if needed) */}
       {exportRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-[var(--background)] border border-[var(--card-border)] rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-            <div className="size-12 rounded-full bg-[var(--action)]/10 text-[var(--action)] flex items-center justify-center mb-4">
+          <div className="bg-background border border-card-border rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+            <div className="size-12 rounded-full bg-action/10 text-action flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-[24px]">lock</span>
             </div>
-            <h3 className="text-[20px] font-bold text-[var(--foreground)] mb-2 tracking-tight">Security Check</h3>
-            <p className="text-[13px] text-[var(--muted)] mb-6">Enter your profile password to authorize this export.</p>
+            <h3 className="text-[20px] font-bold text-foreground mb-2 tracking-tight">Security Check</h3>
+            <p className="text-[13px] text-muted mb-6">Enter your profile password to authorize this export.</p>
             
             <form onSubmit={handleConfirmExport}>
               <input
@@ -285,13 +285,13 @@ export function DataTab() {
                 placeholder="Enter password"
                 value={exportPassword}
                 onChange={(e) => setExportPassword(e.target.value)}
-                className="w-full bg-[var(--foreground)]/[0.02] border border-[var(--card-border)] rounded-xl px-4 py-3 text-[14px] font-semibold text-[var(--foreground)] outline-none focus:border-[var(--action)] focus:ring-2 focus:ring-[var(--action)]/20 transition-all mb-6"
+                className="w-full bg-foreground/[0.02] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all mb-6"
               />
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => { setExportRequest(null); setExportPassword(""); }}
-                  className="px-5 py-2.5 rounded-xl text-[13px] font-bold text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.05] transition-colors"
+                  className="px-5 py-2.5 rounded-xl text-[13px] font-bold text-muted hover:text-foreground hover:bg-foreground/[0.05] transition-colors"
                 >
                   Cancel
                 </button>

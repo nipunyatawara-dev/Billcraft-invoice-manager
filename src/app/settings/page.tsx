@@ -28,10 +28,10 @@ export default function Settings() {
         <div className="page-heading">
           <div>
             <p className="section-eyebrow">Account</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]">Settings</h1>
+            <h1 className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]">Settings</h1>
           </div>
         </div>
-        <div className="py-12 text-center text-[var(--muted)]">Loading Settings...</div>
+        <div className="py-12 text-center text-muted">Loading Settings...</div>
       </main>
     }>
       <SettingsContent />
@@ -64,10 +64,10 @@ function SettingsContent() {
             as="h1"
             text="Settings"
             effect="micro-scale-fade"
-            className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+            className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
             delayMs={70}
           />
-          <p className="mt-3 text-[15px] text-[var(--muted)] max-w-2xl font-medium">Manage your profile, adjust aesthetic preferences, and control your data.</p>
+          <p className="mt-3 text-[15px] text-muted max-w-2xl font-medium">Manage your profile, adjust aesthetic preferences, and control your data.</p>
         </div>
       </div>
 
@@ -86,21 +86,21 @@ function SettingsContent() {
                   onClick={() => handleTabChange(tab.id)}
                   className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
                     isActive
-                      ? "bg-[var(--action)]/10 text-[var(--action)] shadow-sm"
-                      : "text-[var(--muted)] hover:bg-[var(--foreground)]/[0.03] hover:text-[var(--foreground)]"
+                      ? "bg-action/10 text-action shadow-sm"
+                      : "text-muted hover:bg-foreground/[0.03] hover:text-foreground"
                   }`}
                 >
                   <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300 ${
                     isActive 
-                      ? "bg-[var(--action)] text-[var(--action-text)] shadow-md" 
-                      : "bg-[var(--foreground)]/[0.04] group-hover:bg-[var(--foreground)]/[0.08]"
+                      ? "bg-action text-action-text shadow-md" 
+                      : "bg-foreground/[0.04] group-hover:bg-foreground/[0.08]"
                   }`}>
                     <span className="material-symbols-outlined text-[20px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>{tab.icon}</span>
                   </div>
                   
                   <div>
                     <div className="text-[14px] font-bold tracking-wide">{tab.label}</div>
-                    <div className={`text-[11px] mt-0.5 hidden lg:block ${isActive ? "text-[var(--action)]/70" : "text-[var(--muted)]/60"}`}>{tab.desc}</div>
+                    <div className={`text-[11px] mt-0.5 hidden lg:block ${isActive ? "text-action/70" : "text-muted/60"}`}>{tab.desc}</div>
                   </div>
                 </button>
               );

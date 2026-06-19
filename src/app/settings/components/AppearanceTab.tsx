@@ -12,6 +12,7 @@ export function AppearanceTab() {
   
   const activeTheme = resolvedTheme === "dark" ? "dark" : "light";
   const [activeFont, setActiveFont] = useState<string>("inter");
+  const [activeRadius, setActiveRadius] = useState<string>("rounded");
   const [isLightPaletteCollapsed, setIsLightPaletteCollapsed] = useState(false);
   const [isDarkPaletteCollapsed, setIsDarkPaletteCollapsed] = useState(false);
 
@@ -19,6 +20,9 @@ export function AppearanceTab() {
     if (typeof window !== "undefined") {
       const storedFont = window.localStorage.getItem("billcraft.font.v1");
       if (storedFont) setActiveFont(storedFont);
+      
+      const storedRadius = window.localStorage.getItem("billcraft.radius.v1");
+      if (storedRadius) setActiveRadius(storedRadius);
     }
   }, []);
 
@@ -41,6 +45,19 @@ export function AppearanceTab() {
       notify.success({
         title: "Font style updated",
         description: `Font style set to ${fontId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}.`,
+      });
+    }
+  };
+
+  const handleRadiusChange = (radiusId: string) => {
+    setActiveRadius(radiusId);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("billcraft.radius.v1", radiusId);
+      // eslint-disable-next-line
+      document.documentElement.dataset.radius = radiusId;
+      notify.success({
+        title: "Corner style updated",
+        description: `Corner style set to ${radiusId.charAt(0).toUpperCase() + radiusId.slice(1)}.`,
       });
     }
   };
@@ -94,10 +111,10 @@ export function AppearanceTab() {
         <div className="xl:col-span-3 space-y-6">
           {/* Header Banner */}
           <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-3xl group">
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--action)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-r from-action/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
               <div className="max-w-xl">
-                <p className="flex items-center gap-2 text-[11px] font-bold text-[var(--featured-text)]/60 tracking-wider uppercase mb-2">
+                <p className="flex items-center gap-2 text-[11px] font-bold text-featured-text/60 tracking-wider uppercase mb-2">
                   <span className="material-symbols-outlined text-[14px]">brush</span>
                   Theme & Customization
                 </p>
@@ -105,10 +122,10 @@ export function AppearanceTab() {
                   as="h2"
                   text="Personalize your workspace"
                   effect="micro-scale-fade"
-                  className="text-2xl sm:text-3xl font-bold text-[var(--featured-text)] font-display mb-2 tracking-tight"
+                  className="text-2xl sm:text-3xl font-bold text-featured-text font-display mb-2 tracking-tight"
                   delayMs={70}
                 />
-                <p className="text-[14px] text-[var(--featured-text)]/70 font-medium">Assign custom color palettes, switch between light and dark visual modes, and pick your typography.</p>
+                <p className="text-[14px] text-featured-text/70 font-medium">Assign custom color palettes, switch between light and dark visual modes, and pick your typography.</p>
               </div>
             </div>
           </div>
@@ -116,11 +133,11 @@ export function AppearanceTab() {
           {/* Mode Cards */}
           <div className="surface-card p-6 space-y-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <h3 className="text-[14px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">visibility</span>
+              <h3 className="text-[14px] font-bold text-foreground tracking-wide uppercase flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-accent">visibility</span>
                 Theme Mode
               </h3>
-              <p className="text-[12px] text-[var(--muted)] mt-1">Switch between dynamic Light or Dark mode.</p>
+              <p className="text-[12px] text-muted mt-1">Switch between dynamic Light or Dark mode.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -136,22 +153,22 @@ export function AppearanceTab() {
                     onClick={() => selectThemeMode(mode.id)}
                     className={`relative overflow-hidden p-5 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col justify-between h-[110px] active:scale-[0.98] group ${
                       isSelected
-                        ? "border-[var(--accent)] shadow-[0_8px_30px_rgba(var(--accent-rgb),0.15)] bg-[var(--action)]/5"
-                        : "border-[var(--card-border)] hover:border-[var(--accent)]/50 hover:bg-[var(--foreground)]/[0.02]"
+                        ? "border-accent shadow-[0_8px_30px_rgba(var(--accent-rgb),0.15)] bg-action/5"
+                        : "border-card-border hover:border-accent/50 hover:bg-foreground/[0.02]"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className={`size-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${isSelected ? "bg-[var(--action)] text-[var(--action-text)] shadow-md" : "bg-[var(--foreground)]/[0.06] text-[var(--foreground)]/70 group-hover:bg-[var(--foreground)]/10"}`}>
+                      <span className={`size-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${isSelected ? "bg-action text-action-text shadow-md" : "bg-foreground/[0.06] text-foreground/70 group-hover:bg-foreground/10"}`}>
                         <span className="material-symbols-outlined text-[18px]">{mode.icon}</span>
                       </span>
                       {isSelected && (
-                        <span className="bg-[var(--action)] text-[var(--action-text)] text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm animate-in zoom-in">Active</span>
+                        <span className="bg-action text-action-text text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm animate-in zoom-in">Active</span>
                       )}
                     </div>
                     
                     <div>
-                      <span className="block text-[14px] font-bold text-[var(--foreground)] leading-tight">{mode.label}</span>
-                      <span className="block text-[11px] text-[var(--muted)] mt-0.5">{mode.desc}</span>
+                      <span className="block text-[14px] font-bold text-foreground leading-tight">{mode.label}</span>
+                      <span className="block text-[11px] text-muted mt-0.5">{mode.desc}</span>
                     </div>
                   </button>
                 );
@@ -169,17 +186,17 @@ export function AppearanceTab() {
                   className="flex items-start justify-between gap-3 w-full text-left focus:outline-none hover:opacity-80 transition-opacity group"
                 >
                   <div className="pr-4">
-                    <h3 className="text-[14px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-2 select-none transition-colors group-hover:text-[var(--action)]">
-                      <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">palette</span>
+                    <h3 className="text-[14px] font-bold text-foreground tracking-wide uppercase flex items-center gap-2 select-none transition-colors group-hover:text-action">
+                      <span className="material-symbols-outlined text-[16px] text-accent">palette</span>
                       {setting.title}
                     </h3>
-                    <p className="text-[12px] text-[var(--muted)] mt-1 leading-normal">{setting.description}</p>
+                    <p className="text-[12px] text-muted mt-1 leading-normal">{setting.description}</p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="rounded-full border border-[var(--card-border)] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] bg-[var(--foreground)]/[0.02] shadow-sm">
+                    <span className="rounded-full border border-card-border px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-muted bg-foreground/[0.02] shadow-sm">
                       {setting.mode}
                     </span>
-                    <span className="material-symbols-outlined text-[20px] text-[var(--muted)] transition-transform duration-300 bg-[var(--foreground)]/5 rounded-full p-1 group-hover:bg-[var(--action)]/10 group-hover:text-[var(--action)]" style={{ transform: setting.isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}>
+                    <span className="material-symbols-outlined text-[20px] text-muted transition-transform duration-300 bg-foreground/5 rounded-full p-1 group-hover:bg-action/10 group-hover:text-action" style={{ transform: setting.isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}>
                       keyboard_arrow_down
                     </span>
                   </div>
@@ -204,19 +221,19 @@ export function AppearanceTab() {
                             onClick={() => selectPalette(setting.mode, palette.id, palette.name)}
                             className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300 flex flex-col justify-between h-[160px] active:scale-[0.96] ${
                               isSelected
-                                ? "border-[var(--accent)] bg-[var(--action)]/5 shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-[var(--accent)]/20"
-                                : "border-[var(--card-border)] bg-[var(--background)]/40 hover:border-[var(--accent)]/50 hover:bg-[var(--foreground)]/[0.02]"
+                                ? "border-accent bg-action/5 shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-accent/20"
+                                : "border-card-border bg-background/40 hover:border-accent/50 hover:bg-foreground/[0.02]"
                             }`}
                           >
                             <div className="flex items-center justify-between w-full mb-4">
                               <div>
-                                <span className="block text-[13px] font-bold text-[var(--foreground)] leading-tight">{palette.name}</span>
-                                <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mt-1">{palette.label}</span>
+                                <span className="block text-[13px] font-bold text-foreground leading-tight">{palette.name}</span>
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-muted mt-1">{palette.label}</span>
                               </div>
                               <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center transition-all duration-300 ${
                                 isSelected
-                                  ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)] scale-110 shadow-md"
-                                  : "border-[var(--card-border)] text-transparent group-hover:border-[var(--foreground)]/20"
+                                  ? "border-action bg-action text-action-text scale-110 shadow-md"
+                                  : "border-card-border text-transparent group-hover:border-foreground/20"
                               }`}>
                                 <span className="material-symbols-outlined text-[14px]">check</span>
                               </span>
@@ -235,9 +252,9 @@ export function AppearanceTab() {
                               ))}
                             </div>
 
-                            <div className="flex flex-wrap gap-x-2 gap-y-1 text-[9px] font-mono text-[var(--muted)]/80 leading-none">
+                            <div className="flex flex-wrap gap-x-2 gap-y-1 text-[9px] font-mono text-muted/80 leading-none">
                               {palette.colors.map((color, idx) => (
-                                <span key={idx} className="transition-colors group-hover:text-[var(--foreground)]">
+                                <span key={idx} className="transition-colors group-hover:text-foreground">
                                   {color.replace("#", "")}
                                 </span>
                               ))}
@@ -255,11 +272,11 @@ export function AppearanceTab() {
           {/* Typography Box */}
           <div className="surface-card p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow space-y-5">
             <div>
-              <h3 className="text-[14px] font-bold text-[var(--foreground)] tracking-wide uppercase flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--accent)]">font_download</span>
+              <h3 className="text-[14px] font-bold text-foreground tracking-wide uppercase flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-accent">font_download</span>
                 Typography Settings
               </h3>
-              <p className="text-[12px] text-[var(--muted)] mt-1">Customize the default platform font-family.</p>
+              <p className="text-[12px] text-muted mt-1">Customize the default platform font-family.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -279,29 +296,80 @@ export function AppearanceTab() {
                     onClick={() => handleFontChange(font.id)}
                     className={`rounded-2xl border p-5 text-left transition-all duration-300 flex flex-col justify-between h-auto gap-4 active:scale-[0.98] group ${
                       isSelected
-                        ? "border-[var(--accent)] shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-[var(--accent)]/20 bg-[var(--action)]/5"
-                        : "border-[var(--card-border)] bg-[var(--background)]/40 hover:border-[var(--accent)]/50 hover:bg-[var(--foreground)]/[0.02]"
+                        ? "border-accent shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-accent/20 bg-action/5"
+                        : "border-card-border bg-background/40 hover:border-accent/50 hover:bg-foreground/[0.02]"
                     }`}
                   >
                     <div className="w-full flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <span className="block text-[14px] font-bold text-[var(--foreground)] tracking-tight">{font.name}</span>
-                        <span className="block text-[11px] text-[var(--muted)] mt-1 leading-snug">{font.desc}</span>
+                        <span className="block text-[14px] font-bold text-foreground tracking-tight">{font.name}</span>
+                        <span className="block text-[11px] text-muted mt-1 leading-snug">{font.desc}</span>
                       </div>
                       <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center transition-all duration-300 ${
                         isSelected
-                          ? "border-[var(--action)] bg-[var(--action)] text-[var(--action-text)] scale-110 shadow-md"
-                          : "border-[var(--card-border)] text-transparent group-hover:border-[var(--foreground)]/20"
+                          ? "border-action bg-action text-action-text scale-110 shadow-md"
+                          : "border-card-border text-transparent group-hover:border-foreground/20"
                       }`}>
                         <span className="material-symbols-outlined text-[14px]">check</span>
                       </span>
                     </div>
                     
                     <div 
-                      className={`w-full py-4 px-4 rounded-xl text-center text-[14px] font-bold tracking-wide transition-colors ${isSelected ? 'bg-[var(--action)]/10 text-[var(--action)] border border-[var(--action)]/20' : 'bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] text-[var(--foreground)] group-hover:bg-[var(--foreground)]/[0.05]'}`}
+                      className={`w-full py-4 px-4 rounded-xl text-center text-[14px] font-bold tracking-wide transition-colors ${isSelected ? 'bg-action/10 text-action border border-action/20' : 'bg-foreground/[0.03] border border-card-border text-foreground group-hover:bg-foreground/[0.05]'}`}
                       style={{ fontFamily: font.family }}
                     >
                       {font.previewText}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Corner Style Box */}
+          <div className="surface-card p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow space-y-5">
+            <div>
+              <h3 className="text-[14px] font-bold text-foreground tracking-wide uppercase flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-accent">rounded_corner</span>
+                Corner Style
+              </h3>
+              <p className="text-[12px] text-muted mt-1">Adjust the global border radius of interface elements.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { id: "squircle", name: "Squircle", desc: "Classic sharper edges", previewClass: "rounded-xl" },
+                { id: "rounded", name: "Rounded", desc: "Modern softer edges", previewClass: "rounded-[2rem]" }
+              ].map((radius) => {
+                const isSelected = activeRadius === radius.id;
+                
+                return (
+                  <button
+                    key={radius.id}
+                    type="button"
+                    onClick={() => handleRadiusChange(radius.id)}
+                    className={`rounded-2xl border p-5 text-left transition-all duration-300 flex flex-col justify-between h-auto gap-4 active:scale-[0.98] group ${
+                      isSelected
+                        ? "border-accent shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-accent/20 bg-action/5"
+                        : "border-card-border bg-background/40 hover:border-accent/50 hover:bg-foreground/[0.02]"
+                    }`}
+                  >
+                    <div className="w-full flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <span className="block text-[14px] font-bold text-foreground tracking-tight">{radius.name}</span>
+                        <span className="block text-[11px] text-muted mt-1 leading-snug">{radius.desc}</span>
+                      </div>
+                      <span className={`size-6 rounded-full border flex shrink-0 items-center justify-center transition-all duration-300 ${
+                        isSelected
+                          ? "border-action bg-action text-action-text scale-110 shadow-md"
+                          : "border-card-border text-transparent group-hover:border-foreground/20"
+                      }`}>
+                        <span className="material-symbols-outlined text-[14px]">check</span>
+                      </span>
+                    </div>
+                    
+                    <div className="w-full py-4 px-4 flex justify-center items-center h-20 bg-foreground/[0.03] border border-card-border group-hover:bg-foreground/[0.05] rounded-lg">
+                       <div className={`w-24 h-12 bg-action/20 border-2 border-action ${radius.previewClass} transition-all duration-300`} />
                     </div>
                   </button>
                 );
@@ -312,18 +380,18 @@ export function AppearanceTab() {
 
         {/* Right Column: Live Interactive UI Preview Playground */}
         <div className="xl:col-span-2">
-          <div className="surface-card p-6 border border-[var(--card-border)] rounded-3xl relative overflow-hidden backdrop-blur-xl shadow-2xl xl:sticky xl:top-24 bg-gradient-to-br from-[var(--background)] to-[var(--foreground)]/[0.02]">
+          <div className="surface-card p-6 border border-card-border rounded-3xl relative overflow-hidden backdrop-blur-xl shadow-2xl xl:sticky xl:top-24 bg-gradient-to-br from-background to-foreground/[0.02]">
 
-            <div className="border-b border-[var(--card-border)]/60 pb-4 mb-5 flex justify-center text-center">
-              <h4 className="text-[13px] font-bold text-[var(--foreground)] tracking-wider uppercase flex items-center justify-center gap-2 w-full">
-                <span className="material-symbols-outlined text-[18px] text-[var(--accent)] animate-pulse">desktop_windows</span>
+            <div className="border-b border-card-border/60 pb-4 mb-5 flex justify-center text-center">
+              <h4 className="text-[13px] font-bold text-foreground tracking-wider uppercase flex items-center justify-center gap-2 w-full">
+                <span className="material-symbols-outlined text-[18px] text-accent animate-pulse">desktop_windows</span>
                 Live UI Playground
               </h4>
             </div>
 
             {/* Simulated Web Application Screen */}
             <div 
-              className="bg-[var(--background)] border border-[var(--card-border)] rounded-2xl shadow-2xl transition-all duration-500 relative overflow-hidden hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:-translate-y-1 ring-1 ring-white/10"
+              className="bg-background border border-card-border rounded-2xl shadow-2xl transition-all duration-500 relative overflow-hidden hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:-translate-y-1 ring-1 ring-white/10"
               style={{ 
                 fontFamily: activeFont === 'inter' 
                   ? 'Inter, sans-serif' 
@@ -339,18 +407,18 @@ export function AppearanceTab() {
             >
 
               {/* Desktop App Mockup Layout */}
-              <div className="flex flex-col h-[280px] text-[12px] overflow-hidden bg-[var(--background)]">
+              <div className="flex flex-col h-[280px] text-[12px] overflow-hidden bg-background">
                 {/* Desktop Top Header Bar */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--card-border)] bg-[var(--foreground)]/[0.01] shrink-0 backdrop-blur-md">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-card-border bg-foreground/[0.01] shrink-0 backdrop-blur-md">
                   <div className="flex items-center gap-3">
-                    <span className="size-7 rounded-xl bg-[var(--action)]/15 text-[var(--action)] flex items-center justify-center font-bold text-[13px] shadow-sm">B</span>
-                    <div className="flex items-center gap-2.5 text-[11px] font-bold text-[var(--muted)] tracking-wide">
-                      <span className="text-[var(--action)]">Invoices</span>
+                    <span className="size-7 rounded-xl bg-action/15 text-action flex items-center justify-center font-bold text-[13px] shadow-sm">B</span>
+                    <div className="flex items-center gap-2.5 text-[11px] font-bold text-muted tracking-wide">
+                      <span className="text-action">Invoices</span>
                       <span className="opacity-40">•</span>
-                      <span className="hover:text-[var(--foreground)] transition-colors cursor-pointer">Clients</span>
+                      <span className="hover:text-foreground transition-colors cursor-pointer">Clients</span>
                     </div>
                   </div>
-                  <span className="size-6 rounded-full bg-[var(--foreground)]/10 flex items-center justify-center"><span className="material-symbols-outlined text-[14px] text-[var(--foreground)]">person</span></span>
+                  <span className="size-6 rounded-full bg-foreground/10 flex items-center justify-center"><span className="material-symbols-outlined text-[14px] text-foreground">person</span></span>
                 </div>
 
                 {/* Desktop Main Content */}
@@ -358,8 +426,8 @@ export function AppearanceTab() {
                   {/* Header row */}
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h5 className="text-[14px] font-bold text-[var(--foreground)] tracking-tight leading-tight">Invoices</h5>
-                      <span className="text-[9px] text-[var(--muted)] tracking-wider font-bold block uppercase mt-0.5">Active Profile</span>
+                      <h5 className="text-[14px] font-bold text-foreground tracking-tight leading-tight">Invoices</h5>
+                      <span className="text-[9px] text-muted tracking-wider font-bold block uppercase mt-0.5">Active Profile</span>
                     </div>
                     <button type="button" className="btn-primary min-h-[26px] px-3 rounded-lg py-1 text-[10px] font-bold shadow-md cursor-default pointer-events-none flex items-center gap-1.5 shrink-0 transform hover:scale-105 transition-transform">
                       <span className="material-symbols-outlined text-[13px]">add</span>
@@ -369,48 +437,48 @@ export function AppearanceTab() {
 
                   {/* Stats Row */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3.5 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.02] shadow-sm hover:bg-[var(--foreground)]/[0.04] transition-colors relative overflow-hidden group">
+                    <div className="p-3.5 rounded-xl border border-card-border bg-foreground/[0.02] shadow-sm hover:bg-foreground/[0.04] transition-colors relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                         <span className="material-symbols-outlined text-3xl">trending_up</span>
                       </div>
-                      <span className="text-[8.5px] font-bold text-[var(--muted)] uppercase tracking-widest block leading-none mb-1.5">Billed</span>
-                      <div className="text-[15px] font-black text-[var(--foreground)] leading-none">$14.2k</div>
+                      <span className="text-[8.5px] font-bold text-muted uppercase tracking-widest block leading-none mb-1.5">Billed</span>
+                      <div className="text-[15px] font-black text-foreground leading-none">$14.2k</div>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-[var(--card-border)] bg-[var(--foreground)]/[0.02] shadow-sm hover:bg-[var(--foreground)]/[0.04] transition-colors relative overflow-hidden group">
+                    <div className="p-3.5 rounded-xl border border-card-border bg-foreground/[0.02] shadow-sm hover:bg-foreground/[0.04] transition-colors relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                         <span className="material-symbols-outlined text-3xl">schedule</span>
                       </div>
-                      <span className="text-[8.5px] font-bold text-[var(--muted)] uppercase tracking-widest block leading-none mb-1.5">Pending</span>
-                      <div className="text-[15px] font-black text-[var(--foreground)] leading-none">$3.2k</div>
+                      <span className="text-[8.5px] font-bold text-muted uppercase tracking-widest block leading-none mb-1.5">Pending</span>
+                      <div className="text-[15px] font-black text-foreground leading-none">$3.2k</div>
                     </div>
                   </div>
 
                   {/* Mini Invoices List */}
                   <div className="space-y-2">
-                    <div className="flex justify-between text-[8.5px] font-bold text-[var(--muted)] uppercase tracking-wider border-b border-[var(--card-border)] pb-1.5 px-1">
+                    <div className="flex justify-between text-[8.5px] font-bold text-muted uppercase tracking-wider border-b border-card-border pb-1.5 px-1">
                       <span>Client</span>
                       <span className="text-right">Amount</span>
                       <span className="text-right">Status</span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] p-2 hover:bg-[var(--foreground)]/[0.03] rounded-lg transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between text-[11px] p-2 hover:bg-foreground/[0.03] rounded-lg transition-colors cursor-pointer">
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-[10px]">A</div>
-                        <span className="font-bold text-[var(--foreground)] truncate max-w-[80px]">Acme Corp</span>
+                        <span className="font-bold text-foreground truncate max-w-[80px]">Acme Corp</span>
                       </div>
-                      <span className="font-bold text-[var(--foreground)]">$1.5k</span>
-                      <span className="px-2 py-1 rounded-md bg-[var(--positive-soft)] text-[8.5px] font-bold text-[var(--positive)] tracking-wider uppercase border border-[var(--positive)]/20 leading-none shadow-sm">
+                      <span className="font-bold text-foreground">$1.5k</span>
+                      <span className="px-2 py-1 rounded-md bg-[var(--positive-soft)] text-[8.5px] font-bold text-positive tracking-wider uppercase border border-positive/20 leading-none shadow-sm">
                         Paid
                       </span>
                     </div>
                     
-                    <div className="flex items-center justify-between text-[11px] p-2 hover:bg-[var(--foreground)]/[0.03] rounded-lg transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between text-[11px] p-2 hover:bg-foreground/[0.03] rounded-lg transition-colors cursor-pointer">
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold text-[10px]">S</div>
-                        <span className="font-bold text-[var(--foreground)] truncate max-w-[80px]">Stark Labs</span>
+                        <span className="font-bold text-foreground truncate max-w-[80px]">Stark Labs</span>
                       </div>
-                      <span className="font-bold text-[var(--foreground)]">$2.8k</span>
-                      <span className="px-2 py-1 rounded-md bg-[var(--action)]/15 text-[8.5px] font-bold text-[var(--action)] tracking-wider uppercase border border-[var(--action)]/20 leading-none shadow-sm">
+                      <span className="font-bold text-foreground">$2.8k</span>
+                      <span className="px-2 py-1 rounded-md bg-action/15 text-[8.5px] font-bold text-action tracking-wider uppercase border border-action/20 leading-none shadow-sm">
                         Sent
                       </span>
                     </div>
@@ -420,8 +488,8 @@ export function AppearanceTab() {
             </div>
 
             {/* Quick Info */}
-            <div className="mt-5 bg-[var(--foreground)]/[0.03] border border-[var(--card-border)] rounded-xl p-4 flex gap-3 items-start text-[11px] text-[var(--muted)] shadow-inner">
-              <span className="material-symbols-outlined text-[20px] text-[var(--accent)] shrink-0">info</span>
+            <div className="mt-5 bg-foreground/[0.03] border border-card-border rounded-xl p-4 flex gap-3 items-start text-[11px] text-muted shadow-inner">
+              <span className="material-symbols-outlined text-[20px] text-accent shrink-0">info</span>
               <p className="leading-relaxed font-medium">
                 This canvas updates dynamically in real-time. Customize theme color styles or typography fonts on the left to preview how your invoice app will look.
               </p>

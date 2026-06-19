@@ -59,17 +59,17 @@ function StepPreview({ step }: { step: OnboardingStep }) {
   if (step.id === "business") {
     return (
       <div className="grid h-full place-items-center">
-        <div className="w-full max-w-[210px] space-y-3 rounded-2xl bg-[var(--card)]/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
+        <div className="w-full max-w-[210px] space-y-3 rounded-2xl bg-card/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-[var(--accent)]/12 text-[var(--accent)]">
+            <span className="grid size-10 place-items-center rounded-xl bg-accent/12 text-accent">
               <span className="material-symbols-outlined text-[18px]">storefront</span>
             </span>
             <div className="min-w-0 flex-1 space-y-1.5">
-              <span className="block h-2.5 w-24 rounded-full bg-[var(--foreground)]/16" />
-              <span className="block h-2 w-16 rounded-full bg-[var(--foreground)]/10" />
+              <span className="block h-2.5 w-24 rounded-full bg-foreground/16" />
+              <span className="block h-2 w-16 rounded-full bg-foreground/10" />
             </div>
           </div>
-          <span className="block h-9 rounded-xl border border-[var(--card-border)] bg-[var(--field)]" />
+          <span className="block h-9 rounded-xl border border-card-border bg-field" />
         </div>
       </div>
     );
@@ -78,15 +78,15 @@ function StepPreview({ step }: { step: OnboardingStep }) {
   if (step.id === "client") {
     return (
       <div className="grid h-full place-items-center">
-        <div className="w-full max-w-[220px] overflow-hidden rounded-2xl bg-[var(--card)]/92 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
+        <div className="w-full max-w-[220px] overflow-hidden rounded-2xl bg-card/92 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
           {["", "", ""].map((_, index) => (
-            <div key={index} className="flex items-center gap-2.5 border-b border-[var(--card-border)] px-4 py-3 last:border-b-0">
-              <span className="grid size-8 place-items-center rounded-xl bg-[var(--foreground)]/[0.05] text-[var(--muted)]">
+            <div key={index} className="flex items-center gap-2.5 border-b border-card-border px-4 py-3 last:border-b-0">
+              <span className="grid size-8 place-items-center rounded-xl bg-foreground/[0.05] text-muted">
                 <span className="material-symbols-outlined text-[15px]">person</span>
               </span>
               <span className="min-w-0 flex-1 space-y-1.5">
-                <span className="block h-2.5 w-24 rounded-full bg-[var(--foreground)]/16" />
-                <span className="block h-2 w-14 rounded-full bg-[var(--foreground)]/10" />
+                <span className="block h-2.5 w-24 rounded-full bg-foreground/16" />
+                <span className="block h-2 w-14 rounded-full bg-foreground/10" />
               </span>
             </div>
           ))}
@@ -98,17 +98,17 @@ function StepPreview({ step }: { step: OnboardingStep }) {
   if (step.id === "invoice") {
     return (
       <div className="grid h-full place-items-center">
-        <div className="w-full max-w-[210px] rounded-2xl bg-[var(--card)]/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
+        <div className="w-full max-w-[210px] rounded-2xl bg-card/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
           <div className="mb-4 flex items-center justify-between">
-            <span className="grid size-9 place-items-center rounded-xl bg-[var(--accent)]/12 text-[var(--accent)]">
+            <span className="grid size-9 place-items-center rounded-xl bg-accent/12 text-accent">
               <span className="material-symbols-outlined text-[17px]">receipt_long</span>
             </span>
-            <span className="h-6 w-16 rounded-full bg-[var(--action)]" />
+            <span className="h-6 w-16 rounded-full bg-action" />
           </div>
           <div className="space-y-2.5">
-            <span className="block h-2.5 w-28 rounded-full bg-[var(--foreground)]/16" />
-            <span className="block h-2 w-full rounded-full bg-[var(--foreground)]/10" />
-            <span className="block h-2 w-4/5 rounded-full bg-[var(--foreground)]/10" />
+            <span className="block h-2.5 w-28 rounded-full bg-foreground/16" />
+            <span className="block h-2 w-full rounded-full bg-foreground/10" />
+            <span className="block h-2 w-4/5 rounded-full bg-foreground/10" />
           </div>
         </div>
       </div>
@@ -118,13 +118,13 @@ function StepPreview({ step }: { step: OnboardingStep }) {
   if (step.id === "analytics") {
     return (
       <div className="grid h-full place-items-center">
-        <div className="flex h-[150px] w-[220px] items-end justify-center gap-2 rounded-2xl bg-[var(--card)]/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
+        <div className="flex h-[150px] w-[220px] items-end justify-center gap-2 rounded-2xl bg-card/92 p-4 shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
           {[46, 78, 58, 104, 86].map((height, index) => (
             <span
               key={height}
               className={cn(
                 "w-7 rounded-t-xl",
-                index === 3 ? "bg-[var(--accent)]" : "bg-[var(--foreground)]/12",
+                index === 3 ? "bg-accent" : "bg-foreground/12",
               )}
               style={{ height }}
             />
@@ -136,7 +136,7 @@ function StepPreview({ step }: { step: OnboardingStep }) {
 
   return (
     <div className="grid h-full place-items-center">
-      <span className="grid size-20 place-items-center rounded-full bg-[var(--card)]/92 text-[var(--accent)] shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
+      <span className="grid size-20 place-items-center rounded-full bg-card/92 text-accent shadow-[0_12px_30px_color-mix(in_srgb,var(--foreground)_10%,transparent)]">
         <span className="material-symbols-outlined text-[36px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}>check</span>
       </span>
     </div>
@@ -315,11 +315,11 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
         exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, filter: "blur(6px)" }}
         transition={{ duration: shouldReduceMotion ? 0.01 : 0.32, ease: [0.22, 1, 0.36, 1] }}
       >
-        <motion.div layout className="surface-card overflow-hidden bg-[var(--card)]">
+        <motion.div layout className="surface-card overflow-hidden bg-card">
           <button
             type="button"
             onClick={() => setIsExpanded((current) => !current)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-smooth hover:bg-[var(--foreground)]/[0.025]"
+            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-smooth hover:bg-foreground/[0.025]"
             aria-expanded={isExpanded}
           >
             <div className="relative grid size-7 shrink-0 place-items-center">
@@ -336,21 +336,21 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                 />
               </svg>
-              <span className="relative grid size-[1.15rem] place-items-center rounded-full bg-[var(--card)]">
+              <span className="relative grid size-[1.15rem] place-items-center rounded-full bg-card">
                 {allDone ? (
-                  <span className="material-symbols-outlined text-[13px] text-[var(--accent)]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}>check</span>
+                  <span className="material-symbols-outlined text-[13px] text-accent" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" }}>check</span>
                 ) : (
-                  <span className="size-2 rounded-full bg-[var(--accent)]" />
+                  <span className="size-2 rounded-full bg-accent" />
                 )}
               </span>
             </div>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold text-[var(--foreground)]">{allDone ? "All done!" : "Get Started"}</span>
+              <span className="block truncate text-[13px] font-semibold text-foreground">{allDone ? "All done!" : "Get Started"}</span>
             </span>
-            <span className="whitespace-nowrap text-[12px] font-medium text-[var(--muted)]">
+            <span className="whitespace-nowrap text-[12px] font-medium text-muted">
               <AnimatedNumber value={completedCount} /> of <AnimatedNumber value={totalSteps} /> Completed
             </span>
-            <span className={cn("material-symbols-outlined text-[18px] text-[var(--muted)] transition-transform duration-200", isExpanded && "rotate-180")}>
+            <span className={cn("material-symbols-outlined text-[18px] text-muted transition-transform duration-200", isExpanded && "rotate-180")}>
               expand_less
             </span>
           </button>
@@ -363,15 +363,15 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                 animate={{ opacity: 1, height: "auto", y: 0 }}
                 exit={shouldReduceMotion ? { opacity: 0, height: 0 } : { opacity: 0, height: 0, y: -6 }}
                 transition={{ duration: shouldReduceMotion ? 0.01 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden border-t border-[var(--card-border)]"
+                className="overflow-hidden border-t border-card-border"
               >
                 {allDone ? (
                   <div className="px-4 pb-4 pt-5 text-center">
-                    <span className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-[var(--accent)] text-[var(--action-text)] shadow-[0_10px_24px_color-mix(in_srgb,var(--accent)_22%,transparent)]">
+                    <span className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-accent text-action-text shadow-[0_10px_24px_color-mix(in_srgb,var(--accent)_22%,transparent)]">
                       <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}>check</span>
                     </span>
-                    <h3 className="font-display text-lg font-semibold text-[var(--foreground)]">You&apos;re all set!</h3>
-                    <p className="mx-auto mt-1 max-w-[15rem] text-[12px] font-medium leading-5 text-[var(--muted)]">Profile setup is complete. BillCraft is ready for daily billing.</p>
+                    <h3 className="font-display text-lg font-semibold text-foreground">You&apos;re all set!</h3>
+                    <p className="mx-auto mt-1 max-w-[15rem] text-[12px] font-medium leading-5 text-muted">Profile setup is complete. BillCraft is ready for daily billing.</p>
                     <button type="button" onClick={closeOnboarding} className="btn-primary mt-4 w-full active:scale-[0.97]">
                       Continue
                       <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -380,17 +380,17 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                 ) : (
                   <>
                     {selectedStep && (
-                      <div className="border-b border-[var(--card-border)]">
-                        <div className="h-[180px] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_15%,#0d0e12)_0%,#15161c_100%)] p-6 sm:p-8 text-white border-b border-[var(--card-border)]">
+                      <div className="border-b border-card-border">
+                        <div className="h-[180px] overflow-hidden bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_15%,#0d0e12)_0%,#15161c_100%)] p-6 sm:p-8 text-white border-b border-card-border">
                           <div className="mb-2 flex items-center gap-2 text-white/80 text-[11px] font-semibold">
                             <span className="material-symbols-outlined text-[15px]">arrow_back_ios_new</span>
                             <span><AnimatedNumber value={selectedStepIndex + 1} /> of <AnimatedNumber value={totalSteps} /></span>
                           </div>
                           <StepPreview step={selectedStep} />
                         </div>
-                        <div className="relative bg-[var(--card)] p-6 sm:p-8">
-                          <h3 className="font-display text-lg font-semibold leading-tight text-[var(--foreground)]">{selectedStep.title}</h3>
-                          <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--muted)]">{selectedStep.description}</p>
+                        <div className="relative bg-card p-6 sm:p-8">
+                          <h3 className="font-display text-lg font-semibold leading-tight text-foreground">{selectedStep.title}</h3>
+                          <p className="mt-1 text-[12px] font-medium leading-5 text-muted">{selectedStep.description}</p>
                           <div className="mt-4 flex gap-2">
                             <button type="button" onClick={skipCurrentStep} className="btn-secondary flex-1 active:scale-[0.97]">
                               Skip
@@ -417,7 +417,7 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                       </div>
                     )}
 
-                    <div className="divide-y divide-[var(--card-border)]">
+                    <div className="divide-y divide-card-border">
                       {steps.map((step) => (
                         <button
                           key={step.id}
@@ -428,13 +428,13 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                             }
                           }}
                           className={cn(
-                            "flex w-full items-center gap-3 px-4 py-3 text-left transition-smooth hover:bg-[var(--foreground)]/[0.025]",
-                            selectedStep?.id === step.id && !step.completed && "bg-[var(--accent)]/[0.06]",
+                            "flex w-full items-center gap-3 px-4 py-3 text-left transition-smooth hover:bg-foreground/[0.025]",
+                            selectedStep?.id === step.id && !step.completed && "bg-accent/[0.06]",
                           )}
                         >
                           <span className={cn(
-                            "flex size-6 shrink-0 items-center justify-center text-[var(--muted)]",
-                            step.completed && "text-[var(--accent)]"
+                            "flex size-6 shrink-0 items-center justify-center text-muted",
+                            step.completed && "text-accent"
                           )}>
                             <span className="material-symbols-outlined block text-[15px] leading-none tracking-normal" style={step.completed ? { fontVariationSettings: "'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24" } : undefined}>
                               {step.completed ? "check" : step.icon}
@@ -443,19 +443,19 @@ export function ProfileOnboarding({ profileId, onClose }: ProfileOnboardingProps
                           <span className="min-w-0 flex-1">
                             <span className={cn(
                               "block truncate text-[13px] font-semibold",
-                              step.completed ? "text-[var(--muted)] line-through decoration-[var(--muted)]/50" : "text-[var(--foreground)]",
+                              step.completed ? "text-muted line-through decoration-muted/50" : "text-foreground",
                             )}>
                               {step.title}
                             </span>
                           </span>
                           {!step.completed && (
-                            <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">chevron_right</span>
+                            <span className="material-symbols-outlined text-[18px] text-muted">chevron_right</span>
                           )}
                         </button>
                       ))}
                     </div>
 
-                    <p className="border-t border-[var(--card-border)] px-4 py-3 text-center text-[11px] font-medium text-[var(--muted)]">
+                    <p className="border-t border-card-border px-4 py-3 text-center text-[11px] font-medium text-muted">
                       {completedCount >= 3 ? "Halfway there and then some" : "Small setup now, cleaner invoices later"}
                     </p>
                   </>

@@ -216,7 +216,7 @@ export default function Catalog() {
               as="h1"
               text="Service Catalog"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-[var(--foreground)] leading-[1.1]"
+              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
               delayMs={70}
             />
           </div>
@@ -229,27 +229,27 @@ export default function Catalog() {
         {/* Overview Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-[var(--featured-text)]/40 tracking-wider uppercase mb-2.5">Total Services</p>
-            <p className="text-xl font-semibold text-[var(--featured-text)] font-display">
-              <AnimatedNumber value={stats.totalCount} /> <span className="text-[12px] font-normal text-[var(--featured-muted)]">reusable</span>
+            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Total Services</p>
+            <p className="text-xl font-semibold text-featured-text font-display">
+              <AnimatedNumber value={stats.totalCount} /> <span className="text-[12px] font-normal text-featured-muted">reusable</span>
             </p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Average Rate</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Average Rate</p>
+            <p className="text-xl font-semibold text-foreground font-display">
               <AnimatedNumber value={formatCurrency(stats.avgPrice, currency)} />
             </p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Premium Service Rate</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">
-              <AnimatedNumber value={formatCurrency(stats.maxPrice, currency)} /> <span className="text-[11px] font-normal text-[var(--positive)]">max</span>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Premium Service Rate</p>
+            <p className="text-xl font-semibold text-foreground font-display">
+              <AnimatedNumber value={formatCurrency(stats.maxPrice, currency)} /> <span className="text-[11px] font-normal text-positive">max</span>
             </p>
           </div>
           <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-[var(--muted)] tracking-wider uppercase mb-2.5">Hourly Services</p>
-            <p className="text-xl font-semibold text-[var(--foreground)] font-display">
-              <AnimatedNumber value={stats.hourlyCount} /> <span className="text-[12px] font-normal text-[var(--muted)]">items</span>
+            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Hourly Services</p>
+            <p className="text-xl font-semibold text-foreground font-display">
+              <AnimatedNumber value={stats.hourlyCount} /> <span className="text-[12px] font-normal text-muted">items</span>
             </p>
           </div>
         </div>
@@ -268,14 +268,14 @@ export default function Catalog() {
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="surface-card p-5 relative overflow-hidden flex flex-col justify-between border border-[var(--card-border)] hover:border-[var(--foreground)]/12 group transition-smooth"
+              className="surface-card p-5 relative overflow-hidden flex flex-col justify-between border border-card-border hover:border-foreground/12 group transition-smooth"
             >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-[15px] text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors duration-200">
+                  <h3 className="font-semibold text-[15px] text-foreground truncate group-hover:text-accent transition-colors duration-200">
                     {item.name}
                   </h3>
-                  <span className="inline-block px-2 py-0.5 mt-1 text-[9px] font-bold rounded-md bg-[var(--foreground)]/[0.05] text-[var(--muted)] tracking-wider uppercase">
+                  <span className="inline-block px-2 py-0.5 mt-1 text-[9px] font-bold rounded-md bg-foreground/[0.05] text-muted tracking-wider uppercase">
                     {item.unit}
                   </span>
                 </div>
@@ -283,14 +283,14 @@ export default function Catalog() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-smooth">
                   <button
                     onClick={() => openEdit(item)}
-                    className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                    className="size-7 flex items-center justify-center rounded-full text-foreground/30 hover:text-accent hover:bg-accent/10 transition-smooth"
                     aria-label={`Edit catalog item`}
                   >
                     <span className="material-symbols-outlined text-[14px]">edit</span>
                   </button>
                   <button
                     onClick={() => handleDeleteItem(item.id, item.name)}
-                    className="size-7 flex items-center justify-center rounded-full text-[var(--foreground)]/30 hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-smooth"
+                    className="size-7 flex items-center justify-center rounded-full text-foreground/30 hover:text-accent hover:bg-accent/10 transition-smooth"
                     aria-label={`Delete catalog item`}
                   >
                     <span className="material-symbols-outlined text-[14px]">delete</span>
@@ -298,15 +298,15 @@ export default function Catalog() {
                 </div>
               </div>
 
-              <p className="text-[12px] leading-relaxed text-[var(--muted)] mb-5 line-clamp-2 min-h-10">
+              <p className="text-[12px] leading-relaxed text-muted mb-5 line-clamp-2 min-h-10">
                 {item.description}
               </p>
 
-              <div className="pt-3 border-t border-[var(--card-border)]/65 flex items-baseline gap-1.5 justify-end">
-                <span className="text-[17px] font-semibold text-[var(--foreground)] font-display">
+              <div className="pt-3 border-t border-card-border/65 flex items-baseline gap-1.5 justify-end">
+                <span className="text-[17px] font-semibold text-foreground font-display">
                   {formatCurrency(item.defaultPrice, currency)}
                 </span>
-                <span className="text-[10px] text-[var(--muted)] font-medium">
+                <span className="text-[10px] text-muted font-medium">
                   {getUnitText(item.unit)}
                 </span>
               </div>
@@ -316,8 +316,8 @@ export default function Catalog() {
 
         {filteredItems.length === 0 && (
           <div className="text-center py-16 surface-card">
-            <span className="material-symbols-outlined text-[42px] text-[var(--foreground)]/10 mb-3 block">inventory_2</span>
-            <AnimatedText as="p" text="No catalog items found" effect="per-word-crossfade" className="text-[13px] text-[var(--muted)] font-medium" />
+            <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">inventory_2</span>
+            <AnimatedText as="p" text="No catalog items found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
       </main>
@@ -325,36 +325,36 @@ export default function Catalog() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-[var(--foreground)]/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <button aria-label="Close modal" className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--card-border)] bg-[var(--card)] shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <span className="material-symbols-outlined text-[18px] text-[var(--muted)]">inventory_2</span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <span className="material-symbols-outlined text-[18px] text-muted">inventory_2</span>
                 <AnimatedText
                   as="h2"
                   text={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
                   effect="fade-through"
-                  className="text-lg font-bold text-[var(--foreground)] leading-none font-display"
+                  className="text-lg font-bold text-foreground leading-none font-display"
                   replayKey={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
                 />
               </div>
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--foreground)]/[0.04] transition-smooth text-[var(--muted)] hover:text-[var(--foreground)]">
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Scrollable Form Body */}
-            <form onSubmit={handleSaveItem} className="flex-1 flex flex-col min-h-0 bg-[var(--background)]/35">
+            <form onSubmit={handleSaveItem} className="flex-1 flex flex-col min-h-0 bg-background/35">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 
                 {/* Identity & Scope Card */}
                 <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Item Details</h3>
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Item Details</h3>
                   
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-name">Item Name</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-name">Item Name</label>
                     <input
                       id="catalog-name"
                       required
@@ -367,7 +367,7 @@ export default function Catalog() {
 
                   {/* Segmented Button Selection for Units */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Billing Unit</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Billing Unit</label>
                     <div className="flex flex-wrap gap-1">
                       {UNITS.map((unit) => {
                         const isSelected = form.unit === unit.value;
@@ -378,8 +378,8 @@ export default function Catalog() {
                             onClick={() => setForm({ ...form, unit: unit.value })}
                             className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] ${
                               isSelected
-                                ? "bg-[var(--accent)]/10 border-[var(--accent)] text-[var(--accent)] shadow-xs"
-                                : "border-[var(--card-border)] text-[var(--muted)] bg-[var(--card)] hover:border-[var(--foreground)]/10"
+                                ? "bg-accent/10 border-accent text-accent shadow-xs"
+                                : "border-card-border text-muted bg-card hover:border-foreground/10"
                             }`}
                           >
                             {unit.label.replace("Per ", "").replace(" (hr)", "").replace(" (day)", "")}
@@ -390,7 +390,7 @@ export default function Catalog() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-description">Default Description</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-description">Default Description</label>
                     <textarea
                       id="catalog-description"
                       required
@@ -402,9 +402,9 @@ export default function Catalog() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider" htmlFor="catalog-price">Default Price ({currency})</label>
+                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-price">Default Price ({currency})</label>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3 text-[13px] font-semibold text-[var(--muted)]/50">{currency}</span>
+                      <span className="absolute left-3 text-[13px] font-semibold text-muted/50">{currency}</span>
                       <input
                         id="catalog-price"
                         type="number"
@@ -423,7 +423,7 @@ export default function Catalog() {
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-[var(--card-border)] bg-[var(--card)] shrink-0 z-10">
+              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
                 <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
                   Cancel
                 </button>
