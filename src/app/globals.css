@@ -956,6 +956,119 @@ html.dark {
   }
 }
 
+/* Netflix-style Profile Selection Cards */
+.netflix-profile-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-2xl);
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 220ms ease,
+    box-shadow 280ms ease;
+}
+
+.netflix-profile-card:hover,
+.netflix-profile-card:focus-visible {
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.netflix-profile-card:hover .netflix-avatar-ring,
+.netflix-profile-card:focus-visible .netflix-avatar-ring {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 8px 32px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.netflix-profile-card:active {
+  transform: scale(1.02);
+}
+
+.netflix-profile-card[data-selected="true"] {
+  border-color: var(--accent);
+}
+
+.netflix-profile-card[data-selected="true"] .netflix-avatar-ring {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 12px 40px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.netflix-avatar-ring {
+  width: 130px;
+  height: 130px;
+  border-radius: var(--radius-2xl);
+  border: 3px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  transition:
+    border-color 220ms ease,
+    box-shadow 280ms ease;
+}
+
+@media (max-width: 480px) {
+  .netflix-avatar-ring {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.netflix-add-card .netflix-avatar-ring {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.netflix-add-card:hover .netflix-avatar-ring,
+.netflix-add-card:focus-visible .netflix-avatar-ring {
+  border-style: solid;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent),
+    0 8px 32px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.netflix-profile-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+
+.netflix-profile-card:hover .netflix-profile-name {
+  color: var(--foreground);
+}
+
+.netflix-profile-card[data-selected="true"] .netflix-profile-name {
+  color: var(--foreground);
+}
+
+@keyframes netflix-title-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.netflix-title-float {
+  animation: netflix-title-float 4s ease-in-out infinite;
+}
+
 /* Onboarding Premium Ambient Background Styles */
 .onboarding-bg {
   position: absolute;
