@@ -706,24 +706,22 @@ export default function Outsourcing() {
           {/* Main List Column */}
           <div className="space-y-6">
             {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="flex-1 max-w-md">
-                <AnimatedSearchBar
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  placeholder="Search outsourcing payables..."
-                />
-              </div>
-              <div className="flex gap-2 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+              <AnimatedSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search outsourcing payables..."
+              />
+              <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0">
                 {STATUS_FILTERS.map((filter) => (
                   <button
                     key={filter}
                     type="button"
                     onClick={() => setActiveFilter(filter)}
-                    className={`px-4 py-2 text-[11px] font-bold rounded-xl transition-all active:scale-[0.97] tracking-wider uppercase border ${
+                    className={`px-3 py-1.5 text-[11px] font-semibold rounded-xl transition-smooth active:scale-[0.95] tracking-wide uppercase ${
                       activeFilter === filter
-                        ? "bg-action text-action-text border-action shadow-sm"
-                        : "text-muted hover:bg-foreground/[0.03] border-card-border"
+                        ? "bg-action text-action-text"
+                        : "text-muted hover:bg-foreground/[0.04] border border-card-border"
                     }`}
                   >
                     {filter}

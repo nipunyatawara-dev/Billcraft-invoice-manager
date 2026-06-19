@@ -59,7 +59,7 @@ export function InvoiceList({
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-3 py-1.5 text-[11px] font-semibold rounded-full transition-smooth active:scale-[0.95] tracking-wide uppercase ${
+              className={`px-3 py-1.5 text-[11px] font-semibold rounded-xl transition-smooth active:scale-[0.95] tracking-wide uppercase ${
                 activeFilter === filter
                   ? "bg-action text-action-text"
                   : "text-muted hover:bg-foreground/[0.04] border border-card-border"

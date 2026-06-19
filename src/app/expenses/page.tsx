@@ -289,7 +289,7 @@ export default function Expenses() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 text-[13px] font-medium rounded-full transition-smooth active:scale-[0.95] whitespace-nowrap ${
+                className={`px-4 py-2 text-[13px] font-medium rounded-xl transition-smooth active:scale-[0.95] whitespace-nowrap ${
                   selectedCategory === category
                     ? "bg-foreground text-background shadow-sm"
                     : "text-foreground/70 hover:text-foreground hover:bg-foreground/[0.04] bg-transparent"
