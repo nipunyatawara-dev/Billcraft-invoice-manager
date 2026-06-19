@@ -380,11 +380,19 @@ function convertCurrency(amount: number, from: string, to: string): number {
 }
 
 export function formatCurrency(value: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(value);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.trim() || "USD",
+      minimumFractionDigits: 2,
+    }).format(value);
+  } catch (error) {
+    const formatted = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+    return `${String(currency).toUpperCase()} ${formatted}`;
+  }
 }
 
 export function formatDisplayDate(date: string) {

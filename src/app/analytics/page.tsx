@@ -304,12 +304,20 @@ function getCollectionGaugeData(totals: ReturnType<typeof getInvoiceTotals>): Ga
 }
 
 function formatCompactCurrency(value: number, currency: string) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency.trim() || "USD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  } catch (error) {
+    const formatted = new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+    return `${String(currency).toUpperCase()} ${formatted}`;
+  }
 }
 
 function truncateTick(value: unknown) {

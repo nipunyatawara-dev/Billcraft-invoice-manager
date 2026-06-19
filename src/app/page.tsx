@@ -244,21 +244,21 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
-            <div className="bg-foreground/[0.02] rounded-2xl p-5 border border-card-border">
+            <div className="bg-foreground/[0.02] rounded-2xl p-4 sm:p-5 border border-card-border">
               <div className="text-xs font-bold tracking-widest text-accent uppercase mb-2">Receivable</div>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
                 <AnimatedNumber value={formatCurrency(expectedOutstandingAmount, currency)} />
               </div>
             </div>
-            <div className="bg-foreground/[0.02] rounded-2xl p-5 border border-card-border">
+            <div className="bg-foreground/[0.02] rounded-2xl p-4 sm:p-5 border border-card-border">
               <div className="text-xs font-bold tracking-widest text-muted uppercase mb-2">Payable</div>
-              <div className="text-3xl font-bold text-muted">
+              <div className="text-2xl sm:text-xl md:text-2xl lg:text-3xl font-bold text-muted">
                 <AnimatedNumber value={formatCurrency(expectedOpenPayablesAmount, currency)} />
               </div>
             </div>
-            <div className={`rounded-2xl p-5 border ${expectedCashNet < 0 ? 'bg-negative/5 border-negative/20' : 'bg-accent/5 border-accent/20'}`}>
+            <div className={`rounded-2xl p-4 sm:p-5 border ${expectedCashNet < 0 ? 'bg-negative/5 border-negative/20' : 'bg-accent/5 border-accent/20'}`}>
               <div className={`text-xs font-bold tracking-widest uppercase mb-2 ${expectedCashNet < 0 ? 'text-negative' : 'text-accent'}`}>Net Open</div>
-              <div className={`text-4xl font-extrabold ${expectedCashNet < 0 ? 'text-negative' : 'text-foreground'}`}>
+              <div className={`text-2xl sm:text-xl md:text-2xl lg:text-3xl font-bold ${expectedCashNet < 0 ? 'text-negative' : 'text-foreground'}`}>
                 <AnimatedNumber value={formatCurrency(expectedCashNet, currency)} />
               </div>
             </div>
