@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useMemo, useState, useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/hooks/use-user-data";
 

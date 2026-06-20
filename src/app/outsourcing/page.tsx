@@ -1,8 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { PaymentSummary, PaymentTrackingForm, createPaymentRecord } from "@/components/payment-tracking";
+import { PaymentSummary, PaymentTrackingForm } from "@/components/payment-tracking";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 import {
@@ -19,7 +20,6 @@ import {
   type PaymentAttachment,
   type PaymentRecord,
   type Vendor,
-  type UserProfile,
   CURRENCIES,
   createAvatar,
 } from "@/data/invoices";
@@ -31,7 +31,6 @@ import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid"] as const;
-const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid"];
 const TEMPLATES = [
   {
     id: "outsourcing",
@@ -737,7 +736,6 @@ export default function Outsourcing() {
                   const balanceDue = getBalanceDue(invoice);
                   const paymentState = getOutsourcingPaymentState(invoice);
                   const activeInvoiceCurrency = invoice.currency || currency;
-                  const paidAmount = getAmountPaid(invoice);
                   const totalAmount = getOutsourcingInvoiceTotal(invoice);
 
                   return (
@@ -751,8 +749,12 @@ export default function Outsourcing() {
                         {/* Avatar with Status Ring */}
                         <div className={`size-11 rounded-2xl overflow-hidden shrink-0 ring-2 ${
                           paymentState === "Paid" ? "ring-positive/40" : "ring-foreground/15"
-                        } border-2 border-background shadow-xs`}>
-                          <img className="w-full h-full object-cover" alt={invoice.vendor} src={invoice.avatar} />
+                        } border-2 border-background shadow-xs flex items-center justify-center font-bold text-xs bg-accent/10 text-accent`}>
+                          {invoice.avatar ? (
+                            <img className="w-full h-full object-cover" alt={invoice.vendor} src={invoice.avatar} />
+                          ) : (
+                            (invoice.vendor || "V")[0].toUpperCase()
+                          )}
                         </div>
 
                         {/* Vendor & ID Details */}
@@ -1165,7 +1167,13 @@ export default function Outsourcing() {
                     <div>
                       <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-3 border-b border-card-border/40 pb-1">Pay To</p>
                       <div className="flex items-start gap-3">
-                        <img className="size-11 rounded-xl object-cover border border-card-border" alt={selectedInvoice.vendor} src={selectedInvoice.avatar} />
+                        <div className="size-11 rounded-xl border border-card-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-xs bg-accent/10 text-accent">
+                          {selectedInvoice.avatar ? (
+                            <img className="w-full h-full object-cover" alt={selectedInvoice.vendor} src={selectedInvoice.avatar} />
+                          ) : (
+                            (selectedInvoice.vendor || "V")[0].toUpperCase()
+                          )}
+                        </div>
                         <div className="text-[12px] text-muted space-y-0.5 leading-relaxed">
                           <p className="text-[13px] font-bold text-foreground">{selectedInvoice.vendor}</p>
                           <p>{selectedInvoice.email || "No email added"}</p>

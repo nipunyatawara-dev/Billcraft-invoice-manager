@@ -86,6 +86,7 @@ export function ProfileTab() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 relative z-10">
           <div className="size-20 sm:size-24 rounded-2xl bg-background border-2 border-card-border flex items-center justify-center shrink-0 overflow-hidden relative group/avatar shadow-xl shadow-action/5 transition-transform duration-500 hover:scale-[1.02]">
             {profileForm.profilePic ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img className="h-full w-full object-cover transition-transform duration-500 group-hover/avatar:scale-110" alt={profileForm.name || "Profile"} src={profileForm.profilePic} />
             ) : (
               <span className="material-symbols-outlined text-4xl text-muted/50">person</span>
@@ -232,6 +233,7 @@ export function ProfileTab() {
             <div className="h-20 w-36 rounded-lg border border-card-border overflow-hidden bg-white/5 flex items-center justify-center shrink-0 shadow-inner group/sig relative">
               {profileForm.signature ? (
                 <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="h-full w-full object-contain p-2" alt="Signature" src={profileForm.signature} />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/sig:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="material-symbols-outlined text-white">edit</span>

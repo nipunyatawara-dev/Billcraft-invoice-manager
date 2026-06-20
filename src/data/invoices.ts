@@ -392,7 +392,7 @@ export function formatCurrency(value: number, currency = "USD") {
       currency: currency.trim() || "USD",
       minimumFractionDigits: 2,
     }).format(value);
-  } catch (error) {
+  } catch {
     const formatted = new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,

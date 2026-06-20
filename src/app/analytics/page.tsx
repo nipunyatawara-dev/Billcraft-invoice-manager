@@ -311,7 +311,7 @@ function formatCompactCurrency(value: number, currency: string) {
       notation: "compact",
       maximumFractionDigits: 1,
     }).format(value);
-  } catch (error) {
+  } catch {
     const formatted = new Intl.NumberFormat("en-US", {
       notation: "compact",
       maximumFractionDigits: 1,
@@ -1179,13 +1179,13 @@ export default function Analytics() {
             delayMs={70}
           />
         </div>
-        <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center md:w-auto">
           <button
             type="button"
             onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
-            className={`btn-primary active:scale-[0.97] ${isCustomizeOpen ? "bg-action-hover text-[var(--action-hover-text)]" : ""}`}
+            className={`btn-primary min-h-7 py-1 px-3 text-[11px] active:scale-[0.97] ${isCustomizeOpen ? "bg-action-hover text-[var(--action-hover-text)]" : ""}`}
           >
-            <span className="material-symbols-outlined text-[16px]">tune</span>
+            <span className="material-symbols-outlined text-[13px]">tune</span>
             Customize
           </button>
           <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">

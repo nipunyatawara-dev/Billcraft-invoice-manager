@@ -604,13 +604,6 @@ export default function Invoices() {
     setModalMode("edit");
   }
 
-  function openViewModal(invoice: Invoice) {
-    setSelectedInvoice(invoice);
-    setNeedsClientSaveChoice(false);
-    setForm(getInvoiceForm(invoice, clientRecords));
-    setModalMode("view");
-  }
-
   function closeModal() {
     if (isSaving) {
       return;
@@ -1146,7 +1139,6 @@ export default function Invoices() {
           setActiveFilter={setActiveFilter}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          openViewModal={openViewModal}
           openEditModal={openEditModal}
           openShareModal={openShareModal}
           handleExportInvoice={handleExportInvoice}

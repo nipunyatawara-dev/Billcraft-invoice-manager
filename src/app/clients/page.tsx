@@ -334,8 +334,13 @@ export default function Clients() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="size-12 rounded-xl border border-card-border overflow-hidden shrink-0">
-                      <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
+                    <div className="size-12 rounded-xl border border-card-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-sm bg-accent/10 text-accent">
+                      {client.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
+                      ) : (
+                        (client.name || "C")[0].toUpperCase()
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
@@ -547,6 +552,7 @@ export default function Clients() {
                   <div className="flex items-center gap-4">
                     <div className="size-14 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
                       {form.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
                       ) : (
                         <span className="material-symbols-outlined text-[24px] text-foreground/20">person</span>

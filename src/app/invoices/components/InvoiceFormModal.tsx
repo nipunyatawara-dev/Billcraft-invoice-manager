@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import * as React from "react";
 import { AnimatedText } from "@/components/animated-text";
 import { PaymentTrackingForm } from "@/components/payment-tracking";

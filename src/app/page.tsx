@@ -317,8 +317,13 @@ export default function Home() {
                   <tr key={inv.id} className="bg-foreground/[0.015] hover:bg-foreground/[0.04] transition-colors group rounded-2xl">
                     <td className="px-4 py-4 rounded-l-2xl">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full border border-card-border bg-foreground/[0.03] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0 shadow-sm">
-                          <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
+                        <div className="w-10 h-10 rounded-full border border-card-border bg-accent/10 text-accent flex items-center justify-center font-bold text-xs overflow-hidden shrink-0 shadow-sm">
+                          {inv.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
+                          ) : (
+                            (inv.client || "C")[0].toUpperCase()
+                          )}
                         </div>
                         <div>
                           <div className="font-bold text-foreground group-hover:text-accent transition-colors">{inv.id}</div>

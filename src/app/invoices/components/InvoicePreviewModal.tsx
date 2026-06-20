@@ -1,12 +1,13 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import * as React from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PaymentSummary } from "@/components/payment-tracking";
 import {
   formatCurrency,
-  getInvoiceTotal,
   getPaymentState,
   type Invoice,
   type UserProfile,

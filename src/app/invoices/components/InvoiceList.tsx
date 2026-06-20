@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import * as React from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
@@ -23,7 +25,6 @@ interface InvoiceListProps {
   setActiveFilter: (filter: string) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  openViewModal: (invoice: Invoice) => void;
   openEditModal: (invoice: Invoice) => void;
   openShareModal: (invoice: Invoice) => void;
   handleExportInvoice: (invoice: Invoice) => void;
@@ -38,7 +39,6 @@ export function InvoiceList({
   setActiveFilter,
   searchQuery,
   setSearchQuery,
-  openViewModal,
   openEditModal,
   openShareModal,
   handleExportInvoice,

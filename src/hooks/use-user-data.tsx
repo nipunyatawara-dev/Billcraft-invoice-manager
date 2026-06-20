@@ -35,7 +35,6 @@ export type {
 export type { TodoTask } from "@/data/todos";
 
 import { useCurrency } from "@/hooks/use-currency";
-import { exportInvoicePdf, exportOutsourcingInvoicePdf } from "@/lib/pdf-export";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
  
 const ACTIVE_PROFILE_KEY = "billcraft.active-profile.v1";
@@ -750,10 +749,12 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
   }, [postAction, snapshot.activeProfileId]);
 
   const exportInvoice = useCallback(async (invoice: Invoice) => {
+    const { exportInvoicePdf } = await import("@/lib/pdf-export");
     await exportInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
 
   const exportOutsourcingInvoice = useCallback(async (invoice: OutsourcingInvoice) => {
+    const { exportOutsourcingInvoicePdf } = await import("@/lib/pdf-export");
     await exportOutsourcingInvoicePdf(invoice, snapshot.activeProfile, currency);
   }, [currency, snapshot.activeProfile]);
 

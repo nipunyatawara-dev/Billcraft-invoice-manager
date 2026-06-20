@@ -65,7 +65,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       if (profiles.some((profile) => profile.id === storedProfileId)) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOnboardingProfileId(storedProfileId);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsSidebarOpen(true);
       } else {
         window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
@@ -231,6 +230,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-3 font-medium text-foreground min-w-0">
                     <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-sm font-bold overflow-hidden shrink-0">
                       {activeProfile?.profilePic ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
                       ) : (
                         (activeProfile?.name || "S")[0].toUpperCase()
@@ -289,6 +289,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 >
                     <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden">
                       {activeProfile?.profilePic ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
                       ) : (
                         (activeProfile?.name || "N")[0].toUpperCase()
