@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 
 interface AnimatedSearchBarProps {
   value: string;
@@ -10,92 +10,38 @@ interface AnimatedSearchBarProps {
 }
 
 export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", className = "" }: AnimatedSearchBarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close the search bar if the user clicks outside of it
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsExpanded(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const handleSearchClick = (e: React.MouseEvent) => {
-    if (isExpanded) {
-      e.stopPropagation();
-      if (value) {
-        onChange("");
-      }
-      setIsExpanded(false);
-      inputRef.current?.blur();
-    } else {
-      setIsExpanded(true);
-      // Focus the input field shortly after the expansion animation starts
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 150);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && isExpanded) {
-      inputRef.current?.blur();
-      setIsExpanded(false);
-    } else if (e.key === 'Escape') {
-      setIsExpanded(false);
-      inputRef.current?.blur();
-    }
+  const handleClear = () => {
+    onChange("");
+    inputRef.current?.focus();
   };
 
   return (
-    <div className={`relative z-20 search-field flex items-center ${className}`}>
-      <div
-        ref={containerRef}
-        className={`relative h-10 bg-field border border-card-border rounded-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center ${
-          isExpanded || value ? 'w-[260px] sm:w-[320px] shadow-sm' : 'w-10'
+    <div className={`relative w-full sm:w-[320px] search-field group ${className}`}>
+      {/* Search Icon on the left */}
+      <i className="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60 text-[17px] pointer-events-none transition-colors duration-200 group-focus-within:text-accent" />
+      
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-10 bg-field hover:bg-foreground/[0.03] focus:bg-card border border-card-border hover:border-card-border/80 focus:border-accent rounded-xl pl-10 pr-9 text-[13px] font-medium text-foreground placeholder-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/15 transition-all duration-300"
+      />
+      
+      {/* Clear Button on the right */}
+      <button
+        onClick={handleClear}
+        className={`absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-200 ${
+          value ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'
         }`}
+        aria-label="Clear search"
       >
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsExpanded(true)}
-          placeholder={placeholder}
-          className={`absolute left-0 w-full h-full bg-transparent outline-none pl-4 pr-11 text-[13px] font-semibold text-foreground placeholder-muted/50 transition-opacity duration-300 ${
-            isExpanded || value
-              ? 'opacity-100 pointer-events-auto delay-100'
-              : 'opacity-0 pointer-events-none'
-          }`}
-        />
-        
-        <button
-          onClick={handleSearchClick}
-          className={`absolute right-1 top-1 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 shrink-0 ${
-            isExpanded || value 
-              ? 'bg-foreground/[0.04] text-muted hover:bg-foreground/[0.08] hover:text-foreground' 
-              : 'bg-transparent text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-          }`}
-          aria-label={isExpanded && value ? "Clear search" : "Search"}
-        >
-          {isExpanded && value ? (
-            <i className="ph ph-x text-lg"></i>
-          ) : (
-            <i className="ph ph-magnifying-glass text-lg"></i>
-          )}
-        </button>
-      </div>
+        <i className="ph ph-x text-[15px]"></i>
+      </button>
     </div>
   );
 }
+

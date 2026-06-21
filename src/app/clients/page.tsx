@@ -267,39 +267,113 @@ export default function Clients() {
   return (
     <>
       <main className="app-main flex-1">
-        <div className="page-heading">
+        {/* Page Header Area */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Manage" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText as="p" text="Manage" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
             <AnimatedText
               as="h1"
               text="Clients"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
+              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
               delayMs={70}
             />
+            <AnimatedText as="p" text="Organize customer records, statements, payments, and relationships." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
           </div>
-          <button onClick={openAddClient} className="btn-primary active:scale-[0.97]">
-            <span className="material-symbols-outlined text-[16px]">person_add</span>
+          
+          <button 
+            onClick={openAddClient} 
+            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+          >
+            <i className="ph ph-user-plus text-lg group-hover:rotate-90 transition-transform"></i>
             Add Client
           </button>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Total Revenue</p>
-            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={formatCurrency(totalRevenue, currency)} /></p>
+        {/* Overview Stats Bento Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* Total Revenue */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Total Revenue</span>
+              <i className="ph ph-trend-up text-lg text-positive"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={formatCurrency(totalRevenue, currency)} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                    <div>all-time</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Regular Clients</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={clients.length} /> <span className="text-[12px] font-normal text-positive">saved</span></p>
+
+          {/* Regular Clients */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Active Clients</span>
+              <i className="ph ph-users-three text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={clients.length} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-accent leading-tight select-none">
+                    <div>saved</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Invoices</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-muted">total</span></p>
+
+          {/* Invoices */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Invoices</span>
+              <i className="ph ph-receipt text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={invoices.length} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                    <div>issued</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Avg / Client</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} /></p>
+
+          {/* Average per Client */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Avg / Client</span>
+              <i className="ph ph-chart-line text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                    <div>lifetime</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -327,10 +401,10 @@ export default function Clients() {
                   aria-controls={`client-details-${client.id}`}
                   onClick={() => toggleClient(client.id)}
                   onKeyDown={(event) => handleClientCardKeyDown(event, client.id)}
-                  className={`surface-card p-5 cursor-pointer transition-smooth group ${
+                  className={`bg-card text-card-foreground border p-5 cursor-pointer transition-all duration-300 group ${
                     isSelected
-                      ? "border-accent/30 rounded-b-none"
-                      : "border-card-border hover:border-foreground/12"
+                      ? "border-accent/30 rounded-t-xl rounded-b-none shadow-xl"
+                      : "border-card-border hover:border-foreground/12 hover:shadow-xl hover:border-accent/30 rounded-xl"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -350,10 +424,10 @@ export default function Clients() {
                         </div>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(client); }}
-                          className="size-7 flex items-center justify-center rounded-full text-foreground/20 hover:text-accent hover:bg-accent/10 transition-smooth opacity-0 group-hover:opacity-100"
+                          className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer opacity-0 group-hover:opacity-100"
                           aria-label={`Edit ${client.name}`}
                         >
-                          <span className="material-symbols-outlined text-[14px]">edit</span>
+                          <i className="ph ph-pencil-simple text-[13px]"></i>
                         </button>
                       </div>
 
@@ -369,9 +443,9 @@ export default function Clients() {
                         </div>
                         <div className="w-px h-7 bg-card-border" />
                         <div className="flex flex-wrap gap-1.5">
-                          {breakdown.paid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-positive/15 text-positive"><AnimatedNumber value={breakdown.paid} /> paid</span>}
-                          {breakdown.unpaid > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-foreground/[0.06] text-foreground/50"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
-                          {breakdown.overdue > 0 && <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded-full tracking-wide uppercase bg-accent/15 text-accent"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
+                          {breakdown.paid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-positive/10 border border-positive/10 text-positive"><AnimatedNumber value={breakdown.paid} /> paid</span>}
+                          {breakdown.unpaid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-foreground/[0.03] border border-card-border text-muted"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
+                          {breakdown.overdue > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-accent/10 border border-accent/10 text-accent"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
                         </div>
                       </div>
                     </div>
@@ -415,7 +489,7 @@ export default function Clients() {
                       transition={{ duration: shouldReduceMotion ? 0.01 : 0.24, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="rounded-b-2xl border border-t-0 border-accent/30 bg-foreground/[0.02] overflow-hidden">
+                      <div className="rounded-b-xl border border-t-0 border-accent/30 bg-foreground/[0.02] overflow-hidden">
                         <div className="grid grid-cols-1 gap-3 border-b border-card-border p-5 lg:grid-cols-4">
                           <div className="rounded-xl border border-card-border p-3">
                             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Outstanding</p>
@@ -550,7 +624,7 @@ export default function Clients() {
                   <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Identity & Brand</h3>
                   
                   <div className="flex items-center gap-4">
-                    <div className="size-14 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
+                    <div className="size-14 rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
                       {form.avatar ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
@@ -690,10 +764,10 @@ export default function Clients() {
 
               {/* Sticky Footer */}
               <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
-                <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold">
+                <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 text-[12px] font-bold">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
+                <button type="submit" className="btn-primary min-h-9 px-5 text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
                   {isSaving ? "Saving..." : editingClientId ? "Save Changes" : "Add Client"}
                 </button>
               </div>

@@ -353,7 +353,7 @@ function ChartWidgetShell({
   title: string;
 }) {
   return (
-    <div className={`surface-card flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 ${className}`}>
+    <div className={`bg-card text-card-foreground border border-card-border rounded-xl flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 hover:shadow-xl hover:border-accent/30 transition-all duration-300 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>
@@ -383,7 +383,7 @@ function RevenueFlowWidget({
   const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
 
   return (
-    <div className="surface-card group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7 hover:shadow-xl hover:border-accent/30 transition-all duration-300">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="mb-0.5 text-lg font-semibold text-foreground">Client Billing Flow</h3>
@@ -519,16 +519,20 @@ function MetricWidget({
   value: React.ReactNode;
 }) {
   return (
-    <div className="surface-card group flex min-h-[140px] flex-col justify-between p-5 transition-smooth hover:border-foreground/12 lg:p-6">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{title}</p>
-        <div className="flex size-8 items-center justify-center rounded-xl bg-foreground/[0.04] transition-transform group-hover:scale-105">
-          <span className="material-symbols-outlined text-[16px] text-muted">{icon}</span>
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 group flex flex-col justify-between min-h-[150px]">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">{title}</span>
+        <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
+          <span className="material-symbols-outlined text-[16px] text-muted group-hover:text-accent transition-colors">{icon}</span>
         </div>
       </div>
-      <div>
-        <h3 className="font-display mb-0.5 text-xl font-semibold text-foreground lg:text-2xl">{value}</h3>
-        <p className="text-[11px] font-medium text-muted">{caption}</p>
+      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 flex flex-col gap-1 flex-1">
+        <h3 className="font-display text-2xl font-bold text-foreground tracking-tight leading-none">
+          {value}
+        </h3>
+        <p className="text-[10px] font-medium text-muted mt-auto leading-relaxed select-none">
+          {caption}
+        </p>
       </div>
     </div>
   );
@@ -597,24 +601,23 @@ function TopClientWidget({
   topClient?: ReturnType<typeof getClientsFromInvoices>[number];
 }) {
   return (
-    <div className="surface-card group relative flex min-h-[140px] flex-col justify-between overflow-hidden p-5 transition-smooth hover:border-foreground/12 md:col-span-2 lg:col-span-2 lg:p-6">
-      <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-24 bg-gradient-to-l from-accent/[0.04] to-transparent" />
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Top Client</p>
-        <div className="flex size-8 items-center justify-center rounded-xl bg-accent/10 transition-transform group-hover:scale-105">
-          <span className="material-symbols-outlined text-[16px] text-accent">star</span>
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 group flex flex-col justify-between min-h-[150px] md:col-span-2 lg:col-span-2">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">Top Client</span>
+        <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
+          <span className="material-symbols-outlined text-[16px] text-muted group-hover:text-accent transition-colors">star</span>
         </div>
       </div>
-      <div className="relative z-10 flex items-end justify-between gap-4">
+      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 flex items-center justify-between gap-4 flex-1">
         <div className="min-w-0">
-          <h3 className="font-display mb-0.5 truncate text-lg font-semibold text-foreground lg:text-xl">{topClient?.name || "No client yet"}</h3>
-          <p className="text-[11px] font-medium text-muted">Highest billed client by invoice total</p>
+          <h3 className="font-display text-lg font-bold text-foreground tracking-tight truncate">{topClient?.name || "No client yet"}</h3>
+          <p className="text-[10px] font-medium text-muted mt-1 leading-relaxed select-none">Highest billed client by invoice total</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-base font-semibold text-foreground">
+          <p className="text-xl font-bold text-accent font-display">
             <AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} />
           </p>
-          <p className="text-[10px] font-semibold text-muted">Total</p>
+          <p className="text-[9px] font-bold text-muted uppercase tracking-wider select-none">Total</p>
         </div>
       </div>
     </div>
@@ -868,22 +871,31 @@ function CustomizePanel({
   onToggle: (widgetId: AnalyticsWidgetId) => void;
 }) {
   return (
-    <div className="surface-card mb-3 overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-card-border p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl mb-6 shadow-sm overflow-hidden">
+      <div className="flex flex-col gap-3 border-b border-card-border p-5 sm:flex-row sm:items-center sm:justify-between bg-foreground/[0.01]">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Customize analytics</h2>
+          <h2 className="text-[15px] font-semibold text-foreground">Customise analytics</h2>
           <p className="mt-0.5 text-[11px] font-medium text-muted">Choose visible widgets and move them into your preferred order.</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={onReset} className="btn-secondary active:scale-[0.97]">
+          <button
+            type="button"
+            onClick={onReset}
+            className="px-3.5 py-1.5 text-[11px] font-semibold border border-card-border text-muted hover:text-foreground hover:bg-foreground/[0.04] rounded-xl transition-all cursor-pointer uppercase tracking-wide active:scale-[0.95]"
+          >
             Reset
           </button>
-          <button type="button" onClick={onSave} className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+          <button
+            type="button"
+            onClick={onSave}
+            className="px-3.5 py-1.5 text-[11px] font-bold bg-accent text-white hover:bg-accent/90 rounded-xl transition-all cursor-pointer uppercase tracking-wide active:scale-[0.95]"
+            disabled={isSaving}
+          >
             {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
-      <div className="divide-y divide-card-border">
+      <div className="divide-y divide-card-border/50">
         {draftPreferences.widgetOrder.map((widgetId, index) => {
           const definition = WIDGET_DEFINITION_MAP.get(widgetId);
           const isVisible = draftPreferences.visibleWidgetIds.includes(widgetId);
@@ -893,7 +905,7 @@ function CustomizePanel({
           }
 
           return (
-            <div key={widgetId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div key={widgetId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between hover:bg-foreground/[0.005] transition-colors duration-150">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-foreground/[0.04]">
                   <span className="material-symbols-outlined text-[18px] text-muted">{definition.icon}</span>
@@ -907,20 +919,20 @@ function CustomizePanel({
                 <button
                   type="button"
                   onClick={() => onMove(widgetId, -1)}
-                  className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="size-8 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                   aria-label={`Move ${definition.title} up`}
                   disabled={index === 0}
                 >
-                  <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                  <i className="ph ph-arrow-up text-sm" />
                 </button>
                 <button
                   type="button"
                   onClick={() => onMove(widgetId, 1)}
-                  className="icon-button active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="size-8 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                   aria-label={`Move ${definition.title} down`}
                   disabled={index === draftPreferences.widgetOrder.length - 1}
                 >
-                  <span className="material-symbols-outlined text-[18px]">arrow_downward</span>
+                  <i className="ph ph-arrow-down text-sm" />
                 </button>
                 <button
                   type="button"
@@ -928,11 +940,11 @@ function CustomizePanel({
                   aria-checked={isVisible}
                   onClick={() => onToggle(widgetId)}
                   className={`relative inline-flex h-6 w-10 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
-                    isVisible ? "bg-action" : "bg-foreground/12"
+                    isVisible ? "bg-accent" : "bg-foreground/12"
                   }`}
                   aria-label={`${isVisible ? "Hide" : "Show"} ${definition.title}`}
                 >
-                  <span className={`pointer-events-none mt-1 inline-block size-4 rounded-full bg-action-text shadow transition duration-200 ease-in-out ${
+                  <span className={`pointer-events-none mt-1 inline-block size-4 rounded-full bg-card shadow transition duration-200 ease-in-out ${
                     isVisible ? "translate-x-5" : "translate-x-1"
                   }`} />
                 </button>
@@ -1183,10 +1195,14 @@ export default function Analytics() {
           <button
             type="button"
             onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
-            className={`btn-primary min-h-7 py-1 px-3 text-[11px] active:scale-[0.97] ${isCustomizeOpen ? "bg-action-hover text-[var(--action-hover-text)]" : ""}`}
+            className={`flex items-center gap-2 px-5 py-2.5 border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.95] select-none ${
+              isCustomizeOpen 
+                ? "bg-accent/10 border-accent/20 text-accent font-bold" 
+                : "text-muted"
+            }`}
           >
-            <span className="material-symbols-outlined text-[13px]">tune</span>
-            Customize
+            <i className="ph ph-sliders text-lg" />
+            Customise
           </button>
           <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">
             <span
@@ -1248,7 +1264,7 @@ export default function Analytics() {
         <div className="surface-card p-10 text-center">
           <span className="material-symbols-outlined mb-3 block text-[42px] text-foreground/10">analytics</span>
           <AnimatedText as="p" text="No analytics widgets visible" effect="per-word-crossfade" className="text-[13px] font-semibold text-foreground" />
-          <p className="mt-1 text-[11px] font-medium text-muted">Turn one on in Customize to rebuild this page.</p>
+          <p className="mt-1 text-[11px] font-medium text-muted">Turn one on in Customise to rebuild this page.</p>
         </div>
       )}
     </main>

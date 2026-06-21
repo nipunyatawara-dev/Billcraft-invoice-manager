@@ -2,6 +2,16 @@ import { useState } from "react";
 import { TOAST_POSITIONS, type ToastPosition, useToastPosition } from "@/hooks/use-toast-position";
 import { notify } from "@/lib/toast";
 import { AnimatedText } from "@/components/animated-text";
+import { BellRing, Layout, ArrowUpRight, ArrowUp, ArrowUpLeft, ArrowDownLeft, ArrowDown, ArrowDownRight, Bell } from "lucide-react";
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  north_east: ArrowUpRight,
+  north: ArrowUp,
+  north_west: ArrowUpLeft,
+  south_west: ArrowDownLeft,
+  south: ArrowDown,
+  south_east: ArrowDownRight,
+};
 
 export function NotificationsTab() {
   const { toastPosition, setToastPosition } = useToastPosition();
@@ -29,12 +39,9 @@ export function NotificationsTab() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
       
       {/* Notifications Intro */}
-      <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-3xl group">
+      <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-xl group">
         <div className="absolute inset-0 bg-gradient-to-r from-action/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         <div className="flex flex-col sm:flex-row items-start gap-4 relative z-10">
-          <div className="size-14 rounded-2xl bg-action/10 text-action flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
-            <span className="material-symbols-outlined text-[28px]">notifications_active</span>
-          </div>
           <div>
             <AnimatedText
               as="h2"
@@ -48,11 +55,10 @@ export function NotificationsTab() {
         </div>
       </div>
 
-      <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+      <div className="surface-card p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
         <div className="mb-6 flex items-start justify-between">
           <div>
             <h3 className="text-[16px] font-bold text-foreground tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-accent">view_sidebar</span>
               Toast Position
             </h3>
             <p className="text-[13px] text-muted mt-1">Choose where app notifications appear on your screen.</p>
@@ -70,13 +76,16 @@ export function NotificationsTab() {
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => selectToastPosition(position.id, position.label)}
-                className={`flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border-2 px-4 text-[13px] font-bold transition-all duration-300 active:scale-95 group ${
+                className={`flex min-h-14 items-center justify-center gap-2.5 rounded-xl border-2 px-4 text-[13px] font-bold transition-all duration-300 active:scale-95 group ${
                   isSelected
                     ? "border-action bg-action/10 text-action shadow-sm"
                     : "border-card-border bg-background/50 text-muted hover:border-accent/50 hover:text-foreground hover:bg-foreground/[0.02]"
                 }`}
               >
-                <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{position.icon}</span>
+                {(() => {
+                  const IconComp = iconMap[position.icon] || Bell;
+                  return <IconComp className={`size-5 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />;
+                })()}
                 {position.label}
               </button>
             );
@@ -84,10 +93,9 @@ export function NotificationsTab() {
         </div>
       </div>
 
-      <div className="surface-card rounded-3xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div className="surface-card rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
         <div className="p-6 border-b border-card-border bg-foreground/[0.01]">
           <h3 className="text-[16px] font-bold text-foreground tracking-tight flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-accent">toggle_on</span>
             System Alerts
           </h3>
           <p className="text-[13px] text-muted mt-1">Manage automated alerts sent by BillCraft.</p>
@@ -95,13 +103,13 @@ export function NotificationsTab() {
         
         <div className="divide-y divide-card-border">
           {[
-            { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices nearing their due date.", state: invoiceReminders, toggle: setInvoiceReminders, icon: "mark_email_unread" },
+            { label: "Invoice Reminders", desc: "Auto-send reminders for unpaid invoices nearing their due date.", state: invoiceReminders, toggle: setInvoiceReminders, icon: Bell },
             // Could add more toggles here easily in the future
           ].map((item) => (
             <div key={item.label} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 gap-4 hover:bg-foreground/[0.02] transition-colors">
               <div className="flex gap-4 items-start">
                 <div className="size-10 rounded-full bg-foreground/[0.05] flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[20px] text-muted">{item.icon}</span>
+                  <item.icon className="size-5 text-muted" />
                 </div>
                 <div>
                   <h4 className="text-[14px] font-bold text-foreground mb-1">{item.label}</h4>

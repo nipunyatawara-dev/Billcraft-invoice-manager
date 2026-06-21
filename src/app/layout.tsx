@@ -93,6 +93,9 @@ const paletteBootstrapScript = `
   const fontIds = new Set(["inter", "open-sans", "google-sans-flex", "outfit", "plus-jakarta-sans"]);
   const radiusKey = "billcraft.radius.v1";
   const radiusIds = new Set(["squircle", "rounded"]);
+  const densityKey = "billcraft.density.v1";
+  const densityIds = new Set(["compact", "standard", "spacious"]);
+  const customAccentKey = "billcraft.custom-accent.v1";
 
   const readPalette = (key, fallback) => {
     try {
@@ -121,10 +124,36 @@ const paletteBootstrapScript = `
     }
   };
 
+  const readDensity = (key, fallback) => {
+    try {
+      const stored = window.localStorage.getItem(key);
+      return densityIds.has(stored) ? stored : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-6");
   document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-7");
   document.documentElement.dataset.font = readFont(fontKey, "inter");
   document.documentElement.dataset.radius = readRadius(radiusKey, "rounded");
+  document.documentElement.dataset.density = readDensity(densityKey, "standard");
+
+  try {
+    const customAccent = window.localStorage.getItem(customAccentKey);
+    if (customAccent) {
+      document.documentElement.style.setProperty("--accent", customAccent);
+      document.documentElement.style.setProperty("--ring", customAccent);
+      document.documentElement.style.setProperty("--sidebar-ring", customAccent);
+      const result = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(customAccent);
+      if (result) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        document.documentElement.style.setProperty("--accent-rgb", r + "," + g + "," + b);
+      }
+    }
+  } catch {}
 })();
 `;
 

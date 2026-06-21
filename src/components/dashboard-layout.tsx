@@ -10,11 +10,31 @@ import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData } from "@/hooks/use-user-data";
 import { useBillingAlerts } from "@/hooks/use-billing-alerts";
 import { notify } from "@/lib/toast";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, WORK_NAV_ITEMS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Check, Plus, Search, Bell, User } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ACTIVE_ONBOARDING_PROFILE_KEY = "billcraft.profile-onboarding.active.v1";
 const NOTIFICATION_TOAST_DURATION = 4200;
@@ -23,10 +43,21 @@ const NOTIFICATION_TOAST_OPTIONS = {
   autopilot: false,
 } as const;
 
+const PAGE_TITLES: Record<string, string> = {
+  "/": "Dashboard",
+  "/invoices": "Invoices",
+  "/expenses": "Expenses",
+  "/clients": "Clients",
+  "/analytics": "Analytics",
+  "/outsourcing": "Outsourcing",
+  "/todo": "To-Do",
+  "/catalog": "Catalog",
+  "/settings": "Settings",
+};
+
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useModePalettes();
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [onboardingProfileId, setOnboardingProfileId] = useState<string | null>(null);
   const [osKey, setOsKey] = useState("⌘");
@@ -35,6 +66,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   
   const {
     activeProfile,
+    activeProfileId,
     clients,
     error,
     invoices,
@@ -43,6 +75,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     profiles,
     todoTasks,
     vendors,
+    switchProfile,
   } = useUserData();
 
   const { activeAlerts, alertCount } = useBillingAlerts({
@@ -65,18 +98,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       if (profiles.some((profile) => profile.id === storedProfileId)) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOnboardingProfileId(storedProfileId);
-        setIsSidebarOpen(true);
       } else {
         window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
       }
     }
   }, [loading, onboardingProfileId, profiles]);
-
-  function closeSidebarOnMobile() {
-    if (window.matchMedia("(max-width: 1023px)").matches) {
-      setIsSidebarOpen(false);
-    }
-  }
 
   useEffect(() => {
     if (typeof navigator !== "undefined") {
@@ -101,7 +127,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  function handleNotificationsClick() {
+  const handleNotificationsClick = useCallback(() => {
     if (error) {
       notify.error({
         title: "Data sync issue",
@@ -146,193 +172,223 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       description: "No overdue invoices, due tasks, backup reminders, or unpaid vendor bills right now.",
       ...NOTIFICATION_TOAST_OPTIONS,
     });
-  }
+  }, [activeAlerts, activeProfile, alertCount, error]);
 
   return (
-    <div className="app-shell flex h-screen overflow-hidden text-foreground selection:bg-accent/20 selection:text-accent bg-background">
-      {/* Sidebar Overlay */}
-      <div 
-        className={`lg:hidden fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
+    <SidebarProvider>
+      <div className="app-shell flex h-screen w-full overflow-hidden text-foreground selection:bg-accent/20 selection:text-accent bg-background">
+        
+        {/* Permanent Sidebar */}
+        <Sidebar collapsible="none" className="border-r border-card-border bg-sidebar-bg">
+          <SidebarHeader className="border-b border-card-border/50 p-4">
+            <div className="flex items-center gap-3 px-2 h-10 select-none">
+              <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-foreground">
+                <span className="relative size-8 shrink-0 overflow-hidden rounded-full">
+                  <Image
+                    src="/billcraft-dark-circle.png"
+                    alt="BillCraft Logo"
+                    fill
+                    sizes="32px"
+                    className="object-cover dark:hidden"
+                  />
+                  <Image
+                    src="/billcraft-light-circle.png"
+                    alt="BillCraft Logo"
+                    fill
+                    sizes="32px"
+                    className="hidden object-cover dark:block"
+                  />
+                </span>
+                <span className="group-data-[collapsible=icon]:hidden">BillCraft</span>
+              </Link>
+            </div>
+          </SidebarHeader>
 
-      {/* Sidebar */}
-      <aside 
-        className={`w-64 bg-sidebar-bg border-r border-card-border flex flex-col justify-between shrink-0 fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        <div className="flex flex-col h-full overflow-y-auto">
-            {/* Logo */}
-            <div className="h-20 flex items-center px-8 text-foreground">
-                <Link href="/" onClick={closeSidebarOnMobile} className="flex items-center gap-3 text-2xl font-bold tracking-tight group transition-smooth">
-                    <span className="brand-mark group-hover:scale-105 transition-transform">
-                      <Image
-                        src="/billcraft-dark-circle.png"
-                        alt=""
-                        fill
-                        sizes="34px"
-                        className="object-cover dark:hidden"
-                      />
-                      <Image
-                        src="/billcraft-light-circle.png"
-                        alt=""
-                        fill
-                        sizes="34px"
-                        className="hidden object-cover dark:block"
-                      />
-                    </span>
-                    BillCraft
-                </Link>
+          <SidebarContent className="p-4 space-y-6">
+            <div>
+              <SidebarMenu>
+                {NAV_ITEMS.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.label}
+                        className={cn(
+                          "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
+                          isActive
+                            ? "bg-accent/10 text-accent font-semibold"
+                            : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
+                        )}
+                      >
+                        <Link href={item.href}>
+                          <i className={cn("text-xl", isActive ? item.activeIcon : item.icon)}></i>
+                          <span className="ml-3 group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
             </div>
 
-            {/* Navigation */}
-            <nav className="mt-4 px-4 flex-1 space-y-1 pb-4">
-              {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeSidebarOnMobile}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors group relative overflow-hidden ${
-                      isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-                    }`}
-                  >
-                    <i className={`text-xl ${isActive ? item.activeIcon : item.icon}`}></i>
-                    {item.label}
-                  </Link>
-                );
-              })}
-              <div className="h-px bg-card-border mx-4 my-2"></div>
-              {WORK_NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeSidebarOnMobile}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors group relative overflow-hidden ${
-                      isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-                    }`}
-                  >
-                    <i className={`text-xl ${isActive ? item.activeIcon : item.icon}`}></i>
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-        </div>
+            <div className="h-px bg-card-border mx-2"></div>
 
-        {/* Settings Bottom */}
-        <div className="p-4 mb-4 bg-sidebar-bg shrink-0">
-            <Link href="/settings" onClick={closeSidebarOnMobile} className="flex items-center justify-between px-4 py-3 hover:bg-foreground/[0.04] rounded-xl transition-colors group border border-transparent hover:border-card-border">
-                <div className="flex items-center gap-3 font-medium text-foreground min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-sm font-bold overflow-hidden shrink-0">
-                      {activeProfile?.profilePic ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
-                      ) : (
-                        (activeProfile?.name || "S")[0].toUpperCase()
-                      )}
-                    </div>
-                    <span className="truncate">Settings</span>
-                </div>
-                <i className="ph ph-caret-right text-muted group-hover:text-foreground transition-colors shrink-0"></i>
-            </Link>
-        </div>
-      </aside>
+            <div>
+              <SidebarMenu>
+                {WORK_NAV_ITEMS.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.label}
+                        className={cn(
+                          "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
+                          isActive
+                            ? "bg-accent/10 text-accent font-semibold"
+                            : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
+                        )}
+                      >
+                        <Link href={item.href}>
+                          <i className={cn("text-xl", isActive ? item.activeIcon : item.icon)}></i>
+                          <span className="ml-3 group-data-[collapsible=icon]:hidden">{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </div>
+          </SidebarContent>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-transparent h-screen overflow-y-auto relative">
-        {/* Header Top Bar */}
-        <header className="flex items-center justify-between px-8 sm:px-16 py-6 sticky top-0 z-30 bg-background/80 backdrop-blur-md">
-            <div className="flex items-center">
-              <button 
-                onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 -ml-2 mr-2 text-muted hover:text-foreground rounded-lg hover:bg-foreground/[0.04] transition-colors"
-              >
-                <i className="ph ph-list text-2xl"></i>
-              </button>
+          <SidebarFooter className="p-4 border-t border-card-border/50">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="Settings"
+                  className={cn(
+                    "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
+                    pathname === "/settings"
+                      ? "bg-accent/10 text-accent font-semibold"
+                      : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
+                  )}
+                >
+                  <Link href="/settings">
+                    <i className={cn("text-xl", pathname === "/settings" ? "ph-fill ph-gear" : "ph ph-gear")}></i>
+                    <span className="ml-3 group-data-[collapsible=icon]:hidden">Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main Panel Content */}
+        <div className="flex-1 flex flex-col min-w-0 bg-transparent h-screen overflow-hidden relative">
+          
+          {/* Header Bar */}
+          <header className="flex items-center justify-between px-6 py-4 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-card-border shrink-0">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-foreground tracking-tight select-none">
+                {PAGE_TITLES[pathname] || "Dashboard"}
+              </h1>
             </div>
             
-            <div className="flex items-center gap-3 sm:gap-6">
-                {/* Global Command Palette search trigger */}
-                <button 
-                  onClick={() => setIsCommandPaletteOpen(true)}
-                  className="relative group hidden sm:flex items-center text-left pl-10 pr-12 py-2.5 bg-card border border-card-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-64 shadow-sm transition-all text-muted hover:border-foreground/20 hover:bg-foreground/[0.01]" 
-                >
-                    <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted group-hover:text-accent transition-colors"></i>
-                    <span className="text-sm select-none text-muted/80">Search...</span>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                        <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-muted border border-card-border rounded bg-foreground/[0.02] pointer-events-none select-none">{osKey} F/K</kbd>
-                    </div>
-                </button>
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Global Command Palette search trigger */}
+              <button 
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="relative group hidden sm:flex items-center text-left pl-10 pr-12 h-10 bg-card border border-card-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-64 shadow-xs transition-all text-muted hover:border-foreground/20 hover:bg-foreground/[0.01]" 
+              >
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-hover:text-accent size-4 transition-colors" />
+                <span className="text-sm select-none text-muted/80">Search...</span>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 text-[9px] font-sans font-medium text-muted border border-card-border rounded-md bg-foreground/[0.02] pointer-events-none select-none">{osKey} F/K</kbd>
+                </div>
+              </button>
 
-                {/* Theme Toggle */}
-                <ThemeToggle />
+              {/* Search Shortcut Trigger (Icon only for small Header) */}
+              <button 
+                onClick={() => setIsCommandPaletteOpen(true)}
+                className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs sm:hidden"
+              >
+                <Search className="size-5" />
+              </button>
 
-                {/* Notifications */}
-                <button onClick={handleNotificationsClick} className="relative p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/[0.04]">
-                    <i className="ph ph-bell text-2xl"></i>
-                    {alertCount > 0 && (
-                      <span className="absolute top-1 right-1 w-4 h-4 bg-accent text-action-text text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-background">
-                        {alertCount > 9 ? "9+" : alertCount}
-                      </span>
-                    )}
-                </button>
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
-                {/* Profile */}
-                <button 
-                  onClick={() => setIsProfileModalOpen(true)}
-                  className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-2 sm:pl-3 border-l border-card-border"
-                >
-                    <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden">
-                      {activeProfile?.profilePic ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
-                      ) : (
-                        (activeProfile?.name || "N")[0].toUpperCase()
-                      )}
-                    </div>
-                    <div className="text-left hidden md:block">
-                        <div className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">{activeProfile?.name || "Guest"}</div>
-                        <div className="text-xs text-muted font-medium truncate max-w-[120px]">{activeProfile?.profession || "Setup required"}</div>
-                    </div>
-                    <i className="ph ph-caret-down text-muted text-sm hidden sm:block"></i>
-                </button>
+              {/* Notifications */}
+              <button 
+                onClick={handleNotificationsClick} 
+                className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
+              >
+                <Bell className="size-5" />
+                {alertCount > 0 && (
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card animate-pulse" />
+                )}
+              </button>
+
+              {/* Profile */}
+              <button 
+                onClick={() => setIsProfileModalOpen(true)}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-3 sm:pl-4 border-l border-card-border h-10"
+              >
+                <div className="w-8 h-8 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden select-none border border-card-border/50 shadow-sm shrink-0">
+                  {activeProfile?.profilePic ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
+                  ) : (
+                    (activeProfile?.name || "N")[0].toUpperCase()
+                  )}
+                </div>
+                <div className="text-left hidden md:block">
+                  <div className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">{activeProfile?.name || "Guest"}</div>
+                  <div className="text-[10px] text-muted font-medium truncate max-w-[120px]">{activeProfile?.profession || "Setup required"}</div>
+                </div>
+                <ChevronDown className="size-4 text-muted hidden sm:block transition-transform duration-300" />
+              </button>
             </div>
-        </header>
+          </header>
 
-        {loading ? <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} /> : children}
-      </main>
+          {/* Main Scroll Area */}
+          <div className="flex-1 overflow-y-auto bg-background/50">
+            <div className="p-6 sm:p-8 lg:p-12 max-w-[1600px] mx-auto w-full">
+              {loading ? <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} /> : children}
+            </div>
+          </div>
+        </div>
 
-      <ProfileOnboarding
-        key={onboardingProfileId || "profile-onboarding"}
-        profileId={onboardingProfileId}
-        onClose={() => {
-          window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
-          setOnboardingProfileId(null);
-        }}
-      />
+        <ProfileOnboarding
+          key={onboardingProfileId || "profile-onboarding"}
+          profileId={onboardingProfileId}
+          onClose={() => {
+            window.localStorage.removeItem(ACTIVE_ONBOARDING_PROFILE_KEY);
+            setOnboardingProfileId(null);
+          }}
+        />
 
-      <AnimatePresence>
-        {isCommandPaletteOpen && (
-          <CommandPalette
-            onClose={() => setIsCommandPaletteOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {isCommandPaletteOpen && (
+            <CommandPalette
+              onClose={() => setIsCommandPaletteOpen(false)}
+            />
+          )}
+        </AnimatePresence>
 
-      <ProfileManagerModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        onProfileCreated={(id) => {
-          window.localStorage.setItem(ACTIVE_ONBOARDING_PROFILE_KEY, id);
-          setOnboardingProfileId(id);
-          setIsSidebarOpen(true);
-        }}
-      />
-    </div>
+        <ProfileManagerModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          onProfileCreated={(id) => {
+            window.localStorage.setItem(ACTIVE_ONBOARDING_PROFILE_KEY, id);
+            setOnboardingProfileId(id);
+          }}
+        />
+      </div>
+    </SidebarProvider>
   );
 }

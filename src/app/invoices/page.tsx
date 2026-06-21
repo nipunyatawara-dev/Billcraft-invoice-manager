@@ -1037,39 +1037,113 @@ export default function Invoices() {
   return (
     <>
       <main className="app-main flex-1">
-        <div className="page-heading">
+        {/* Page Header Area */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Billing" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText as="p" text="Billing" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
             <AnimatedText
               as="h1"
               text="Invoices"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
+              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
               delayMs={70}
             />
+            <AnimatedText as="p" text="Manage your client invoices, payments, and workflow history." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
           </div>
-          <button onClick={() => openCreateModal()} className="btn-primary active:scale-[0.97]">
-            <span className="material-symbols-outlined text-[16px]">add</span>
+          
+          <button 
+            onClick={() => openCreateModal()} 
+            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+          >
+            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
             New Invoice
           </button>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Total Billed</p>
-            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} /></p>
+        {/* Overview Stats Bento Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* Total Billed */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Total Billed</span>
+              <i className="ph ph-invoice text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                    <div>all-time</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Total</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={invoices.length} /> <span className="text-[12px] font-normal text-muted">invoices</span></p>
+
+          {/* Total Invoices */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Invoices</span>
+              <i className="ph ph-receipt text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={invoices.length} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                    <div>issued</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Collected</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
+
+          {/* Collected */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Collected</span>
+              <i className="ph ph-wallet text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-accent leading-tight select-none">
+                    <div>{totals.paidCount} paid</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Attention</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={totals.unpaidCount + totals.overdueCount} /> <span className="text-[12px] font-normal text-accent">pending</span></p>
+
+          {/* Attention */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5">
+              <span className="text-sm font-semibold text-muted">Attention</span>
+              <i className="ph ph-warning-circle text-lg text-accent"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                  <AnimatedNumber value={totals.unpaidCount + totals.overdueCount} />
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-accent leading-tight select-none">
+                    <div>pending</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1145,9 +1219,6 @@ export default function Invoices() {
           currency={currency}
         />
 
-        <div className="flex items-center justify-between mt-6 pt-5 border-t border-card-border">
-          <p className="text-[11px] text-muted font-medium">Showing <AnimatedNumber value={filteredInvoices.length} /> of <AnimatedNumber value={invoices.length} /> invoices</p>
-        </div>
       </main>
 
       {modalMode && (

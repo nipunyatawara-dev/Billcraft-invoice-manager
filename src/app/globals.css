@@ -36,6 +36,20 @@
   --color-chart-soft: var(--chart-soft);
   --color-chart-strong: var(--chart-strong);
 
+  --color-border: var(--card-border);
+  --color-input: var(--card-border);
+  --color-ring: var(--accent);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-foreground: var(--foreground);
+  --color-sidebar-primary: var(--accent);
+  --color-sidebar-primary-foreground: var(--action-text);
+  --color-sidebar-accent: color-mix(in srgb, var(--accent) 8%, transparent);
+  --color-sidebar-accent-foreground: var(--accent);
+  --color-sidebar-border: var(--card-border);
+  --color-sidebar-ring: var(--accent);
+
   --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-newsreader), 'Georgia', 'Times New Roman', serif;
 
@@ -71,37 +85,15 @@ html[data-font="plus-jakarta-sans"] {
   --font-display: var(--font-plus-jakarta-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Base Radius (Default mapping if none applied) */
+/* Base Radius (Default mapping matching template corner style) */
 html {
-  --radius: 0.375rem;
-  --radius-sm: 0.125rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
-}
-
-/* Squircle Mode (Classic / Sharper) */
-html[data-radius="squircle"] {
-  --radius: 0.25rem;
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
-  --radius-2xl: 0.75rem;
-  --radius-3xl: 1rem;
-}
-
-/* Rounded Mode (Soft / Modern) */
-html[data-radius="rounded"] {
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-2xl: 2rem;
-  --radius-3xl: 2.5rem;
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
 }
 
 html {
@@ -398,14 +390,14 @@ html.dark {
     width: 100%;
     max-width: 1380px;
     margin-inline: auto;
-    padding: 1.25rem 2rem;
+    padding: calc(var(--spacing) * 5) calc(var(--spacing) * 8);
   }
 
   .app-main-wide {
     width: 100%;
     max-width: 1650px;
     margin-inline: auto;
-    padding: 1.25rem;
+    padding: calc(var(--spacing) * 5) calc(var(--spacing) * 8);
   }
 
   .app-shell {
@@ -444,7 +436,7 @@ html.dark {
   .surface-featured {
     background: var(--card);
     border: 1px solid var(--card-border);
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius);
     box-shadow:
       0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent),
       0 4px 12px color-mix(in srgb, var(--foreground) 4%, transparent),
@@ -458,7 +450,7 @@ html.dark {
   .skeleton-block {
     display: block;
     overflow: hidden;
-    border-radius: var(--radius-2xl);
+    border-radius: var(--radius);
     background:
       linear-gradient(
         90deg,
@@ -481,7 +473,7 @@ html.dark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius);
     font-weight: 600;
     transition-property: color, background-color, border-color, opacity, transform, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -614,7 +606,7 @@ html.dark {
   .field-control {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius);
     background: var(--field, var(--card));
     color: var(--foreground);
     font-size: 0.875rem;
@@ -633,8 +625,8 @@ html.dark {
     position: relative;
     display: inline-flex;
     align-items: stretch;
-    height: 2.25rem;
-    border-radius: var(--radius-xl);
+    height: 2.75rem;
+    border-radius: var(--radius);
     border: 1px solid var(--card-border);
     background: var(--card);
     box-shadow:
@@ -689,7 +681,7 @@ html.dark {
   .modal-surface {
     width: 100%;
     border: 1px solid var(--card-border);
-    border-radius: var(--radius-3xl);
+    border-radius: var(--radius);
     background: var(--background);
     box-shadow:
       0 8px 32px color-mix(in srgb, #080808 12%, transparent),
@@ -793,7 +785,7 @@ html.dark {
 
   @media (min-width: 1024px) {
     .app-main-wide {
-      padding: 2.25rem 2.5rem;
+      padding: 2.25rem 4rem;
     }
 
     .app-main {
@@ -811,14 +803,22 @@ html.dark {
       --billcraft-toast-notification-edge: 3.25rem;
     }
 
+    .app-main-wide {
+      padding: calc(var(--spacing) * 5) calc(var(--spacing) * 16);
+    }
+
     .app-main {
-      padding: 1.25rem 4rem;
+      padding: calc(var(--spacing) * 5) calc(var(--spacing) * 16);
     }
   }
 
   @media (max-width: 640px) {
+    .app-main-wide {
+      padding: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
+    }
+
     .app-main {
-      padding: 1rem 2rem;
+      padding: calc(var(--spacing) * 4) calc(var(--spacing) * 8);
     }
 
     .page-heading {
@@ -1225,3 +1225,15 @@ html.dark[data-dark-palette="palette-5"] .onboarding-bg-glows {
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 }
+
+/* Layout Density Configurations */
+html[data-density="compact"] {
+  --spacing: 0.1875rem; /* scales spacing properties down to 75% compact density */
+  --radius: 0.5rem;
+}
+
+html[data-density="spacious"] {
+  --spacing: 0.325rem; /* scales spacing properties up to 130% spacious density */
+  --radius: 0.85rem;
+}
+

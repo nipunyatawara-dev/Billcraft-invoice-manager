@@ -638,64 +638,87 @@ export default function Outsourcing() {
     <>
       <main className="app-main flex-1">
         {/* Page Heading */}
-        <div className="page-heading flex justify-between items-center mb-8">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
             <AnimatedText as="p" text="Payables" effect="micro-scale-fade" className="section-eyebrow text-xs font-bold uppercase tracking-widest text-accent mb-2" />
             <AnimatedText
               as="h1"
               text="Outsourcing"
               effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground"
+              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
               delayMs={70}
             />
+            <AnimatedText
+              as="p"
+              text="Track vendor payables, settle balances, and coordinate outsourced services."
+              effect="micro-scale-fade"
+              className="text-muted mt-2 text-base font-medium"
+              delayMs={140}
+            />
           </div>
-          <button onClick={openCreateModal} className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-2xl font-semibold shadow-md shadow-accent/15 transition-all active:scale-[0.97] group">
-            <span className="material-symbols-outlined text-[18px] group-hover:rotate-90 transition-transform">add</span>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+          >
+            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
             New Payable
           </button>
-        </div>
+        </header>
 
-        {/* Bento Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {/* Total Payables */}
-          <div className="bg-gradient-to-br from-card to-accent/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300">
-            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-accent/10 rounded-full blur-xl pointer-events-none group-hover:bg-accent/20 transition-colors"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent ring-1 ring-accent/20">
-                <span className="material-symbols-outlined text-[20px] font-bold">account_balance_wallet</span>
-              </div>
+        {/* Overview Stats Bento Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Outsourced */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Total Outsourced</span>
+              <i className="ph ph-wallet text-lg text-muted-foreground"></i>
             </div>
-            <div className="relative z-10">
-              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Total Payables</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} /></p>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                <AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} />
+              </span>
             </div>
           </div>
 
-          {/* Paid */}
-          <div className="bg-gradient-to-br from-card to-positive/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-positive/30 hover:shadow-xl hover:shadow-positive/5 transition-all duration-300">
-            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-positive/10 rounded-full blur-xl pointer-events-none group-hover:bg-positive/20 transition-colors"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-2xl bg-positive/10 flex items-center justify-center text-positive ring-1 ring-positive/20">
-                <span className="material-symbols-outlined text-[20px] font-bold">check_circle</span>
-              </div>
+          {/* Total Settled */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-75">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Total Settled</span>
+              <i className="ph ph-check-circle text-lg text-positive"></i>
             </div>
-            <div className="relative z-10">
-              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Paid</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} /></p>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
+              </span>
             </div>
           </div>
 
-          {/* Unpaid */}
-          <div className="bg-gradient-to-br from-card to-amber-500/5 backdrop-blur-md rounded-3xl border border-card-border p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/30 hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300">
-            <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/20 transition-colors"></div>
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 ring-1 ring-amber-500/20">
-                <span className="material-symbols-outlined text-[20px] font-bold">pending</span>
-              </div>
+          {/* Open Vendor Bills */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-100">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Open Bills</span>
+              <i className="ph ph-clock text-lg text-amber-500"></i>
             </div>
-            <div className="relative z-10">
-              <p className="text-[11px] font-bold text-muted tracking-wider uppercase mb-1">Unpaid</p>
-              <p className="text-2xl font-extrabold text-foreground tracking-tight"><AnimatedNumber value={formatCurrency(totals.totalAmount - totals.paidAmount, currency)} /></p>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                <AnimatedNumber value={formatCurrency(totals.totalAmount - totals.paidAmount, currency)} />
+              </span>
+            </div>
+          </div>
+
+          {/* Active Vendors */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-150">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Active Vendors</span>
+              <i className="ph ph-users-three text-lg text-muted-foreground"></i>
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                  <AnimatedNumber value={vendors.length} />
+                </span>
+                <span className="text-[11px] font-normal text-muted select-none">saved</span>
+              </div>
             </div>
           </div>
         </div>
@@ -711,15 +734,15 @@ export default function Outsourcing() {
                 onChange={setSearchQuery}
                 placeholder="Search outsourcing payables..."
               />
-              <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0">
+              <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 no-scrollbar">
                 {STATUS_FILTERS.map((filter) => (
                   <button
                     key={filter}
                     type="button"
                     onClick={() => setActiveFilter(filter)}
-                    className={`px-3 py-1.5 text-[11px] font-semibold rounded-xl transition-smooth active:scale-[0.95] tracking-wide uppercase ${
+                    className={`px-3.5 py-1.5 text-[11px] font-semibold rounded-xl transition-all cursor-pointer select-none active:scale-[0.95] tracking-wide uppercase whitespace-nowrap ${
                       activeFilter === filter
-                        ? "bg-action text-action-text"
+                        ? "bg-accent/10 border-accent/20 text-accent border"
                         : "text-muted hover:bg-foreground/[0.04] border border-card-border"
                     }`}
                   >
@@ -743,15 +766,15 @@ export default function Outsourcing() {
                       type="button"
                       key={invoice.id}
                       onClick={() => openShareModal(invoice)}
-                      className="surface-card w-full text-left p-5 rounded-3xl border border-card-border hover:border-foreground/15 hover:shadow-lg transition-all duration-300 relative group overflow-hidden"
+                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover:shadow-xl hover:border-accent/30 transition-all duration-300 relative group overflow-hidden"
                     >
                       <div className="flex items-center gap-4 relative z-10">
                         {/* Avatar with Status Ring */}
-                        <div className={`size-11 rounded-2xl overflow-hidden shrink-0 ring-2 ${
-                          paymentState === "Paid" ? "ring-positive/40" : "ring-foreground/15"
-                        } border-2 border-background shadow-xs flex items-center justify-center font-bold text-xs bg-accent/10 text-accent`}>
+                        <div className={`size-10 rounded-xl overflow-hidden shrink-0 ring-1 ${
+                          paymentState === "Paid" ? "ring-positive/30" : "ring-foreground/10"
+                        } border border-background shadow-xs flex items-center justify-center font-bold text-xs bg-accent/10 text-accent`}>
                           {invoice.avatar ? (
-                            <img className="w-full h-full object-cover" alt={invoice.vendor} src={invoice.avatar} />
+                            <img className="w-full h-full object-cover rounded-xl" alt={invoice.vendor} src={invoice.avatar} />
                           ) : (
                             (invoice.vendor || "V")[0].toUpperCase()
                           )}
@@ -774,23 +797,38 @@ export default function Outsourcing() {
                         </div>
 
                         {/* Status Pill */}
-                        <span className={`px-3 py-1.5 text-[10px] font-bold rounded-full tracking-wide uppercase shrink-0 ${
-                          paymentState === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
+                        <span className={`px-2.5 py-1 text-[9px] font-bold rounded-lg tracking-wide uppercase shrink-0 ${
+                          paymentState === "Paid" ? "bg-positive/10 text-positive border border-positive/20" : "bg-foreground/[0.06] text-foreground/60 border border-foreground/[0.03]"
                         }`}>
                           {paymentState}
                         </span>
 
                         {/* Hover action toolbar */}
-                        <div className="hidden sm:flex items-center gap-1 shrink-0 bg-background/50 backdrop-blur-xs border border-card-border p-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <span onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }} className="size-8 flex items-center justify-center rounded-xl text-muted hover:text-accent hover:bg-accent/10 transition-colors" title="Edit">
-                            <span className="material-symbols-outlined text-[16px] font-bold">edit</span>
-                          </span>
-                          <span onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }} className="size-8 flex items-center justify-center rounded-xl text-muted hover:text-accent hover:bg-accent/10 transition-colors" title="Send">
-                            <span className="material-symbols-outlined text-[16px] font-bold">share</span>
-                          </span>
-                          <span onClick={(event) => { event.stopPropagation(); handleExportOutsourcingInvoice(invoice); }} className="size-8 flex items-center justify-center rounded-xl text-muted hover:text-accent hover:bg-accent/10 transition-colors" title="Download">
-                            <span className="material-symbols-outlined text-[16px] font-bold">download</span>
-                          </span>
+                        <div className="hidden sm:flex items-center gap-1 shrink-0 bg-background/50 backdrop-blur-xs border border-card-border p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <button
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }}
+                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
+                            title="Edit"
+                          >
+                            <i className="ph ph-pencil text-xs"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }}
+                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
+                            title="Send"
+                          >
+                            <i className="ph ph-paper-plane-tilt text-xs"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => { event.stopPropagation(); handleExportOutsourcingInvoice(invoice); }}
+                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
+                            title="Download"
+                          >
+                            <i className="ph ph-download text-xs"></i>
+                          </button>
                         </div>
                       </div>
 
@@ -805,8 +843,8 @@ export default function Outsourcing() {
               ))}
 
               {filteredInvoices.length === 0 && (
-                <div className="text-center py-20 bg-card/40 border border-card-border border-dashed rounded-3xl">
-                  <span className="material-symbols-outlined text-[48px] text-foreground/10 mb-3 block">engineering</span>
+                <div className="text-center py-20 bg-card/40 border border-card-border border-dashed rounded-xl">
+                  <i className="ph ph-folder-open text-[48px] text-foreground/15 mb-3 block"></i>
                   <AnimatedText as="p" text="No outsourcing payables found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
                 </div>
               )}
@@ -815,10 +853,10 @@ export default function Outsourcing() {
 
           {/* Saved Vendors Column (Deck style) */}
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-card to-card/60 rounded-3xl border border-card-border p-5 space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-card-border pb-3">
+            <div className="bg-card rounded-xl border border-card-border p-5 space-y-4">
+              <div className="flex items-center justify-between border-b border-card-border pb-3 select-none">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px] text-muted">contacts</span>
+                  <i className="ph ph-users text-lg text-muted-foreground"></i>
                   <h2 className="text-[11.5px] font-bold text-muted tracking-wider uppercase">Saved Vendors ({vendors.length})</h2>
                 </div>
                 <button 
@@ -828,9 +866,9 @@ export default function Outsourcing() {
                     setForm({ ...createEmptyForm(), vendorMode: "new" });
                     setModalMode("create");
                   }} 
-                  className="text-[11px] text-accent font-bold hover:text-accent-hover flex items-center gap-0.5 tracking-wider uppercase hover:underline"
+                  className="text-[11px] text-accent font-bold hover:text-accent-hover flex items-center gap-1 tracking-wider uppercase hover:underline"
                 >
-                  <span className="material-symbols-outlined text-[14px]">add</span> Add
+                  <i className="ph ph-plus text-xs"></i> Add
                 </button>
               </div>
 
@@ -845,10 +883,10 @@ export default function Outsourcing() {
                       onClick={() => {
                         setActiveDetailVendor(vendor);
                       }}
-                      className="w-full flex items-center justify-between p-2.5 rounded-2xl hover:bg-foreground/[0.03] border border-transparent hover:border-card-border/60 transition-all duration-300 group/vendor text-left"
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-foreground/[0.03] border border-transparent hover:border-card-border/60 transition-all duration-300 group/vendor text-left"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <img className="size-9 rounded-xl object-cover border border-card-border shadow-3xs group-hover/vendor:scale-105 transition-transform duration-300" alt={vendor.name} src={vendor.avatar || createAvatar(vendor.name)} />
+                        <img className="size-9 rounded-lg object-cover border border-card-border shadow-3xs group-hover/vendor:scale-105 transition-transform duration-300" alt={vendor.name} src={vendor.avatar || createAvatar(vendor.name)} />
                         <div className="min-w-0">
                           <p className="text-[13px] font-bold text-foreground truncate group-hover/vendor:text-accent transition-colors">{vendor.name}</p>
                           <p className="text-[11px] text-muted truncate mt-0.5">{vendor.company || "Individual"}</p>
@@ -867,7 +905,7 @@ export default function Outsourcing() {
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={closeModal} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 rounded-xl">
             <div className="flex items-center justify-between mb-6 border-b border-card-border pb-4">
               <AnimatedText
                 as="h2"
@@ -876,8 +914,8 @@ export default function Outsourcing() {
                 className="text-xl font-bold text-foreground font-display"
                 replayKey={modalTitle}
               />
-              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-colors">
-                <span className="material-symbols-outlined text-[20px] text-muted">close</span>
+              <button onClick={closeModal} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
+                <i className="ph ph-x text-sm"></i>
               </button>
             </div>
 
@@ -894,7 +932,7 @@ export default function Outsourcing() {
                         role="radio"
                         aria-checked={isSelected}
                         onClick={() => setForm({ ...form, templateId: template.id })}
-                        className={`surface-card p-4 text-left rounded-2xl border transition-all ${
+                        className={`bg-card text-card-foreground p-4 text-left rounded-xl border transition-all ${
                           isSelected ? "border-accent/60 bg-accent/[0.02] shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_12%,transparent)]" : "hover:border-foreground/15"
                         }`}
                       >
@@ -903,8 +941,8 @@ export default function Outsourcing() {
                             <span className="block text-[13px] font-bold text-foreground">{template.name}</span>
                             <span className="block mt-1 text-[11px] text-muted leading-relaxed">{template.description}</span>
                           </span>
-                          <span className={`size-7 rounded-xl flex items-center justify-center ${isSelected ? "bg-action text-action-text" : "border border-card-border text-transparent"}`}>
-                            <span className="material-symbols-outlined text-[16px] font-bold">check</span>
+                          <span className={`size-7 rounded-lg flex items-center justify-center ${isSelected ? "bg-action text-action-text" : "border border-card-border text-transparent"}`}>
+                            <i className="ph ph-check text-xs font-bold"></i>
                           </span>
                         </span>
                       </button>
@@ -912,18 +950,18 @@ export default function Outsourcing() {
                   })}
                 </div>
 
-                <div className="surface-card p-5 border border-card-border rounded-3xl space-y-5">
+                <div className="bg-card text-card-foreground p-5 border border-card-border rounded-xl space-y-5">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-card-border/60 pb-4">
                     <div>
                       <p className="text-[11px] font-bold text-muted tracking-wider uppercase">Vendor Mode</p>
                       <p className="text-[11px] text-muted mt-0.5">Select a saved vendor or fill out a one-time payee.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 rounded-full border border-card-border bg-foreground/[0.03] p-1 shrink-0">
+                    <div className="grid grid-cols-2 gap-1 rounded-xl border border-card-border bg-foreground/[0.03] p-1 shrink-0">
                       <button
                         type="button"
                         onClick={() => setVendorMode("saved")}
                         disabled={vendors.length === 0}
-                        className={`min-h-8 rounded-full px-4 text-[12px] font-bold transition-all active:scale-[0.96] ${
+                        className={`min-h-8 rounded-lg px-4 text-[12px] font-medium transition-all active:scale-[0.96] ${
                           form.vendorMode === "saved"
                             ? "bg-action text-action-text shadow-sm"
                             : "text-muted hover:bg-foreground/[0.04] disabled:opacity-30 disabled:cursor-not-allowed"
@@ -934,7 +972,7 @@ export default function Outsourcing() {
                       <button
                         type="button"
                         onClick={() => setVendorMode("new")}
-                        className={`min-h-8 rounded-full px-4 text-[12px] font-bold transition-all active:scale-[0.96] ${
+                        className={`min-h-8 rounded-lg px-4 text-[12px] font-medium transition-all active:scale-[0.96] ${
                           form.vendorMode === "new"
                             ? "bg-action text-action-text shadow-sm"
                             : "text-muted hover:bg-foreground/[0.04]"
@@ -955,16 +993,16 @@ export default function Outsourcing() {
                               <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
                             ))}
                           </select>
-                          <span className="material-symbols-outlined absolute right-3 top-3 text-muted pointer-events-none text-[18px]">expand_more</span>
+                          <i className="ph ph-caret-down absolute right-3 top-3.5 text-muted pointer-events-none text-[16px]"></i>
                         </div>
                       </div>
                       
-                      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-card-border bg-foreground/[0.02] p-4">
+                      <div className="mt-3 flex items-start gap-3 rounded-xl border border-card-border bg-foreground/[0.02] p-4">
                         {form.avatar ? (
-                          <img className="size-11 rounded-xl object-cover border border-card-border shadow-3xs" alt={form.vendor} src={form.avatar} />
+                          <img className="size-11 rounded-lg object-cover border border-card-border shadow-3xs" alt={form.vendor} src={form.avatar} />
                         ) : (
-                          <span className="size-11 rounded-xl bg-foreground/[0.04] flex items-center justify-center border border-card-border">
-                            <span className="material-symbols-outlined text-[18px] text-muted">engineering</span>
+                          <span className="size-11 rounded-lg bg-foreground/[0.04] flex items-center justify-center border border-card-border">
+                            <i className="ph ph-wrench text-[18px] text-muted-foreground"></i>
                           </span>
                         )}
                         <div className="min-w-0 text-[12px] text-muted leading-relaxed space-y-0.5">
@@ -979,11 +1017,11 @@ export default function Outsourcing() {
                     <div className="space-y-4">
                       {/* Avatar Upload */}
                       <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-3xs">
+                        <div className="size-12 rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-3xs">
                           {form.avatar ? (
-                            <img className="w-full h-full object-cover" alt="Vendor preview" src={form.avatar} />
+                            <img className="w-full h-full object-cover rounded-xl" alt="Vendor preview" src={form.avatar} />
                           ) : (
-                            <span className="material-symbols-outlined text-foreground/20 text-[20px]">image</span>
+                            <i className="ph ph-image text-foreground/20 text-xl"></i>
                           )}
                         </div>
                         <label className="btn-secondary text-[11px] min-h-8 px-3.5 py-1.5 cursor-pointer rounded-xl font-semibold transition-all">
@@ -1028,9 +1066,9 @@ export default function Outsourcing() {
                 </div>
 
                 {/* Dates & Currency overrides */}
-                <div className="surface-card p-5 border border-card-border rounded-3xl space-y-4">
-                  <h3 className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-1.5 pb-2 border-b border-card-border/40">
-                    <span className="material-symbols-outlined text-[15px] font-bold">calendar_month</span>
+                <div className="bg-card text-card-foreground p-5 border border-card-border rounded-xl space-y-4">
+                  <h3 className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-1.5 pb-2 border-b border-card-border/40 select-none">
+                    <i className="ph ph-calendar text-base text-muted-foreground"></i>
                     Billing Terms & Currencies
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1058,21 +1096,21 @@ export default function Outsourcing() {
                             </option>
                           ))}
                         </select>
-                        <span className="material-symbols-outlined absolute right-3 top-3 text-muted pointer-events-none text-[18px]">expand_more</span>
+                        <i className="ph ph-caret-down absolute right-3 top-3.5 text-muted pointer-events-none text-[16px]"></i>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Line Items Card List */}
-                <div className="surface-card border border-card-border rounded-3xl overflow-hidden shadow-3xs">
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-card-border bg-foreground/[0.01]">
+                <div className="bg-card text-card-foreground border border-card-border rounded-xl overflow-hidden shadow-3xs">
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-card-border bg-foreground/[0.01] select-none">
                     <p className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[15px] font-bold">list_alt</span>
+                      <i className="ph ph-list-bullets text-base text-muted-foreground"></i>
                       Payable Items
                     </p>
-                    <button type="button" onClick={() => setForm({ ...form, items: [...form.items, createItem()] })} className="text-accent hover:text-accent-hover hover:bg-accent/10 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 text-[11px] font-bold tracking-wider uppercase">
-                      <span className="material-symbols-outlined text-[15px] font-bold">add</span>
+                    <button type="button" onClick={() => setForm({ ...form, items: [...form.items, createItem()] })} className="text-accent hover:text-accent-hover hover:bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all flex items-center gap-1 text-[11px] font-bold tracking-wider uppercase active:scale-[0.97]">
+                      <i className="ph ph-plus text-xs"></i>
                       Add Item
                     </button>
                   </div>
@@ -1098,8 +1136,8 @@ export default function Outsourcing() {
                           }} className="field-control px-3.5 py-2.5 text-[13px] bg-background/50 border border-card-border focus:border-accent rounded-xl" />
                         </div>
                         <div className="flex md:items-end md:pb-1">
-                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-xl text-muted hover:text-accent hover:bg-accent/10 transition-colors" aria-label="Remove item">
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                          <button type="button" onClick={() => removeItem(index)} className="size-9 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95" aria-label="Remove item">
+                            <i className="ph ph-trash text-sm"></i>
                           </button>
                         </div>
                       </div>
@@ -1122,17 +1160,17 @@ export default function Outsourcing() {
                 />
 
                 {needsVendorSaveChoice && (
-                  <div className="rounded-2xl border border-accent/25 bg-accent/5 p-5 space-y-3">
+                  <div className="rounded-xl border border-accent/25 bg-accent/5 p-5 space-y-3">
                     <p className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[16px] text-accent">save</span>
+                      <i className="ph ph-floppy-disk text-base text-accent"></i>
                       Save this vendor details?
                     </p>
                     <p className="text-[12px] text-muted leading-relaxed">Regular vendors are stored for reuse in future payables. One-time vendors will remain attached only to this payable invoice.</p>
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <button type="button" onClick={() => void submitOutsourcingInvoice("regular")} className="btn-primary active:scale-[0.97] px-4 py-2 text-xs font-semibold rounded-xl">
+                      <button type="button" onClick={() => void submitOutsourcingInvoice("regular")} className="btn-primary active:scale-[0.97] px-4 py-2 text-xs font-medium rounded-lg">
                         Save Regular Vendor
                       </button>
-                      <button type="button" onClick={() => void submitOutsourcingInvoice("onetime")} className="btn-secondary px-4 py-2 text-xs font-semibold rounded-xl">
+                      <button type="button" onClick={() => void submitOutsourcingInvoice("onetime")} className="btn-secondary px-4 py-2 text-xs font-medium rounded-lg">
                         One-Time Only
                       </button>
                     </div>
@@ -1150,14 +1188,14 @@ export default function Outsourcing() {
               </form>
             ) : selectedInvoice && (
               <div className="space-y-6">
-                <div className="surface-card p-6 border border-card-border rounded-3xl space-y-6 shadow-2xs">
+                <div className="bg-card text-card-foreground p-6 border border-card-border rounded-xl space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-card-border/60 pb-5">
                     <div>
                       <p className="text-[10px] font-bold text-muted tracking-wider uppercase">{selectedInvoice.templateName || "Outsourcing Invoice"}</p>
                       <p className="text-3xl font-extrabold text-foreground font-display mt-1">{selectedInvoice.id}</p>
                     </div>
-                    <span className={`px-3 py-1.5 text-[10px] font-bold rounded-full tracking-wide uppercase shrink-0 ${
-                      getOutsourcingPaymentState(selectedInvoice) === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
+                    <span className={`px-2.5 py-1 text-[9px] font-bold rounded-lg tracking-wide uppercase shrink-0 ${
+                      getOutsourcingPaymentState(selectedInvoice) === "Paid" ? "bg-positive/10 text-positive border border-positive/20" : "bg-foreground/[0.06] text-foreground/60 border border-foreground/[0.03]"
                     }`}>
                       {getOutsourcingPaymentState(selectedInvoice)}
                     </span>
@@ -1167,9 +1205,9 @@ export default function Outsourcing() {
                     <div>
                       <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-3 border-b border-card-border/40 pb-1">Pay To</p>
                       <div className="flex items-start gap-3">
-                        <div className="size-11 rounded-xl border border-card-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-xs bg-accent/10 text-accent">
+                        <div className="size-11 rounded-lg border border-card-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-xs bg-accent/10 text-accent">
                           {selectedInvoice.avatar ? (
-                            <img className="w-full h-full object-cover" alt={selectedInvoice.vendor} src={selectedInvoice.avatar} />
+                            <img className="w-full h-full object-cover rounded-lg" alt={selectedInvoice.vendor} src={selectedInvoice.avatar} />
                           ) : (
                             (selectedInvoice.vendor || "V")[0].toUpperCase()
                           )}
@@ -1183,18 +1221,18 @@ export default function Outsourcing() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="surface-card p-4 border border-card-border rounded-2xl bg-foreground/[0.01]">
+                      <div className="bg-card border border-card-border rounded-xl p-4 bg-foreground/[0.01]">
                         <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1">Invoice Date</p>
                         <p className="text-[13px] font-bold text-foreground mt-1">{selectedInvoice.date}</p>
                       </div>
-                      <div className="surface-card p-4 border border-card-border rounded-2xl bg-foreground/[0.01]">
+                      <div className="bg-card border border-card-border rounded-xl p-4 bg-foreground/[0.01]">
                         <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1">Due Date</p>
                         <p className="text-[13px] font-bold text-foreground mt-1">{selectedInvoice.dueDate || "No due date"}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-2xl border border-card-border">
+                  <div className="overflow-hidden rounded-xl border border-card-border">
                     <div className="grid grid-cols-[1fr_70px_110px] gap-3 bg-foreground/[0.03] px-4 py-2.5 text-[10px] font-bold text-muted tracking-widest uppercase border-b border-card-border">
                       <span>Work Description</span>
                       <span className="text-right">Qty</span>
@@ -1219,10 +1257,12 @@ export default function Outsourcing() {
                 <PaymentSummary currency={selectedInvoice.currency || currency} record={selectedInvoice} title="Payment Tracking" isOutsourcing />
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t border-card-border/50">
-                  <button onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary px-4 py-2.5 text-xs font-semibold rounded-xl">
+                  <button type="button" onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary px-4 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 active:scale-[0.97] transition-all">
+                    <i className="ph ph-download text-sm"></i>
                     Download PDF
                   </button>
-                  <button onClick={() => openEditModal(selectedInvoice)} className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15">
+                  <button type="button" onClick={() => openEditModal(selectedInvoice)} className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15 flex items-center gap-1.5">
+                    <i className="ph ph-pencil text-sm"></i>
                     Edit Payable
                   </button>
                 </div>
@@ -1236,14 +1276,14 @@ export default function Outsourcing() {
       {shareInvoice && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setShareInvoice(null)} />
-          <div className="modal-surface relative max-w-md w-full p-6 animate-in zoom-in-95 duration-200 rounded-3xl">
+          <div className="modal-surface relative max-w-md w-full p-6 animate-in zoom-in-95 duration-200 rounded-xl">
             <div className="flex items-center justify-between mb-4 border-b border-card-border/60 pb-3">
-              <h3 className="text-base font-bold text-foreground flex items-center gap-1.5 font-display">
-                <span className="material-symbols-outlined text-[18px] text-accent font-bold">send</span>
+              <h3 className="text-base font-bold text-foreground flex items-center gap-1.5 font-display select-none">
+                <i className="ph ph-paper-plane-tilt text-lg text-accent"></i>
                 Send Payable & Share
               </h3>
-              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-colors">
-                <span className="material-symbols-outlined text-[16px] text-muted">close</span>
+              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
+                <i className="ph ph-x text-sm"></i>
               </button>
             </div>
             
@@ -1253,12 +1293,12 @@ export default function Outsourcing() {
 
             <div className="space-y-4">
               {/* Status workflow */}
-              <div className="surface-card p-4 border border-card-border rounded-2xl space-y-3 bg-foreground/[0.01]">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Workflow Progress</span>
+              <div className="bg-card border border-card-border rounded-xl p-4 space-y-3 bg-foreground/[0.01]">
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block select-none">Workflow Progress</span>
                 
                 {showPaymentOptions ? (
                   <div className="space-y-2">
-                    <span className="text-[11px] font-semibold text-muted block mb-1 text-center">Choose Payment Method</span>
+                    <span className="text-[11px] font-semibold text-muted block mb-1 text-center select-none">Choose Payment Method</span>
                     <div className="grid grid-cols-1 gap-2">
                       {shareInvoice.paypal && (
                         <a 
@@ -1274,9 +1314,9 @@ export default function Outsourcing() {
                             setShareInvoice(null);
                             setShowPaymentOptions(false);
                           }}
-                          className="btn-primary bg-[#0070ba] hover:bg-[#003087] text-white text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5"
+                          className="btn-primary bg-[#0070ba] hover:bg-[#003087] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5"
                         >
-                          <span className="material-symbols-outlined text-[14px]">payment</span>
+                          <i className="ph ph-paypal-logo text-sm"></i>
                           Pay via PayPal
                         </a>
                       )}
@@ -1295,9 +1335,9 @@ export default function Outsourcing() {
                             setShareInvoice(null);
                             setShowPaymentOptions(false);
                           }}
-                          className="btn-primary bg-[#635bff] hover:bg-[#0a2540] text-white text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5"
+                          className="btn-primary bg-[#635bff] hover:bg-[#0a2540] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5"
                         >
-                          <span className="material-symbols-outlined text-[14px]">credit_card</span>
+                          <i className="ph ph-credit-card text-sm"></i>
                           Pay via Stripe
                         </a>
                       )}
@@ -1312,9 +1352,9 @@ export default function Outsourcing() {
                           setShareInvoice(null);
                           setShowPaymentOptions(false);
                         }}
-                        className="btn-secondary text-[11px] py-2 rounded-xl flex items-center justify-center gap-1.5 hover:bg-foreground/[0.04]"
+                        className="btn-secondary text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-foreground/[0.04] border border-card-border"
                       >
-                        <span className="material-symbols-outlined text-[14px]">done</span>
+                        <i className="ph ph-check text-sm"></i>
                         Mark Paid Manually
                       </button>
 
@@ -1344,13 +1384,13 @@ export default function Outsourcing() {
                           setShareInvoice(null);
                         }
                       }}
-                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl flex items-center justify-center gap-1 ${
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border ${
                         getOutsourcingPaymentState(shareInvoice) === "Paid" 
                           ? "bg-positive/15 text-positive border-positive/20 font-bold shadow-2xs" 
                           : ""
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">payments</span>
+                      <i className="ph ph-credit-card text-sm"></i>
                       {getOutsourcingPaymentState(shareInvoice) === "Paid" ? "Paid" : "Pay"}
                     </button>
                     
@@ -1359,13 +1399,13 @@ export default function Outsourcing() {
                         void updateOutsourcingStatus(shareInvoice, { workflowStatus: "Delivered" }); 
                         setShareInvoice(null); 
                       }}
-                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-xl flex items-center justify-center gap-1 ${
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border ${
                         shareInvoice.workflowStatus === "Delivered" 
                           ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" 
                           : ""
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">package</span>
+                      <i className="ph ph-package text-sm"></i>
                       {shareInvoice.workflowStatus === "Delivered" ? "Delivered" : "Mark Delivered"}
                     </button>
                   </div>
@@ -1373,15 +1413,15 @@ export default function Outsourcing() {
               </div>
 
               {/* Share Channels */}
-              <div className="surface-card p-4 border border-card-border rounded-2xl space-y-3 bg-foreground/[0.01]">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Share Channels</span>
+              <div className="bg-card border border-card-border rounded-xl p-4 space-y-3 bg-foreground/[0.01]">
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block select-none">Share Channels</span>
                 <div className="grid grid-cols-3 gap-2">
                   {shareInvoice.phone ? (
                     <a
                       href={`sms:${shareInvoice.phone}?body=${encodeURIComponent(getOutsourcingContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 text-blue-500 hover:bg-blue-500/5 transition-colors border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 text-blue-500 hover:bg-blue-500/5 transition-colors border border-card-border shadow-3xs"
                     >
-                      <span className="material-symbols-outlined text-[20px] font-bold">sms</span>
+                      <i className="ph ph-chats text-lg"></i>
                       <span>Message</span>
                     </a>
                   ) : (
@@ -1391,9 +1431,9 @@ export default function Outsourcing() {
                         void navigator.clipboard.writeText(msg);
                         notify.success({ title: "Message copied", description: "Details copied to clipboard." });
                       }}
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border border-card-border shadow-3xs"
                     >
-                      <span className="material-symbols-outlined text-[20px] font-bold">content_copy</span>
+                      <i className="ph ph-copy text-lg"></i>
                       <span>Copy Msg</span>
                     </button>
                   )}
@@ -1403,17 +1443,17 @@ export default function Outsourcing() {
                       href={getWhatsAppUrl(shareInvoice.phone, getOutsourcingContactMessage(shareInvoice))}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 text-emerald-500 hover:bg-emerald-500/5 transition-colors border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 text-emerald-500 hover:bg-emerald-500/5 transition-colors border border-card-border shadow-3xs"
                     >
-                      <i className="ph ph-whatsapp text-lg font-bold"></i>
+                      <i className="ph ph-whatsapp-logo text-lg font-bold"></i>
                       <span>WhatsApp</span>
                     </a>
                   ) : (
                     <button 
                       disabled
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border border-card-border shadow-3xs"
                     >
-                      <i className="ph ph-whatsapp text-lg font-bold"></i>
+                      <i className="ph ph-whatsapp-logo text-lg font-bold"></i>
                       <span>WhatsApp</span>
                     </button>
                   )}
@@ -1421,17 +1461,17 @@ export default function Outsourcing() {
                   {shareInvoice.email ? (
                     <a
                       href={`mailto:${shareInvoice.email}?subject=${encodeURIComponent("Payable Details: " + shareInvoice.id)}&body=${encodeURIComponent(getOutsourcingContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 text-sky-500 hover:bg-sky-500/5 transition-colors border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 text-sky-500 hover:bg-sky-500/5 transition-colors border border-card-border shadow-3xs"
                     >
-                      <span className="material-symbols-outlined text-[20px] font-bold">mail</span>
+                      <i className="ph ph-envelope text-lg"></i>
                       <span>Email</span>
                     </a>
                   ) : (
                     <button 
                       disabled
-                      className="btn-secondary text-[11px] py-2.5 rounded-xl text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border border-card-border shadow-3xs"
                     >
-                      <span className="material-symbols-outlined text-[20px] font-bold">mail</span>
+                      <i className="ph ph-envelope text-lg"></i>
                       <span>Email</span>
                     </button>
                   )}
@@ -1442,41 +1482,42 @@ export default function Outsourcing() {
         </div>
       )}
 
+      
       {/* Vendor Details Modal */}
       {activeDetailVendor && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setActiveDetailVendor(null)} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-3xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 rounded-xl">
             <div className="flex items-center justify-between mb-6 border-b border-card-border pb-4">
               <div className="flex items-center gap-3">
-                <img className="size-11 rounded-xl object-cover border border-card-border shadow-3xs" alt={activeDetailVendor.name} src={activeDetailVendor.avatar || createAvatar(activeDetailVendor.name)} />
+                <img className="size-11 rounded-lg object-cover border border-card-border shadow-3xs animate-in fade-in-50" alt={activeDetailVendor.name} src={activeDetailVendor.avatar || createAvatar(activeDetailVendor.name)} />
                 <div>
                   <h2 className="text-xl font-bold text-foreground font-display leading-tight">{activeDetailVendor.name}</h2>
                   <p className="text-[11px] text-muted">{activeDetailVendor.company || "Individual Vendor"}</p>
                 </div>
               </div>
-              <button onClick={() => setActiveDetailVendor(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-colors">
-                <span className="material-symbols-outlined text-[20px] text-muted">close</span>
+              <button onClick={() => setActiveDetailVendor(null)} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
+                <i className="ph ph-x text-sm"></i>
               </button>
             </div>
 
             <div className="space-y-6">
               {/* Statistics Grid */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Outstanding</p>
+                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Outstanding</p>
                   <p className={`mt-1 font-display text-lg font-bold ${vendorOutstanding > 0 ? "text-amber-500" : "text-foreground"}`}>
                     <AnimatedNumber value={formatCurrency(vendorOutstanding, currency)} />
                   </p>
                 </div>
-                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Total Paid</p>
+                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Total Paid</p>
                   <p className="mt-1 font-display text-lg font-bold text-positive">
                     <AnimatedNumber value={formatCurrency(vendorTotalPaid, currency)} />
                   </p>
                 </div>
-                <div className="rounded-2xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Payables Count</p>
+                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Payables Count</p>
                   <p className="mt-1 font-display text-lg font-bold text-foreground">
                     <AnimatedNumber value={vendorInvoices.length} />
                   </p>
@@ -1484,26 +1525,26 @@ export default function Outsourcing() {
               </div>
 
               {/* Vendor Info Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 surface-card p-5 border border-card-border rounded-3xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-card text-card-foreground p-5 border border-card-border rounded-xl">
                 <div className="space-y-3 text-[12px] text-muted">
-                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1">Contact Info</p>
+                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1 select-none">Contact Info</p>
                   {activeDetailVendor.email && (
                     <p className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] text-foreground/30">mail</span>
+                      <i className="ph ph-envelope text-base text-muted-foreground/60"></i>
                       <span className="text-foreground">{activeDetailVendor.email}</span>
                     </p>
                   )}
                   {activeDetailVendor.phone && (
                     <p className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] text-foreground/30">phone</span>
+                      <i className="ph ph-phone text-base text-muted-foreground/60"></i>
                       <span className="text-foreground">{activeDetailVendor.phone}</span>
                     </p>
                   )}
                   {activeDetailVendor.address && (
                     <div className="flex items-start gap-2 pt-1">
-                      <span className="material-symbols-outlined text-[16px] text-foreground/30 mt-0.5">location_on</span>
+                      <i className="ph ph-map-pin text-base text-muted-foreground/60 mt-0.5"></i>
                       <div>
-                        <p className="font-semibold text-foreground/75">Billing Address</p>
+                        <p className="font-semibold text-foreground/75 select-none">Billing Address</p>
                         <p className="mt-0.5 whitespace-pre-line leading-relaxed">{activeDetailVendor.address}</p>
                       </div>
                     </div>
@@ -1511,24 +1552,24 @@ export default function Outsourcing() {
                 </div>
 
                 <div className="space-y-3 text-[12px] text-muted">
-                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1">Payment & Notes</p>
+                  <p className="text-[10px] font-bold text-muted tracking-widest uppercase mb-1 border-b border-card-border/40 pb-1 select-none">Payment & Notes</p>
                   {activeDetailVendor.paypal && (
                     <p className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] text-[#0070ba] font-bold">payment</span>
-                      <span className="font-semibold text-foreground">PayPal:</span>
+                      <i className="ph ph-paypal-logo text-base text-[#0070ba]"></i>
+                      <span className="font-semibold text-foreground select-none">PayPal:</span>
                       <span className="text-foreground">{activeDetailVendor.paypal}</span>
                     </p>
                   )}
                   {activeDetailVendor.stripe && (
                     <p className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] text-[#635bff] font-bold">credit_card</span>
-                      <span className="font-semibold text-foreground">Stripe Link:</span>
+                      <i className="ph ph-credit-card text-base text-[#635bff]"></i>
+                      <span className="font-semibold text-foreground select-none">Stripe Link:</span>
                       <span className="text-foreground truncate max-w-[200px]">{activeDetailVendor.stripe}</span>
                     </p>
                   )}
                   {activeDetailVendor.notes && (
                     <div className="pt-1">
-                      <p className="font-semibold text-foreground/75">Notes</p>
+                      <p className="font-semibold text-foreground/75 select-none">Notes</p>
                       <p className="mt-0.5 whitespace-pre-line leading-relaxed">{activeDetailVendor.notes}</p>
                     </div>
                   )}
@@ -1537,15 +1578,15 @@ export default function Outsourcing() {
 
               {/* Payables Ledger Section */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-card-border pb-2">
+                <div className="flex items-center justify-between border-b border-card-border pb-2 select-none">
                   <h3 className="text-xs font-bold text-muted tracking-wider uppercase">Payables Ledger</h3>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => void exportVendorStatementPdf(activeDetailVendor, vendorInvoices, activeProfile, currency)}
-                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-semibold"
+                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-medium rounded-lg border border-card-border hover:bg-foreground/[0.04] transition-all duration-200 active:scale-95 flex items-center gap-1"
                     >
-                      <span className="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                      <i className="ph ph-file-pdf text-sm"></i>
                       Statement PDF
                     </button>
                     <button
@@ -1556,16 +1597,16 @@ export default function Outsourcing() {
                         setModalMode("create");
                         setActiveDetailVendor(null);
                       }}
-                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-semibold"
+                      className="btn-secondary min-h-8 px-3 py-1.5 text-[11px] font-medium rounded-lg border border-card-border hover:bg-foreground/[0.04] transition-all duration-200 active:scale-95 flex items-center gap-1"
                     >
-                      <span className="material-symbols-outlined text-[14px]">add</span>
+                      <i className="ph ph-plus text-xs"></i>
                       Create Payable
                     </button>
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-card-border">
-                  <div className="grid grid-cols-[1fr_90px_110px_90px] gap-3 bg-foreground/[0.03] px-4 py-2.5 text-[10px] font-bold text-muted tracking-widest uppercase border-b border-card-border">
+                <div className="overflow-hidden rounded-xl border border-card-border">
+                  <div className="grid grid-cols-[1fr_90px_110px_90px] gap-3 bg-foreground/[0.03] px-4 py-2.5 text-[10px] font-bold text-muted tracking-widest uppercase border-b border-card-border select-none">
                     <span>Payable ID</span>
                     <span>Date</span>
                     <span className="text-right">Amount</span>
@@ -1592,8 +1633,8 @@ export default function Outsourcing() {
                               {formatCurrency(amount, invoice.currency || currency)}
                             </span>
                             <span className="text-right">
-                              <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full tracking-wide uppercase ${
-                                status === "Paid" ? "bg-positive/10 text-positive" : "bg-foreground/[0.06] text-foreground/60"
+                              <span className={`px-2 py-0.5 text-[9px] font-bold rounded-lg tracking-wide uppercase ${
+                                status === "Paid" ? "bg-positive/10 text-positive border border-positive/20" : "bg-foreground/[0.06] text-foreground/60 border border-foreground/[0.03]"
                               }`}>
                                 {status}
                               </span>
@@ -1622,8 +1663,9 @@ export default function Outsourcing() {
                 <button
                   type="button"
                   onClick={() => openEditVendor(activeDetailVendor)}
-                  className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15"
+                  className="btn-primary px-5 py-2.5 text-xs font-semibold rounded-xl active:scale-[0.97] shadow-sm shadow-accent/15 flex items-center gap-1"
                 >
+                  <i className="ph ph-pencil text-sm"></i>
                   Edit Details
                 </button>
               </div>
@@ -1636,16 +1678,16 @@ export default function Outsourcing() {
       {editingVendor && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setEditingVendor(null)} />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200 rounded-xl">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <span className="material-symbols-outlined text-[18px] text-muted">engineering</span>
+                <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <i className="ph ph-users text-lg text-muted-foreground"></i>
                 <h2 className="text-lg font-bold text-foreground leading-none font-display">Edit Vendor</h2>
               </div>
-              <button onClick={() => setEditingVendor(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
-                <span className="material-symbols-outlined text-[18px]">close</span>
+              <button onClick={() => setEditingVendor(null)} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
+                <i className="ph ph-x text-sm"></i>
               </button>
             </div>
 
@@ -1654,14 +1696,14 @@ export default function Outsourcing() {
               <div className="flex-1 overflow-y-auto p-6 space-y-5">
                 
                 {/* Avatar Upload */}
-                <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Identity Image</h3>
+                <div className="bg-card border border-card-border p-4 rounded-xl space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider select-none">Identity Image</h3>
                   <div className="flex items-center gap-4">
-                    <div className="size-14 rounded-2xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
+                    <div className="size-14 rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
                       {vendorForm.avatar ? (
-                        <img className="w-full h-full object-cover" alt="Vendor preview" src={vendorForm.avatar} />
+                        <img className="w-full h-full object-cover rounded-xl" alt="Vendor preview" src={vendorForm.avatar} />
                       ) : (
-                        <span className="material-symbols-outlined text-foreground/20 text-[24px]">image</span>
+                        <i className="ph ph-image text-foreground/20 text-2xl"></i>
                       )}
                     </div>
                     <label className="btn-secondary text-[11px] min-h-8 px-3.5 py-1.5 cursor-pointer rounded-xl font-semibold transition-all">
@@ -1672,8 +1714,8 @@ export default function Outsourcing() {
                 </div>
 
                 {/* Profile Information */}
-                <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Profile Details</h3>
+                <div className="bg-card border border-card-border p-4 rounded-xl space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider select-none">Profile Details</h3>
                   <div className="space-y-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-name">Vendor Name</label>
@@ -1701,8 +1743,8 @@ export default function Outsourcing() {
                 </div>
 
                 {/* Payments & Notes */}
-                <div className="surface-card p-4 space-y-4">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Payments & Notes</h3>
+                <div className="bg-card border border-card-border p-4 rounded-xl space-y-4">
+                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider select-none">Payments & Notes</h3>
                   <div className="space-y-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-muted tracking-wider uppercase" htmlFor="edit-vendor-paypal">PayPal Username / Link</label>

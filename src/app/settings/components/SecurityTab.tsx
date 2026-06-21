@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedText } from "@/components/animated-text";
+import { ShieldAlert, Lock, Key, Fingerprint, Loader2, Save, Brain, Lightbulb, AlertTriangle, AlertOctagon, UserMinus, Flame } from "lucide-react";
 
 export function SecurityTab() {
   const {
@@ -77,12 +78,9 @@ export function SecurityTab() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
       
       {/* Security Hero */}
-      <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-3xl group">
+      <div className="surface-featured p-6 sm:p-8 relative overflow-hidden rounded-xl group">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         <div className="flex flex-col sm:flex-row items-start gap-5 relative z-10">
-          <div className="size-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500">
-            <span className="material-symbols-outlined text-[32px]">shield_person</span>
-          </div>
           <div>
             <AnimatedText
               as="h2"
@@ -98,14 +96,11 @@ export function SecurityTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Password Card */}
-        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+        <div className="surface-card p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-[18px] font-bold text-foreground tracking-tight">Profile Password</h3>
               <p className="text-[12px] font-semibold text-muted mt-1 tracking-wide uppercase">{formatPasswordChangedAt(activeProfile?.passwordChangedAt)}</p>
-            </div>
-            <div className="size-10 rounded-full bg-action/10 text-action flex items-center justify-center group-hover:bg-action group-hover:text-action-text transition-colors duration-300">
-              <span className="material-symbols-outlined text-[20px]">lock</span>
             </div>
           </div>
 
@@ -113,7 +108,7 @@ export function SecurityTab() {
             {activeProfile?.hasPassword && (
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="current-password">
-                  <span className="material-symbols-outlined text-[14px] opacity-70">key</span>
+                  <Key className="size-3.5 opacity-70" />
                   Current Password
                 </label>
                 <input
@@ -121,14 +116,14 @@ export function SecurityTab() {
                   type="password"
                   value={passwordForm.currentPassword}
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
                 />
               </div>
             )}
 
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="new-password">
-                <span className="material-symbols-outlined text-[14px] opacity-70">vpn_key_alert</span>
+                <ShieldAlert className="size-3.5 opacity-70" />
                 New Password
               </label>
               <input
@@ -137,14 +132,14 @@ export function SecurityTab() {
                 minLength={6}
                 value={passwordForm.password}
                 onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
               <p className="text-[11px] text-muted/80 pl-1">Minimum 6 characters. Numbers-only is fine.</p>
             </div>
 
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="confirm-new-password">
-                <span className="material-symbols-outlined text-[14px] opacity-70">password</span>
+                <Lock className="size-3.5 opacity-70" />
                 Confirm New Password
               </label>
               <input
@@ -153,7 +148,7 @@ export function SecurityTab() {
                 minLength={6}
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
             </div>
           </div>
@@ -161,24 +156,21 @@ export function SecurityTab() {
           <div className="mt-6 flex justify-end">
             <button 
               onClick={handleSavePassword} 
-              className="btn-primary shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none px-6 py-2.5 rounded-xl w-full sm:w-auto flex justify-center items-center gap-2" 
+              className="btn-primary shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none px-6 py-2.5 rounded-lg w-full sm:w-auto flex justify-center items-center gap-2" 
               disabled={isSavingPassword || !activeProfileId}
             >
-              {isSavingPassword ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> : <span className="material-symbols-outlined text-[18px]">save</span>}
+              {isSavingPassword ? <Loader2 className="animate-spin size-[18px]" /> : <Save className="size-[18px]" />}
               {isSavingPassword ? "Saving..." : activeProfile?.hasPassword ? "Update Password" : "Set Password"}
             </button>
           </div>
         </div>
 
         {/* Password Hint Card */}
-        <div className="surface-card p-6 sm:p-8 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group h-fit">
+        <div className="surface-card p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group h-fit">
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-[18px] font-bold text-foreground tracking-tight">Recovery Hint</h3>
               <p className="text-[12px] font-medium text-muted mt-1">Saved separately from your password.</p>
-            </div>
-            <div className="size-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-              <span className="material-symbols-outlined text-[20px]">psychology</span>
             </div>
           </div>
 
@@ -186,7 +178,7 @@ export function SecurityTab() {
             {activeProfile?.hasPassword && (
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="hint-current-password">
-                  <span className="material-symbols-outlined text-[14px] opacity-70">key</span>
+                  <Key className="size-3.5 opacity-70" />
                   Current Password
                 </label>
                 <input
@@ -194,14 +186,14 @@ export function SecurityTab() {
                   type="password"
                   value={hintForm.currentPassword}
                   onChange={(e) => setHintForm({ ...hintForm, currentPassword: e.target.value })}
-                  className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
                 />
               </div>
             )}
 
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted tracking-wider uppercase flex items-center gap-2" htmlFor="password-hint">
-                <span className="material-symbols-outlined text-[14px] opacity-70">lightbulb</span>
+                <Lightbulb className="size-3.5 opacity-70" />
                 Hint
               </label>
               <input
@@ -209,7 +201,7 @@ export function SecurityTab() {
                 type="text"
                 value={hintForm.passwordHint}
                 onChange={(e) => setHintForm({ ...hintForm, passwordHint: e.target.value })}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-4 py-3 text-[14px] font-semibold text-foreground outline-none focus:border-action focus:ring-2 focus:ring-action/20 transition-all"
               />
             </div>
           </div>
@@ -217,10 +209,10 @@ export function SecurityTab() {
           <div className="mt-6 flex justify-end">
             <button 
               onClick={handleSavePasswordHint} 
-              className="btn-secondary shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none px-6 py-2.5 rounded-xl w-full sm:w-auto flex justify-center items-center gap-2" 
+              className="btn-secondary shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:pointer-events-none px-6 py-2.5 rounded-lg w-full sm:w-auto flex justify-center items-center gap-2" 
               disabled={isSavingHint || !activeProfileId}
             >
-              {isSavingHint ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> : <span className="material-symbols-outlined text-[18px]">save</span>}
+              {isSavingHint ? <Loader2 className="animate-spin size-[18px]" /> : <Save className="size-[18px]" />}
               {isSavingHint ? "Saving..." : "Save Hint"}
             </button>
           </div>
@@ -228,14 +220,13 @@ export function SecurityTab() {
       </div>
 
       {/* Danger Zone */}
-      <div className="surface-card p-6 sm:p-8 rounded-3xl border-2 border-red-500/20 bg-red-500/[0.02] relative overflow-hidden group">
+      <div className="surface-card p-6 sm:p-8 rounded-xl border-2 border-red-500/20 bg-red-500/[0.02] relative overflow-hidden group">
         <div className="absolute right-0 top-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500 pointer-events-none">
-          <span className="material-symbols-outlined text-9xl text-red-500">warning</span>
+          <AlertTriangle className="size-24 text-red-500" />
         </div>
         
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-red-500 text-[24px]">dangerous</span>
             <h3 className="text-[18px] font-bold text-red-500 tracking-tight">Danger Zone</h3>
           </div>
           <p className="text-[13px] font-medium text-red-500/80 mb-6 max-w-xl">Permanently delete profile data. This action bypasses the trash bin and cannot be undone.</p>
@@ -251,9 +242,9 @@ export function SecurityTab() {
                   });
                 }
               }}
-              className="px-6 py-3 border border-red-500/30 rounded-xl text-[13px] font-bold text-red-500 hover:bg-red-500/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="px-6 py-3 border border-red-500/30 rounded-lg text-[13px] font-bold text-red-500 hover:bg-red-500/10 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">person_remove</span>
+              <UserMinus className="size-[18px]" />
               Delete Current Profile
             </button>
             <button
@@ -266,9 +257,9 @@ export function SecurityTab() {
                   });
                 }
               }}
-              className="px-6 py-3 border border-transparent rounded-xl text-[13px] font-bold text-white bg-red-500 hover:bg-red-600 active:scale-95 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
+              className="px-6 py-3 border border-transparent rounded-lg text-[13px] font-bold text-white bg-red-500 hover:bg-red-600 active:scale-95 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+              <Flame className="size-[18px]" />
               Delete All Profiles
             </button>
           </div>

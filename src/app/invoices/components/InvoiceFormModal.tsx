@@ -193,14 +193,14 @@ export function InvoiceFormModal({
                 </h3>
                 
                 {/* Segment Selector */}
-                <div className="flex gap-0.5 rounded-xl border border-card-border bg-foreground/[0.03] p-0.5 shrink-0">
+                <div className="flex gap-0.5 rounded-lg border border-card-border bg-foreground/[0.03] p-0.5 shrink-0 select-none">
                   <button
                     type="button"
                     onClick={() => setClientMode("saved")}
                     disabled={clientRecords.length === 0}
-                    className={`rounded-lg px-3 py-1 text-[11px] font-bold transition-smooth ${
+                    className={`rounded-md px-3 py-1 text-[11px] font-bold transition-all cursor-pointer ${
                       form.clientMode === "saved"
-                        ? "bg-action text-action-text shadow-xs"
+                        ? "bg-card text-foreground shadow-xs border border-card-border/50"
                         : "text-muted hover:text-foreground"
                     }`}
                   >
@@ -209,9 +209,9 @@ export function InvoiceFormModal({
                   <button
                     type="button"
                     onClick={() => setClientMode("new")}
-                    className={`rounded-lg px-3 py-1 text-[11px] font-bold transition-smooth ${
+                    className={`rounded-md px-3 py-1 text-[11px] font-bold transition-all cursor-pointer ${
                       form.clientMode === "new"
-                        ? "bg-action text-action-text shadow-xs"
+                        ? "bg-card text-foreground shadow-xs border border-card-border/50"
                         : "text-muted hover:text-foreground"
                     }`}
                   >
@@ -597,7 +597,7 @@ export function InvoiceFormModal({
               </div>
 
               {/* Computations breakdown card */}
-              <div className="rounded-2xl border border-card-border bg-background/30 p-5 space-y-3.5">
+              <div className="rounded-xl border border-card-border bg-background/30 p-5 space-y-3.5">
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Subtotal</span>
                   <span className="font-mono">{formatCurrency(invoiceSubtotal, form.currency || currency)}</span>
@@ -606,13 +606,13 @@ export function InvoiceFormModal({
                 <div className="flex items-center justify-between gap-4 py-1 border-t border-card-border/20">
                   <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Discount Deduction</span>
                   <div className="flex items-center gap-2 max-w-[180px]">
-                    <div className="flex rounded-lg border border-card-border bg-foreground/[0.03] p-0.5 shrink-0">
+                    <div className="flex rounded-md border border-card-border bg-foreground/[0.03] p-0.5 shrink-0 select-none">
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, discountType: "flat" })}
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-smooth ${
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-all cursor-pointer ${
                           (form.discountType || "flat") === "flat"
-                            ? "bg-action text-action-text shadow-xs"
+                            ? "bg-card text-foreground shadow-xs border border-card-border/50"
                             : "text-muted hover:text-foreground"
                         }`}
                       >
@@ -621,9 +621,9 @@ export function InvoiceFormModal({
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, discountType: "percent" })}
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-smooth ${
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition-all cursor-pointer ${
                           form.discountType === "percent"
-                            ? "bg-action text-action-text shadow-xs"
+                            ? "bg-card text-foreground shadow-xs border border-card-border/50"
                             : "text-muted hover:text-foreground"
                         }`}
                       >

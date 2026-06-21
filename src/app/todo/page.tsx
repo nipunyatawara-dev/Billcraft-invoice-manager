@@ -7,6 +7,46 @@ import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, FormEvent } from "react";
+import { 
+  SlidersHorizontal, 
+  ListFilter, 
+  Plus, 
+  Calendar as CalendarIcon, 
+  Briefcase, 
+  Clock, 
+  Check, 
+  CheckCircle2, 
+  Trash2, 
+  Undo2, 
+  AlertCircle, 
+  Hexagon, 
+  Minus,
+  Layers, 
+  User, 
+  Mail, 
+  MessageSquare, 
+  FileText, 
+  Link as LinkIcon, 
+  Share2, 
+  ExternalLink,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+  Handshake,
+  Receipt,
+  Upload,
+  Info,
+  X,
+  ArrowUpDown,
+  Tag,
+  PlusCircle,
+  MoreHorizontal
+} from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+
 
 type TaskForm = {
   title: string;
@@ -150,6 +190,33 @@ function getTaskInsertionTarget(
   return isAfterCardMidpoint ? visibleTasks[currentIndex + 1]?.id || null : taskId;
 }
 
+const BacklogStatusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="2.2 2.2" className="text-muted-foreground/60" />
+  </svg>
+);
+
+const InProgressStatusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-amber-500/30" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="18 40" strokeDashoffset="0" className="text-amber-500" />
+  </svg>
+);
+
+const ReviewStatusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-emerald-500/30" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="30 40" strokeDashoffset="0" className="text-emerald-500" />
+  </svg>
+);
+
+const DoneStatusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-purple-500" />
+    <path d="M4.5 7L6 8.5L9.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500" />
+  </svg>
+);
+
 export default function TodoPage() {
   const { activeProfile, loading, todoTasks, saveTodoTasks, clients, vendors, saveOutsourcingInvoice } = useUserData();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
@@ -162,8 +229,45 @@ export default function TodoPage() {
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [isTrashHovered, setIsTrashHovered] = useState(false);
   const [undoSnapshot, setUndoSnapshot] = useState<UndoSnapshot | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPriority, setFilterPriority] = useState<"all" | TodoPriority>("all");
+  const [filterClient, setFilterClient] = useState<"all" | string>("all");
+  const [sortBy, setSortBy] = useState<"order" | "date" | "priority" | "alphabetical">("order");
   const didDragRef = useRef(false);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Scroll variables for Kanban board overflow detection
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+
+  const handleBoardScroll = () => {
+    if (boardContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = boardContainerRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scrollBoard = (direction: "left" | "right") => {
+    if (boardContainerRef.current) {
+      const scrollAmount = 340 + 16; // Column width (340px) + gap (16px)
+      boardContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Run scroll verification on task / search updates or container resizing
+  useEffect(() => {
+    handleBoardScroll();
+
+    if (!boardContainerRef.current) return;
+    const observer = new ResizeObserver(handleBoardScroll);
+    observer.observe(boardContainerRef.current);
+    return () => observer.disconnect();
+  }, [tasks, searchQuery, filterPriority, filterClient, sortBy]);
 
   // Inform Client modal states
   const [informTask, setInformTask] = useState<TodoTask | null>(null);
@@ -187,6 +291,46 @@ export default function TodoPage() {
   useEffect(() => {
     setTasks(normalizeStageOrder(todoTasks));
   }, [todoTasks]);
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesSearch = searchQuery.trim() === "" ||
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (task.client && task.client.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (task.invoiceId && task.invoiceId.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+      const matchesClient = filterClient === "all" || task.client === filterClient;
+
+      return matchesSearch && matchesPriority && matchesClient;
+    });
+  }, [tasks, searchQuery, filterPriority, filterClient]);
+
+  const getSortedStageTasks = useMemo(() => {
+    return (stageId: TodoStageId) => {
+      const stageTasks = filteredTasks.filter((task) => task.stage === stageId);
+      
+      if (sortBy === "order") {
+        return sortByOrder(stageTasks);
+      }
+      if (sortBy === "date") {
+        return [...stageTasks].sort((a, b) => {
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return a.dueDate.localeCompare(b.dueDate);
+        });
+      }
+      if (sortBy === "priority") {
+        const priorityWeight = { High: 3, Medium: 2, Low: 1 };
+        return [...stageTasks].sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);
+      }
+      if (sortBy === "alphabetical") {
+        return [...stageTasks].sort((a, b) => a.title.localeCompare(b.title));
+      }
+      return stageTasks;
+    };
+  }, [filteredTasks, sortBy]);
 
   useEffect(() => {
     return () => {
@@ -366,7 +510,7 @@ export default function TodoPage() {
 
   function handleTaskDragOver(event: DragEvent<HTMLDivElement>, stage: TodoStageId, taskId: string) {
     event.preventDefault();
-    const orderedTasks = getStageTasks(tasks, stage);
+    const orderedTasks = getSortedStageTasks(stage);
     setDragTarget({
       stage,
       beforeTaskId: getTaskInsertionTarget(event, orderedTasks, taskId, draggingTaskId),
@@ -384,7 +528,7 @@ export default function TodoPage() {
       return;
     }
 
-    const orderedTasks = getStageTasks(tasks, stage);
+    const orderedTasks = getSortedStageTasks(stage);
     moveTask(draggedTaskId, stage, getTaskInsertionTarget(event, orderedTasks, taskId, draggedTaskId));
     setDraggingTaskId(null);
     setDragTarget(null);
@@ -704,15 +848,23 @@ export default function TodoPage() {
   return (
     <>
       <main className="app-main-wide flex-1">
-        <div className="page-heading">
+        {/* Page Heading */}
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Workspace" effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText as="p" text="Workspace" effect="micro-scale-fade" className="section-eyebrow text-xs font-bold uppercase tracking-widest text-accent mb-2" />
             <AnimatedText
               as="h1"
               text="To-Do"
               effect="micro-scale-fade"
-              className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
+              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
               delayMs={70}
+            />
+            <AnimatedText
+              as="p"
+              text="Organize project tasks, track stages, subcontract vendor work, and bill clients."
+              effect="micro-scale-fade"
+              className="text-muted mt-2 text-base font-medium"
+              delayMs={140}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -720,12 +872,12 @@ export default function TodoPage() {
               <button
                 onClick={() => void handleUndo()}
                 disabled={isSaving}
-                className="undo-btn"
+                className="flex items-center gap-1.5 bg-card border border-card-border text-foreground hover:bg-foreground/[0.04] px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97]"
                 aria-label={`Undo delete of ${undoSnapshot.label}`}
                 title={`Undo — restore ${undoSnapshot.label}`}
               >
-                <span className="material-symbols-outlined text-[16px]">undo</span>
-                <span className="text-[12px] font-semibold">Undo</span>
+                <Undo2 className="size-3.5" />
+                <span>Undo</span>
               </button>
             )}
             {showTrashZone && (
@@ -739,51 +891,307 @@ export default function TodoPage() {
                 onDrop={handleTrashDrop}
                 onClick={handleTrashClick}
                 disabled={isSaving}
-                className={`trash-zone-btn ${
-                  draggingTaskId ? "trash-zone-btn--dragging" : ""
-                } ${
-                  isTrashHovered && draggingTaskId ? "trash-zone-btn--drag-hover" : ""
-                } ${selectedTaskIds.size > 0 && !draggingTaskId ? "trash-zone-btn--has-selection" : ""}`}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] border ${
+                  isTrashHovered && draggingTaskId
+                    ? "bg-red-500/10 border-red-500 text-red-500"
+                    : selectedTaskIds.size > 0
+                      ? "bg-red-500/10 border-red-500 text-red-500"
+                      : "bg-card border-card-border text-muted-foreground hover:bg-foreground/[0.04]"
+                }`}
                 aria-label={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
                 title={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
               >
-                <span className="material-symbols-outlined text-[18px]">delete</span>
+                <Trash2 className="size-3.5" />
                 {draggingTaskId ? (
-                  <span className="text-[12px] font-semibold tracking-wide">Drop to delete</span>
+                  <span>Drop to delete</span>
                 ) : selectedTaskIds.size > 0 ? (
-                  <span className="text-[13px] font-semibold">{selectedTaskIds.size}</span>
+                  <span>Delete Selected ({selectedTaskIds.size})</span>
                 ) : null}
               </button>
             )}
-            <button onClick={() => openCreateModal()} className="btn-primary active:scale-[0.97]">
-              <span className="material-symbols-outlined text-[16px]">add_task</span>
+            <button 
+              onClick={() => openCreateModal()} 
+              className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            >
+              <Plus className="size-4 group-hover:rotate-90 transition-transform" />
               Add Task
             </button>
           </div>
+        </header>
+
+        {/* Overview Stats Bento Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Active Tasks */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Active Tasks</span>
+              <Layers className="size-4 text-muted-foreground" />
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                  <AnimatedNumber value={stats.active} />
+                </span>
+                <span className="text-[11px] font-normal text-muted select-none">open</span>
+              </div>
+            </div>
+          </div>
+
+          {/* In Progress */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">In Progress</span>
+              <Clock className="size-4 text-amber-500" />
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                  <AnimatedNumber value={stats.inProgress} />
+                </span>
+                <span className="text-[11px] font-normal text-muted select-none">moving</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Due Soon */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Due Soon</span>
+              <AlertCircle className="size-4 text-accent" />
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                  <AnimatedNumber value={stats.dueSoon} />
+                </span>
+                <span className="text-[11px] font-normal text-accent select-none">watch</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Completed */}
+          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+            <div className="flex items-center justify-between mb-3.5 select-none">
+              <span className="text-sm font-semibold text-muted">Completed</span>
+              <CheckCircle2 className="size-4 text-positive" />
+            </div>
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
+                  <AnimatedNumber value={stats.completed} />
+                </span>
+                <span className="text-[11px] font-normal text-positive select-none">done</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div className="surface-featured p-4 relative overflow-hidden">
-            <p className="text-[11px] font-semibold text-featured-text/40 tracking-wider uppercase mb-2.5">Active Tasks</p>
-            <p className="text-xl font-semibold text-featured-text font-display"><AnimatedNumber value={stats.active} /> <span className="text-[12px] font-normal text-featured-muted">open</span></p>
-          </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">In Progress</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.inProgress} /> <span className="text-[12px] font-normal text-muted">moving</span></p>
-          </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Due Soon</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.dueSoon} /> <span className="text-[12px] font-normal text-accent">watch</span></p>
-          </div>
-          <div className="surface-card p-4">
-            <p className="text-[11px] font-semibold text-muted tracking-wider uppercase mb-2.5">Completed</p>
-            <p className="text-xl font-semibold text-foreground font-display"><AnimatedNumber value={stats.completed} /> <span className="text-[12px] font-normal text-positive">done</span></p>
+        {/* Search, Filters, and Sorting Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-8">
+          <AnimatedSearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search tasks..."
+          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-foreground/[0.04] px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] cursor-pointer">
+                  <SlidersHorizontal className="size-3.5" />
+                  <span>Filter</span>
+                  {(filterPriority !== "all" || filterClient !== "all") && (
+                    <span className="size-2 rounded-full bg-accent shrink-0 animate-pulse" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-4 bg-card border border-card-border rounded-xl shadow-lg z-[110]" align="start">
+                <div className="space-y-4">
+                  {/* Priority Filter */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                      <Layers className="size-3.5" />
+                      Priority
+                    </h4>
+                    <div className="space-y-1">
+                      {["all", ...TODO_PRIORITIES].map((p) => {
+                        const isSelected = filterPriority === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setFilterPriority(p as any)}
+                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
+                              isSelected 
+                                ? "bg-accent/10 text-accent font-semibold" 
+                                : "text-foreground/80 hover:bg-foreground/[0.03]"
+                            }`}
+                          >
+                            <span className="capitalize">{p === "all" ? "All Priorities" : p}</span>
+                            {isSelected && <Check className="size-3.5 text-accent" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <Separator className="bg-card-border" />
+
+                  {/* Client Filter */}
+                  <div>
+                    <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                      <Briefcase className="size-3.5" />
+                      Client Link
+                    </h4>
+                    <div className="max-h-40 overflow-y-auto space-y-1 pr-1 no-scrollbar">
+                      <button
+                        type="button"
+                        onClick={() => setFilterClient("all")}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
+                          filterClient === "all" 
+                            ? "bg-accent/10 text-accent font-semibold" 
+                            : "text-foreground/80 hover:bg-foreground/[0.03]"
+                        }`}
+                      >
+                        <span>All Clients</span>
+                        {filterClient === "all" && <Check className="size-3.5 text-accent" />}
+                      </button>
+                      {Array.from(new Set([
+                        ...clients.map(c => c.name),
+                        ...tasks.map(t => t.client).filter(Boolean) as string[]
+                      ])).map((clientName) => {
+                        const isSelected = filterClient === clientName;
+                        return (
+                          <button
+                            key={clientName}
+                            type="button"
+                            onClick={() => setFilterClient(clientName)}
+                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between cursor-pointer ${
+                              isSelected 
+                                ? "bg-accent/10 text-accent font-semibold" 
+                                : "text-foreground/80 hover:bg-foreground/[0.03]"
+                            }`}
+                          >
+                            <span className="truncate">{clientName}</span>
+                            {isSelected && <Check className="size-3.5 text-accent" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {(filterPriority !== "all" || filterClient !== "all") && (
+                    <>
+                      <Separator className="bg-card-border" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterPriority("all");
+                          setFilterClient("all");
+                        }}
+                        className="w-full text-center py-1.5 text-xs font-semibold text-accent hover:underline cursor-pointer"
+                      >
+                        Clear all filters
+                      </button>
+                    </>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-foreground/[0.04] px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] cursor-pointer">
+                  <ListFilter className="size-3.5" />
+                  <span>Sort</span>
+                  {sortBy !== "order" && (
+                    <span className="text-[10px] text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded-md capitalize">
+                      {sortBy}
+                    </span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 bg-card border border-card-border rounded-xl shadow-lg z-[110]">
+                <DropdownMenuLabel className="flex items-center gap-2 text-xs font-bold text-muted uppercase tracking-wider">
+                  <ArrowUpDown className="size-3.5" />
+                  Sort Options
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-card-border" />
+                {[
+                  { id: "order", label: "Board Order", icon: Layers },
+                  { id: "date", label: "Due Date", icon: CalendarIcon },
+                  { id: "priority", label: "Priority", icon: AlertCircle },
+                  { id: "alphabetical", label: "Alphabetical", icon: ListFilter }
+                ].map((option) => {
+                  const IconComponent = option.icon;
+                  const isSelected = sortBy === option.id;
+                  return (
+                    <DropdownMenuItem
+                      key={option.id}
+                      onClick={() => setSortBy(option.id as any)}
+                      className={`flex items-center justify-between gap-2 text-xs cursor-pointer rounded-lg p-2 ${
+                        isSelected ? "bg-accent/10 text-accent font-semibold" : "text-foreground/80"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <IconComponent className="size-3.5 text-muted-foreground" />
+                        <span>{option.label}</span>
+                      </div>
+                      {isSelected && <Check className="size-3.5 text-accent" />}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {(searchQuery.trim() !== "" || filterPriority !== "all" || filterClient !== "all" || sortBy !== "order") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterPriority("all");
+                  setFilterClient("all");
+                  setSortBy("order");
+                }}
+                className="text-xs font-semibold text-accent hover:underline ml-2 cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-start">
+        <div className="relative group/board">
+          {/* Floating Navigation Arrow Left */}
+          {showLeftArrow && (
+            <button
+              type="button"
+              onClick={() => scrollBoard("left")}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 size-10 rounded-full flex items-center justify-center bg-card/90 hover:bg-card border border-card-border shadow-lg text-foreground hover:text-accent transition-all hover:scale-105 active:scale-95 cursor-pointer hidden md:flex"
+              aria-label="Scroll board left"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+          )}
+
+          {/* Floating Navigation Arrow Right */}
+          {showRightArrow && (
+            <button
+              type="button"
+              onClick={() => scrollBoard("right")}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 size-10 rounded-full flex items-center justify-center bg-card/90 hover:bg-card border border-card-border shadow-lg text-foreground hover:text-accent transition-all hover:scale-105 active:scale-95 cursor-pointer hidden md:flex"
+              aria-label="Scroll board right"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          )}
+
+          <div 
+            ref={boardContainerRef}
+            onScroll={handleBoardScroll}
+            className="flex gap-4 overflow-x-auto pb-4 no-scrollbar min-w-full items-start"
+          >
           {TODO_STAGES.map((stage) => {
-            const stageTasks = getStageTasks(tasks, stage.id);
+            const stageTasks = getSortedStageTasks(stage.id);
             const isColumnTarget = dragTarget?.stage === stage.id && dragTarget.beforeTaskId === null;
 
             return (
@@ -796,32 +1204,39 @@ export default function TodoPage() {
                   }
                 }}
                 onDrop={(event) => handleColumnDrop(event, stage.id)}
-                className={`surface-card p-3 min-h-[320px] md:min-h-[520px] flex flex-col transition-smooth ${
+                className={`w-[300px] sm:w-[340px] shrink-0 bg-card/60 border border-card-border rounded-xl p-3.5 flex flex-col max-h-[75vh] transition-smooth ${
                   isColumnTarget ? "border-accent/50 bg-foreground/[0.03]" : ""
                 }`}
               >
-                <div className="flex items-center justify-between gap-3 pb-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-xl bg-foreground/[0.04] flex items-center justify-center shrink-0">
-                      <span className="material-symbols-outlined text-[16px] text-muted">{stage.icon}</span>
+                {/* Column Header */}
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-card-border/60 mb-3.5 select-none">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="size-6 bg-foreground/[0.04] rounded-lg flex items-center justify-center shrink-0">
+                      {stage.id === "backlog" && <BacklogStatusIcon />}
+                      {stage.id === "in-progress" && <InProgressStatusIcon />}
+                      {stage.id === "review" && <ReviewStatusIcon />}
+                      {stage.id === "done" && <DoneStatusIcon />}
                     </div>
-                    <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <h2 className="text-[13px] font-semibold text-foreground truncate">{stage.label}</h2>
-                      <p className="text-[10px] font-semibold text-foreground/25 tracking-wide uppercase"><AnimatedNumber value={stageTasks.length} /> cards</p>
+                      <span className="px-2 py-0.5 rounded-full bg-foreground/[0.04] text-[10px] font-bold text-muted-foreground/70">
+                        {stageTasks.length}
+                      </span>
                     </div>
                   </div>
                   <button
                     onClick={() => openCreateModal(stage.id)}
-                    className="size-7 rounded-full flex items-center justify-center text-foreground/25 hover:text-accent hover:bg-accent/10 transition-smooth"
+                    className="size-6 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-accent hover:bg-accent/10 transition-smooth cursor-pointer"
                     aria-label={`Add task to ${stage.label}`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    <Plus className="size-3.5" />
                   </button>
                 </div>
 
-                <div className="space-y-2.5 flex-1">
+                {/* Cards List */}
+                <div className="space-y-3 flex-1 overflow-y-auto pr-0.5 no-scrollbar min-h-[180px]">
                   {loading && stageTasks.length === 0 ? (
-                    <div className="rounded-xl border border-card-border bg-foreground/[0.03] p-4">
+                    <div className="rounded-xl border border-card-border bg-foreground/[0.02] p-4">
                       <div className="h-3 w-24 rounded-full bg-foreground/10 mb-3" />
                       <div className="h-2 w-full rounded-full bg-foreground/10 mb-2" />
                       <div className="h-2 w-2/3 rounded-full bg-foreground/10" />
@@ -837,7 +1252,7 @@ export default function TodoPage() {
 
                       return (
                         <div key={task.id} className="relative group/tile">
-                          {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-1 rounded-full bg-accent animate-pulse" />}
+                          {isBeforeTarget && <div className="absolute -top-1.5 left-0 right-0 h-0.5 rounded-full bg-accent animate-pulse" />}
                           <div
                             draggable
                             onDragStart={(event) => {
@@ -871,27 +1286,30 @@ export default function TodoPage() {
                               borderColor: isGroupHovered && task.jobColor ? task.jobColor : undefined,
                               boxShadow: isGroupHovered && task.jobColor ? `0 8px 30px ${task.jobColor}25` : undefined,
                             }}
-                            className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 cursor-grab active:cursor-grabbing transition-all duration-300 ${
+                            className={`relative overflow-hidden rounded-xl border p-4 cursor-grab active:cursor-grabbing transition-all duration-300 bg-background hover:shadow-md ${
                               isDragging ? "opacity-40 scale-[0.96] border-card-border" : ""
                             } ${
                               isDimmed ? "opacity-35 scale-[0.98] blur-[0.2px] border-card-border" : ""
                             } ${
                               isSelected
-                                ? "border-accent bg-gradient-to-br from-accent/[0.06] to-accent/[0.01] ring-2 ring-accent/45 shadow-[0_8px_30px_color-mix(in_srgb,var(--accent)_12%,transparent)]"
+                                ? "border-accent bg-gradient-to-br from-accent/[0.04] to-accent/[0.005] ring-2 ring-accent/35"
                                 : !isDimmed
-                                  ? "border-card-border bg-card/65 backdrop-blur-[6px] shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:border-foreground/20 hover:-translate-y-1"
-                                  : "bg-card/65 backdrop-blur-[6px]"
+                                  ? "border-card-border hover:border-accent/40"
+                                  : ""
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <div className="flex flex-wrap gap-1.5 mb-2.5">
-                                  <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-bold tracking-wider uppercase shadow-[0_1px_2px_rgba(0,0,0,0.03)] ${getTodoPriorityStyles(task.priority)}`}>
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold tracking-wider uppercase shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${getTodoPriorityStyles(task.priority)}`}>
+                                    {task.priority === "High" && <AlertCircle className="size-2.5 text-accent" />}
+                                    {task.priority === "Medium" && <Hexagon className="size-2.5 text-cyan-500" />}
+                                    {task.priority === "Low" && <Minus className="size-2.5 text-muted-foreground" />}
                                     {task.priority}
                                   </span>
                                   {task.invoiceId && (
                                     <span 
-                                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold tracking-wider uppercase border transition-all duration-200"
+                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold tracking-wider uppercase border transition-all duration-200"
                                       style={{
                                         backgroundColor: task.jobColor ? `${task.jobColor}15` : "var(--foreground)/[0.06]",
                                         borderColor: task.jobColor ? `${task.jobColor}35` : "transparent",
@@ -905,12 +1323,12 @@ export default function TodoPage() {
                                     </span>
                                   )}
                                   {task.tags.slice(0, 2).map((tag) => (
-                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-foreground/[0.04] text-[9.5px] font-bold text-muted tracking-wider uppercase">
+                                    <span key={tag} className="px-1.5 py-0.5 rounded bg-foreground/[0.04] text-[9.5px] font-bold text-muted tracking-wider uppercase">
                                       {tag}
                                     </span>
                                   ))}
                                 </div>
-                                <h3 className="text-[14.5px] font-bold text-foreground leading-snug tracking-tight group-hover/tile:text-accent transition-colors duration-200">
+                                <h3 className="text-xs sm:text-[13px] font-bold text-foreground leading-snug tracking-tight group-hover/tile:text-accent transition-colors duration-200">
                                   {task.title}
                                 </h3>
                               </div>
@@ -919,103 +1337,108 @@ export default function TodoPage() {
                                   e.stopPropagation();
                                   openEditModal(task);
                                 }}
-                                className="size-7 flex items-center justify-center rounded-full text-foreground/20 hover:text-accent hover:bg-accent/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95"
+                                className="size-6 flex items-center justify-center rounded-md text-foreground/20 hover:text-accent hover:bg-accent/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95 cursor-pointer"
                                 aria-label={`Edit ${task.title}`}
                               >
-                                <span className="material-symbols-outlined text-[15px]">edit</span>
+                                <span className="material-symbols-outlined text-[14px]">edit</span>
                               </button>
                             </div>
 
                             {task.description && (
-                              <p className="mt-2 text-[12px] leading-relaxed text-foreground/70 font-medium">
+                              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground line-clamp-3">
                                 {task.description}
                               </p>
                             )}
 
-                            <div className="mt-3.5 pt-3.5 border-t border-card-border/65 flex flex-wrap items-center gap-x-3.5 gap-y-2 text-[11px] font-semibold">
-                              <span className="inline-flex items-center gap-1.5 text-muted min-w-0">
-                                <span className="material-symbols-outlined text-[14px] text-muted/75">business_center</span>
-                                <span className="truncate">{task.client || "General"}</span>
-                              </span>
-                              <span className={`inline-flex items-center gap-1.5 ${getDueTone(task.dueDate, task.stage)}`}>
-                                <span className="material-symbols-outlined text-[14px] opacity-75">event</span>
-                                {formatDueDate(task.dueDate)}
-                              </span>
-                              {task.estimate && (
-                                <span className="inline-flex items-center gap-1.5 text-muted">
-                                  <span className="material-symbols-outlined text-[14px] text-muted/75">timer</span>
-                                  {task.estimate}
+                            {/* Separator */}
+                            <div className="border-t border-card-border border-dashed mt-3 pt-3 flex flex-col gap-2">
+                              {/* Metadata indicators */}
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[10px] text-muted-foreground font-semibold">
+                                <span className="inline-flex items-center gap-1 min-w-0" title={task.client || "General"}>
+                                  <Briefcase className="size-3 shrink-0 text-muted-foreground/70" />
+                                  <span className="truncate">{task.client || "General"}</span>
                                 </span>
-                              )}
+                                <span className={`inline-flex items-center gap-1 ${getDueTone(task.dueDate, task.stage)}`}>
+                                  <CalendarIcon className="size-3 shrink-0" />
+                                  <span>{formatDueDate(task.dueDate)}</span>
+                                </span>
+                                {task.estimate && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Clock className="size-3 shrink-0 text-muted-foreground/70" />
+                                    <span>{task.estimate}</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Card Actions Footer */}
+                              <div className="mt-1 flex flex-col gap-1.5">
+                                {/* Non-done tasks optional Outsource action */}
+                                {!task.tags.includes("Outsourced") && task.stage !== "done" && (
+                                  <button
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setOutsourcingTask(task);
+                                      const parsedPrice = parseFloat(task.estimate ? task.estimate.replace(/[^\d.]/g, "") : "");
+                                      setOutsourcePrice(!isNaN(parsedPrice) ? parsedPrice.toString() : "");
+                                    }}
+                                    className="w-full bg-card hover:bg-accent/5 border border-accent/25 hover:border-accent/50 text-accent rounded-lg px-2 py-1 text-[10px] font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all cursor-pointer shadow-xs"
+                                  >
+                                    <Handshake className="size-3" />
+                                    Outsource Task
+                                  </button>
+                                )}
+
+                                {/* Done tasks actions (Inform / Upload) */}
+                                {task.stage === "done" && (
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
+                                      <button
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setInformTask(task);
+                                        }}
+                                        className="w-full bg-card hover:bg-foreground/[0.03] border border-card-border rounded-lg px-2 py-1 text-[10px] font-bold flex items-center justify-center gap-1 active:scale-[0.97] transition-all cursor-pointer shadow-xs"
+                                      >
+                                        <Info className="size-3" />
+                                        Inform
+                                      </button>
+                                    )}
+                                    {task.deliveryLink && (
+                                      <a
+                                        href={task.deliveryLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(event) => event.stopPropagation()}
+                                        className="w-full bg-card hover:bg-positive/5 border border-card-border hover:border-positive/45 hover:text-positive rounded-lg px-2 py-1 text-[10px] font-bold flex items-center justify-center gap-1 transition-all shadow-xs"
+                                      >
+                                        <Upload className="size-3" />
+                                        Upload
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Dynamic "Create Invoice" option for ANY task stage if not yet billed */}
+                                {!task.invoiceId ? (
+                                  <button
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      window.location.href = `/invoices?prefillTaskId=${task.id}`;
+                                    }}
+                                    className="w-full bg-card hover:bg-accent/5 border border-accent/25 hover:border-accent/55 text-accent rounded-lg px-2 py-1 text-[10px] font-bold flex items-center justify-center gap-1 active:scale-[0.97] transition-all cursor-pointer shadow-xs"
+                                  >
+                                    <Receipt className="size-3" />
+                                    Create Invoice
+                                  </button>
+                                ) : (
+                                  <div className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg flex items-center justify-center gap-1 border border-emerald-500/25 select-none">
+                                    <CheckCircle2 className="size-3 text-emerald-500" />
+                                    Billed ({task.invoiceId})
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Card Actions Footer */}
-                            <div className="mt-4 pt-1 flex flex-col gap-2">
-                              {/* Non-done tasks optional Outsource action */}
-                              {!task.tags.includes("Outsourced") && task.stage !== "done" && (
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setOutsourcingTask(task);
-                                    const parsedPrice = parseFloat(task.estimate ? task.estimate.replace(/[^\d.]/g, "") : "");
-                                    setOutsourcePrice(!isNaN(parsedPrice) ? parsedPrice.toString() : "");
-                                  }}
-                                  className="w-full btn-secondary min-h-8 rounded-xl px-3 py-1.5 text-[11px] border-accent/20 hover:border-accent/50 text-accent bg-accent/[0.01] hover:bg-accent/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
-                                >
-                                  <span className="material-symbols-outlined text-[14px]">handshake</span>
-                                  Outsource Task
-                                </button>
-                              )}
-
-                              {/* Done tasks actions (Inform / Upload) */}
-                              {task.stage === "done" && (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {(task.clientEmail || task.clientWhatsapp || task.clientPhone) && (
-                                    <button
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        setInformTask(task);
-                                      }}
-                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">info</span>
-                                      Inform
-                                    </button>
-                                  )}
-                                  {task.deliveryLink && (
-                                    <a
-                                      href={task.deliveryLink}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      onClick={(event) => event.stopPropagation()}
-                                      className="btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm hover:border-positive hover:text-positive"
-                                    >
-                                      <span className="material-symbols-outlined text-[14px]">cloud_upload</span>
-                                      Upload
-                                    </a>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Dynamic "Create Invoice" option for ANY task stage if not yet billed */}
-                              {!task.invoiceId ? (
-                                <button
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    window.location.href = `/invoices?prefillTaskId=${task.id}`;
-                                  }}
-                                  className="w-full btn-secondary min-h-8 rounded-xl px-2.5 py-1.5 text-[11px] border-[var(--primary)]/20 hover:border-[var(--primary)]/50 text-[var(--primary)] bg-[var(--primary)]/[0.01] hover:bg-[var(--primary)]/5 flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-sm"
-                                >
-                                  <span className="material-symbols-outlined text-[14px]">receipt_long</span>
-                                  Create Invoice
-                                </button>
-                              ) : (
-                                <div className="text-[10.5px] font-semibold text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-xl flex items-center justify-center gap-1.5 border border-emerald-500/25">
-                                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                                  Billed ({task.invoiceId})
-                                </div>
-                              )}
-                            </div>
                           </div>
                         </div>
                       );
@@ -1023,18 +1446,30 @@ export default function TodoPage() {
                   ) : (
                     <button
                       onClick={() => openCreateModal(stage.id)}
-                      className="w-full min-h-[160px] rounded-xl border border-dashed border-card-border bg-foreground/[0.02] flex flex-col items-center justify-center text-center p-5 transition-smooth hover:border-accent/40 hover:bg-accent/5"
+                      className="w-full min-h-[120px] rounded-lg border border-dashed border-card-border bg-foreground/[0.015] flex flex-col items-center justify-center text-center p-4 transition-all hover:border-accent/40 hover:bg-accent/[0.02] cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[30px] text-foreground/12 mb-2">add_task</span>
-                      <AnimatedText as="span" text="Add a card" effect="per-word-crossfade" className="text-[12px] font-semibold text-muted" />
+                      <Plus className="size-5 text-muted-foreground/50 mb-1.5" />
+                      <span className="text-[11px] font-bold text-muted-foreground/70">Add a card</span>
                     </button>
                   )}
                 </div>
+
+                {/* Column Footer Quick Add */}
+                {stageTasks.length > 0 && (
+                  <button
+                    onClick={() => openCreateModal(stage.id)}
+                    className="w-full hover:bg-foreground/[0.03] text-muted-foreground hover:text-foreground text-xs font-semibold py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all mt-3 cursor-pointer"
+                  >
+                    <Plus className="size-3.5" />
+                    <span>Add task</span>
+                  </button>
+                )}
               </section>
             );
           })}
         </div>
-      </main>
+      </div>
+    </main>
 
       {isTaskModalOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -1045,10 +1480,10 @@ export default function TodoPage() {
           />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
               <div className="flex items-center gap-3">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <span className="material-symbols-outlined text-[18px] text-muted">assignment</span>
+                <Layers className="size-4.5 text-muted-foreground" />
                 <AnimatedText
                   as="h2"
                   text={taskModalTitle}
@@ -1057,17 +1492,17 @@ export default function TodoPage() {
                   replayKey={taskModalTitle}
                 />
               </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
-                <span className="material-symbols-outlined text-[18px]">close</span>
+              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground cursor-pointer">
+                <X className="size-4.5" />
               </button>
             </div>
 
             {/* Scrollable Form Body */}
             <form onSubmit={handleTaskSubmit} className="flex-1 flex flex-col min-h-0 bg-background/35">
-              <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar">
                 
                 {/* 1. Task Description & Scope Card */}
-                <div className="surface-card p-4 space-y-4">
+                <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
                   <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Task Definition</h3>
                   
                   <div className="space-y-1">
@@ -1105,7 +1540,7 @@ export default function TodoPage() {
                         >
                           {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id} className="text-foreground bg-background">{stage.label}</option>)}
                         </select>
-                        <span className="material-symbols-outlined absolute right-3 text-[16px] text-muted pointer-events-none">expand_more</span>
+                        <ChevronDown className="absolute right-3 size-4 text-muted pointer-events-none" />
                       </div>
                     </div>
 
@@ -1118,16 +1553,15 @@ export default function TodoPage() {
                           let colorClass = "border-card-border text-muted bg-card hover:border-foreground/10";
                           if (isSelected) {
                             if (p === "Low") colorClass = "bg-slate-500/10 border-slate-500 text-slate-500 shadow-xs";
-                            else if (p === "Medium") colorClass = "bg-blue-500/10 border-blue-500 text-blue-500 shadow-xs";
+                            else if (p === "Medium") colorClass = "bg-cyan-500/10 border-cyan-500 text-cyan-500 shadow-xs";
                             else if (p === "High") colorClass = "bg-orange-500/10 border-orange-500 text-orange-500 shadow-xs";
-                            else if (p === "Urgent") colorClass = "bg-rose-500/10 border-rose-500 text-rose-500 shadow-xs";
                           }
                           return (
                             <button
                               key={p}
                               type="button"
                               onClick={() => setForm({ ...form, priority: p })}
-                              className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] ${colorClass}`}
+                              className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] cursor-pointer ${colorClass}`}
                             >
                               {p}
                             </button>
@@ -1139,7 +1573,7 @@ export default function TodoPage() {
                 </div>
 
                 {/* 2. Relations, Deadlines & Tags Card */}
-                <div className="surface-card p-4 space-y-4">
+                <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
                   <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Relations & Constraints</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1167,7 +1601,7 @@ export default function TodoPage() {
                             ))}
                             <option value="__custom__" className="text-foreground bg-background">+ Add Custom...</option>
                           </select>
-                          <span className="material-symbols-outlined absolute right-3 text-[16px] text-muted pointer-events-none">expand_more</span>
+                          <ChevronDown className="absolute right-3 size-4 text-muted pointer-events-none" />
                         </div>
                       ) : (
                         <div className="flex gap-1.5 items-center">
@@ -1184,7 +1618,7 @@ export default function TodoPage() {
                               setClientMode("select");
                               setForm({ ...form, client: "" });
                             }}
-                            className="text-[9px] font-bold text-accent hover:underline shrink-0"
+                            className="text-[9px] font-bold text-accent hover:underline shrink-0 cursor-pointer"
                           >
                             Saved
                           </button>
@@ -1206,7 +1640,7 @@ export default function TodoPage() {
                     <div className="space-y-1 col-span-1">
                       <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-estimate">Estimate / Effort</label>
                       <div className="relative flex items-center">
-                        <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">timer</span>
+                        <Clock className="absolute left-3 size-4 text-muted-foreground/50 pointer-events-none" />
                         <input
                           id="task-estimate"
                           value={form.estimate}
@@ -1221,7 +1655,7 @@ export default function TodoPage() {
                   <div className="space-y-1">
                     <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-tags">Category Tags</label>
                     <div className="relative flex items-center">
-                      <span className="material-symbols-outlined absolute left-3 text-[16px] text-muted/50">tag</span>
+                      <Tag className="absolute left-3 size-4 text-muted-foreground/50 pointer-events-none" />
                       <input
                         id="task-tags"
                         value={form.tags}
@@ -1236,23 +1670,23 @@ export default function TodoPage() {
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-card-border bg-card shrink-0 z-10 select-none">
                 {editingTaskId ? (
                   <button
                     type="button"
                     onClick={() => void deleteTask(editingTaskId)}
                     disabled={isSaving}
-                    className="text-[11px] font-bold text-negative hover:underline active:scale-[0.97] transition-all"
+                    className="text-[11px] font-bold text-negative hover:underline active:scale-[0.97] transition-all cursor-pointer"
                   >
                     Delete Task
                   </button>
                 ) : <span />}
                 
                 <div className="flex gap-2">
-                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-full text-[12px] font-bold" disabled={isSaving}>
+                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-xl text-[12px] font-bold cursor-pointer" disabled={isSaving}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-full text-[12px] font-bold shadow-md active:scale-[0.97]" disabled={isSaving}>
+                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-xl text-[12px] font-bold shadow-md active:scale-[0.97] cursor-pointer" disabled={isSaving}>
                     {isSaving ? "Saving..." : "Save Task"}
                   </button>
                 </div>
@@ -1266,124 +1700,136 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close outsource panel"
-            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
+            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setOutsourcingTask(null)}
           />
-          <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full p-5 sm:p-7 max-h-[92vh] overflow-y-auto space-y-4 animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <p className="section-eyebrow">Outsource Task</p>
-                <h2 className="text-xl font-semibold text-foreground font-display truncate max-w-[280px]">
-                  {outsourcingTask.title}
-                </h2>
+          <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <Handshake className="size-4.5 text-muted-foreground" />
+                <div>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider leading-none mb-1">Outsource Task</p>
+                  <h2 className="text-sm font-bold text-foreground leading-none font-display truncate max-w-[280px]">
+                    {outsourcingTask.title}
+                  </h2>
+                </div>
               </div>
-              <button type="button" onClick={() => setOutsourcingTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-muted">close</span>
+              <button type="button" onClick={() => setOutsourcingTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground cursor-pointer">
+                <X className="size-4.5" />
               </button>
             </div>
 
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-muted tracking-wider uppercase">Subcontractor Selection</label>
-                {vendorMode === "select" ? (
-                  <div className="space-y-2">
-                    <select
-                      value={selectedVendorId}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "__new__") {
-                          setVendorMode("custom");
-                          setSelectedVendorId("");
-                        } else {
-                          setSelectedVendorId(val);
-                        }
-                      }}
-                      className="field-control px-3 py-2 w-full"
-                    >
-                      <option value="" className="text-foreground bg-background">-- Select a Subcontractor --</option>
-                      {vendors.map((v) => (
-                        <option key={v.id} value={v.id} className="text-foreground bg-background">{v.name} {v.company ? `(${v.company})` : ""}</option>
-                      ))}
-                      <option value="__new__" className="text-foreground bg-background">+ Add New Subcontractor...</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div className="space-y-3 border border-dashed border-card-border rounded-xl p-3 bg-foreground/[0.01]">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-accent font-medium">New Subcontractor Info</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setVendorMode("select");
-                          setSelectedVendorId("");
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-background/35">
+              <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Subcontractor Selection</label>
+                  {vendorMode === "select" ? (
+                    <div className="relative">
+                      <select
+                        value={selectedVendorId}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "__new__") {
+                            setVendorMode("custom");
+                            setSelectedVendorId("");
+                          } else {
+                            setSelectedVendorId(val);
+                          }
                         }}
-                        className="text-[10px] text-muted hover:text-foreground transition-smooth font-medium"
+                        className="field-control pr-10 pl-3 py-2 w-full appearance-none rounded-xl border border-card-border bg-background text-[13px] font-medium transition-all"
                       >
-                        Choose Saved
-                      </button>
+                        <option value="" className="text-foreground bg-background">-- Select a Subcontractor --</option>
+                        {vendors.map((v) => (
+                          <option key={v.id} value={v.id} className="text-foreground bg-background">{v.name} {v.company ? `(${v.company})` : ""}</option>
+                        ))}
+                        <option value="__new__" className="text-foreground bg-background">+ Add New Subcontractor...</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted pointer-events-none" />
                     </div>
+                  ) : (
+                    <div className="space-y-3 border border-dashed border-card-border rounded-xl p-3.5 bg-foreground/[0.01]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-accent uppercase tracking-wider">New Subcontractor Info</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVendorMode("select");
+                            setSelectedVendorId("");
+                          }}
+                          className="text-[10px] text-muted hover:text-foreground hover:underline transition-smooth font-bold"
+                        >
+                          Choose Saved
+                        </button>
+                      </div>
 
-                    <div className="space-y-2">
-                      <input
-                        placeholder="Subcontractor Name"
-                        value={newVendorName}
-                        onChange={(e) => setNewVendorName(e.target.value)}
-                        required
-                        className="field-control px-3 py-1.5 w-full text-[13px]"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Email (optional)"
-                        value={newVendorEmail}
-                        onChange={(e) => setNewVendorEmail(e.target.value)}
-                        className="field-control px-3 py-1.5 w-full text-[13px]"
-                      />
-                      <input
-                        placeholder="Phone (optional)"
-                        value={newVendorPhone}
-                        onChange={(e) => setNewVendorPhone(e.target.value)}
-                        className="field-control px-3 py-1.5 w-full text-[13px]"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <input
+                          placeholder="Subcontractor Name"
+                          value={newVendorName}
+                          onChange={(e) => setNewVendorName(e.target.value)}
+                          required
+                          className="field-control px-3 py-1.5 w-full text-[13px] rounded-xl border border-card-border bg-background"
+                        />
+                        <input
+                          type="email"
+                          placeholder="Email (optional)"
+                          value={newVendorEmail}
+                          onChange={(e) => setNewVendorEmail(e.target.value)}
+                          className="field-control px-3 py-1.5 w-full text-[13px] rounded-xl border border-card-border bg-background"
+                        />
+                        <input
+                          placeholder="Phone (optional)"
+                          value={newVendorPhone}
+                          onChange={(e) => setNewVendorPhone(e.target.value)}
+                          className="field-control px-3 py-1.5 w-full text-[13px] rounded-xl border border-card-border bg-background"
+                        />
+                      </div>
 
-                    <div className="flex items-center gap-2 pt-1">
-                      <input
-                        type="checkbox"
-                        id="save-vendor-checkbox"
-                        checked={saveVendorMode === "regular"}
-                        onChange={(e) => setSaveVendorMode(e.target.checked ? "regular" : "onetime")}
-                        className="rounded border-card-border text-accent focus:ring-accent"
-                      />
-                      <label htmlFor="save-vendor-checkbox" className="text-[11px] text-muted cursor-pointer">
-                        Save to Subcontractors directory
-                      </label>
+                      <div className="flex items-center gap-2 pt-1 select-none">
+                        <input
+                          type="checkbox"
+                          id="save-vendor-checkbox"
+                          checked={saveVendorMode === "regular"}
+                          onChange={(e) => setSaveVendorMode(e.target.checked ? "regular" : "onetime")}
+                          className="rounded border-card-border text-accent focus:ring-accent size-3.5 cursor-pointer"
+                        />
+                        <label htmlFor="save-vendor-checkbox" className="text-[11px] text-muted cursor-pointer font-medium hover:text-foreground transition-colors">
+                          Save to Subcontractors directory
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-muted tracking-wider uppercase">Outsourcing Price</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-muted text-[13px] font-medium">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={outsourcePrice}
-                    onChange={(e) => setOutsourcePrice(e.target.value)}
-                    required
-                    className="field-control pl-7 pr-3 py-2 w-full text-[14px]"
-                  />
+              <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Outsourcing Price</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted text-[13px] font-semibold select-none">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={outsourcePrice}
+                      onChange={(e) => setOutsourcePrice(e.target.value)}
+                      required
+                      className="field-control pl-7 pr-3.5 py-2 w-full text-[14px] font-semibold rounded-xl border border-card-border bg-background"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-card-border">
-              <button type="button" onClick={() => setOutsourcingTask(null)} className="btn-ghost" disabled={isSaving}>
+            {/* Footer */}
+            <div className="flex items-center justify-end px-6 py-4 border-t border-card-border bg-card shrink-0 select-none gap-2">
+              <button type="button" onClick={() => setOutsourcingTask(null)} className="btn-ghost min-h-9 px-4 rounded-xl text-[12px] font-bold cursor-pointer" disabled={isSaving}>
                 Cancel
               </button>
-              <button type="submit" className="btn-primary active:scale-[0.97]" disabled={isSaving}>
+              <button type="submit" className="btn-primary min-h-9 px-5 rounded-xl text-[12px] font-bold shadow-md active:scale-[0.97] cursor-pointer" disabled={isSaving}>
                 {isSaving ? "Outsourcing..." : "Outsource Task"}
               </button>
             </div>
@@ -1395,83 +1841,103 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close inform panel"
-            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in duration-200"
+            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setInformTask(null)}
           />
-          <div className="modal-surface w-full max-w-sm p-5 sm:p-6 space-y-4 relative animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-card-border pb-3">
-              <h3 className="text-lg font-semibold text-foreground font-display flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px] text-accent">info</span>
-                Inform Client
-              </h3>
-              <button onClick={() => setInformTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth">
-                <span className="material-symbols-outlined text-[18px] text-muted">close</span>
+          <div className="modal-surface relative max-w-sm w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
+              <div className="flex items-center gap-3">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
+                <Info className="size-4.5 text-muted-foreground" />
+                <h2 className="text-sm font-bold text-foreground leading-none font-display">
+                  Inform Client
+                </h2>
+              </div>
+              <button type="button" onClick={() => setInformTask(null)} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground cursor-pointer">
+                <X className="size-4.5" />
               </button>
             </div>
-            
-            <p className="text-[12px] text-muted">Select how you want to inform <strong>{informTask.client || "Client"}</strong> that <strong>{informTask.title}</strong> is completed:</p>
-            
-            <div className="space-y-2">
-              {(() => {
-                const doneMessage = getTaskDoneMessage(informTask);
-                const contactChannels = [];
-                if (informTask.clientEmail) {
-                  contactChannels.push({
-                    id: "email",
-                    label: "Email",
-                    icon: "mail",
-                    href: `mailto:${informTask.clientEmail}?subject=${encodeURIComponent(`${informTask.invoiceId || "Finished work"} is done`)}&body=${encodeURIComponent(doneMessage)}`,
-                    external: false,
-                  });
-                }
-                if (informTask.clientWhatsapp) {
-                  contactChannels.push({
-                    id: "whatsapp",
-                    label: "WhatsApp",
-                    icon: "chat",
-                    href: getWhatsAppUrl(informTask.clientWhatsapp, doneMessage),
-                    external: true,
-                  });
-                }
-                if (informTask.clientPhone && !informTask.clientWhatsapp) {
-                  contactChannels.push({
-                    id: "sms",
-                    label: "Normal Message (SMS)",
-                    icon: "sms",
-                    href: `sms:${informTask.clientPhone}?body=${encodeURIComponent(doneMessage)}`,
-                    external: false,
-                  });
-                }
-                
-                return (
-                  <>
-                    {contactChannels.map((channel) => (
-                      <a
-                        key={channel.id}
-                        href={channel.href}
-                        target={channel.external ? "_blank" : undefined}
-                        rel={channel.external ? "noreferrer" : undefined}
-                        onClick={() => setInformTask(null)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-card-border bg-card hover:border-accent/55 hover:bg-accent/[0.03] transition-smooth group"
-                      >
-                        <span className="size-10 rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-action-text flex items-center justify-center shrink-0 transition-smooth">
-                          <span className="material-symbols-outlined text-[18px]">{channel.icon}</span>
-                        </span>
-                        <div className="text-left">
-                          <span className="block text-[13px] font-semibold text-foreground">{channel.label}</span>
-                          <span className="block text-[10px] text-muted">Send instantly via {channel.label.toLowerCase()}</span>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-background/35">
+              <p className="text-[12px] text-muted leading-relaxed">
+                Select how you want to inform <strong className="font-semibold text-foreground">{informTask.client || "Client"}</strong> that <strong className="font-semibold text-foreground">{informTask.title}</strong> is completed:
+              </p>
+
+              <div className="space-y-2.5">
+                {(() => {
+                  const doneMessage = getTaskDoneMessage(informTask);
+                  const contactChannels = [];
+                  if (informTask.clientEmail) {
+                    contactChannels.push({
+                      id: "email",
+                      label: "Email",
+                      icon: <Mail className="size-4.5" />,
+                      href: `mailto:${informTask.clientEmail}?subject=${encodeURIComponent(`${informTask.invoiceId || "Finished work"} is done`)}&body=${encodeURIComponent(doneMessage)}`,
+                      external: false,
+                    });
+                  }
+                  if (informTask.clientWhatsapp) {
+                    contactChannels.push({
+                      id: "whatsapp",
+                      label: "WhatsApp",
+                      icon: <MessageSquare className="size-4.5" />,
+                      href: getWhatsAppUrl(informTask.clientWhatsapp, doneMessage),
+                      external: true,
+                    });
+                  }
+                  if (informTask.clientPhone && !informTask.clientWhatsapp) {
+                    contactChannels.push({
+                      id: "sms",
+                      label: "Normal Message (SMS)",
+                      icon: <MessageSquare className="size-4.5" />,
+                      href: `sms:${informTask.clientPhone}?body=${encodeURIComponent(doneMessage)}`,
+                      external: false,
+                    });
+                  }
+                  
+                  return (
+                    <>
+                      {contactChannels.map((channel) => (
+                        <a
+                          key={channel.id}
+                          href={channel.href}
+                          target={channel.external ? "_blank" : undefined}
+                          rel={channel.external ? "noreferrer" : undefined}
+                          onClick={() => setInformTask(null)}
+                          className="w-full flex items-center gap-3.5 p-3 rounded-xl border border-card-border bg-card hover:border-accent/40 hover:bg-accent/[0.02] active:scale-[0.99] transition-all duration-200 group"
+                        >
+                          <span className="size-10 rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-action-text flex items-center justify-center shrink-0 transition-all duration-200">
+                            {channel.icon}
+                          </span>
+                          <div className="text-left flex-1 min-w-0">
+                            <span className="block text-[13px] font-bold text-foreground group-hover:text-accent transition-colors">{channel.label}</span>
+                            <span className="block text-[10px] text-muted-foreground truncate">Send instantly via {channel.label.toLowerCase()}</span>
+                          </div>
+                          <ChevronRight className="size-4 text-muted group-hover:text-accent group-hover:translate-x-0.5 transition-all duration-200" />
+                        </a>
+                      ))}
+                      {contactChannels.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed border-card-border rounded-xl bg-card/50 text-center">
+                          <Info className="size-6 text-muted mb-2.5" />
+                          <span className="text-[12px] font-semibold text-foreground mb-1">No Contact Information</span>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            No contact details found for this client. Please edit the client in directory to add an email or phone number.
+                          </p>
                         </div>
-                        <span className="ml-auto material-symbols-outlined text-[18px] text-muted group-hover:text-accent transition-smooth">chevron_right</span>
-                      </a>
-                    ))}
-                    {contactChannels.length === 0 && (
-                      <div className="text-center py-6 text-[12px] text-muted">
-                        No contact details found for this client. Please edit the client in directory to add an email or phone number.
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end px-6 py-4 border-t border-card-border bg-card shrink-0 select-none">
+              <button type="button" onClick={() => setInformTask(null)} className="btn-ghost min-h-9 px-4 rounded-xl text-[12px] font-bold cursor-pointer w-full">
+                Close
+              </button>
             </div>
           </div>
         </div>

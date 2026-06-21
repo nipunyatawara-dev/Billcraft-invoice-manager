@@ -1,8 +1,9 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { AnimatedText } from "@/components/animated-text";
+import { User, Palette, Bell, Database, Shield, Trash2 } from "lucide-react";
 import { ProfileTab } from "./components/ProfileTab";
 import { AppearanceTab } from "./components/AppearanceTab";
 import { NotificationsTab } from "./components/NotificationsTab";
@@ -13,22 +14,22 @@ import { TrashTab } from "./components/TrashTab";
 type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security" | "trash";
 
 const tabs = [
-  { id: "profile" as const, label: "Profile", icon: "person", desc: "Your personal and business info" },
-  { id: "appearance" as const, label: "Appearance", icon: "palette", desc: "Themes, colors, and typography" },
-  { id: "notifications" as const, label: "Notifications", icon: "notifications", desc: "Alerts and reminders" },
-  { id: "data" as const, label: "Your Data", icon: "database", desc: "Export and manage your data" },
-  { id: "security" as const, label: "Security", icon: "shield", desc: "Passwords and danger zone" },
-  { id: "trash" as const, label: "Trash Bin", icon: "delete", desc: "Deleted invoices" },
+  { id: "profile" as const, label: "Profile", icon: User, desc: "Your personal and business info" },
+  { id: "appearance" as const, label: "Appearance", icon: Palette, desc: "Themes, colors, and typography" },
+  { id: "notifications" as const, label: "Notifications", icon: Bell, desc: "Alerts and reminders" },
+  { id: "data" as const, label: "Your Data", icon: Database, desc: "Export and manage your data" },
+  { id: "security" as const, label: "Security", icon: Shield, desc: "Passwords and danger zone" },
+  { id: "trash" as const, label: "Trash Bin", icon: Trash2, desc: "Deleted invoices" },
 ];
 
 export default function Settings() {
   return (
     <Suspense fallback={
       <main className="app-main flex-1">
-        <div className="page-heading">
+        <div className="mb-8">
           <div>
-            <p className="section-eyebrow">Account</p>
-            <h1 className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]">Settings</h1>
+            <p className="text-xs font-bold uppercase tracking-widest text-accent mb-2">Account</p>
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">Settings</h1>
           </div>
         </div>
         <div className="py-12 text-center text-muted">Loading Settings...</div>
@@ -53,21 +54,47 @@ function SettingsContent() {
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const [headerHeight, setHeaderHeight] = useState(136);
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    const updateHeight = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(headerRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <main className="app-main flex-1">
+    <main 
+      style={{ "--settings-header-height": `${headerHeight}px` } as React.CSSProperties}
+      className="app-main flex-1"
+    >
       
       {/* Header */}
-      <div className="page-heading">
+      <div 
+        ref={headerRef}
+        className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-6 sm:pt-8 lg:pt-12 pb-4 -mt-6 sm:-mt-8 lg:-mt-12 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8"
+      >
         <div>
-          <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-1.5" />
           <AnimatedText
             as="h1"
             text="Settings"
             effect="micro-scale-fade"
-            className="text-3xl lg:text-[40px] font-semibold text-foreground leading-[1.1]"
+            className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground"
             delayMs={70}
           />
-          <p className="mt-3 text-[15px] text-muted max-w-2xl font-medium">Manage your profile, adjust aesthetic preferences, and control your data.</p>
+          <AnimatedText as="p" text="Manage your profile, adjust aesthetic preferences, and control your data." effect="micro-scale-fade" className="text-muted mt-1.5 text-sm font-medium" delayMs={140} />
         </div>
       </div>
 
@@ -76,7 +103,10 @@ function SettingsContent() {
         
         {/* Navigation Sidebar */}
         <div className="lg:w-72 shrink-0">
-          <div className="sticky top-6 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 custom-scrollbar snap-x">
+          <div 
+            style={{ top: "calc(var(--settings-header-height, 136px) + 8 * var(--spacing))" }}
+            className="sticky flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 custom-scrollbar snap-x"
+          >
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               
@@ -84,7 +114,7 @@ function SettingsContent() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
+                  className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
                     isActive
                       ? "bg-action/10 text-action shadow-sm"
                       : "text-muted hover:bg-foreground/[0.03] hover:text-foreground"
@@ -95,7 +125,7 @@ function SettingsContent() {
                       ? "bg-action text-action-text shadow-md" 
                       : "bg-foreground/[0.04] group-hover:bg-foreground/[0.08]"
                   }`}>
-                    <span className="material-symbols-outlined text-[20px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>{tab.icon}</span>
+                    <tab.icon className="size-5" />
                   </div>
                   
                   <div>

@@ -120,6 +120,8 @@ export interface UserProfile {
   email?: string;
   phone?: string;
   businessName?: string;
+  taxId?: string;
+  website?: string;
   defaultDeliveryLink?: string;
   profilePic?: string;
   signature?: string;

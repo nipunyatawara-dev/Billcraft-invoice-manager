@@ -33,84 +33,121 @@ function SkeletonBlock({ className = "", style }: SkeletonProps) {
   return <span className={`skeleton-block ${className}`} style={style} aria-hidden="true" />;
 }
 
-function StatSkeleton({ featured = false }: { featured?: boolean }) {
+function StatSkeleton() {
   return (
-    <div className={`${featured ? "surface-featured" : "surface-card"} p-4`}>
-      <SkeletonBlock className="h-3 w-24 mb-4" />
-      <SkeletonBlock className="h-7 w-28 mb-2" />
-      <SkeletonBlock className="h-3 w-20" />
+    <div className="bg-card rounded-xl border border-card-border p-5 select-none">
+      <div className="flex items-center justify-between mb-3.5">
+        <SkeletonBlock className="h-3.5 w-24" />
+        <SkeletonBlock className="size-4 rounded-md" />
+      </div>
+      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
+        <div className="flex items-baseline gap-2">
+          <SkeletonBlock className="h-8 w-24" />
+          <SkeletonBlock className="h-3 w-12" />
+        </div>
+      </div>
     </div>
   );
 }
 
-function HeadingSkeleton({ showAction = true }: { showAction?: boolean }) {
-  return (
-    <div className="page-heading">
-      <div className="min-w-0">
-        <SkeletonBlock className="h-3 w-20 mb-3" />
-        <SkeletonBlock className="h-11 w-64 max-w-[70vw]" />
+function HeadingSkeleton({ showAction = true, isSettings = false }: { showAction?: boolean; isSettings?: boolean }) {
+  if (isSettings) {
+    return (
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-6 sm:pt-8 lg:pt-12 pb-4 -mt-6 sm:-mt-8 lg:-mt-12 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8 select-none">
+        <div className="min-w-0">
+          <SkeletonBlock className="h-3.5 w-16 mb-2.5" />
+          <SkeletonBlock className="h-9 w-48 mb-2.5" />
+          <SkeletonBlock className="h-4.5 w-96 max-w-full" />
+        </div>
       </div>
-      {showAction && <SkeletonBlock className="hidden md:block h-10 w-32 rounded-lg" />}
-    </div>
+    );
+  }
+
+  return (
+    <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8 select-none">
+      <div className="min-w-0">
+        <SkeletonBlock className="h-3.5 w-16 mb-2.5" />
+        <SkeletonBlock className="h-9 w-48 mb-2.5" />
+        <SkeletonBlock className="h-4.5 w-80 max-w-full" />
+      </div>
+      {showAction && (
+        <SkeletonBlock className="h-11 w-36 rounded-xl shrink-0" />
+      )}
+    </header>
   );
 }
 
 function DashboardSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-        <div className="md:col-span-2 md:row-span-2 surface-featured p-6 lg:p-8 min-h-[280px] flex flex-col justify-between">
-          <div>
-            <SkeletonBlock className="size-7 rounded-lg mb-3" />
-            <SkeletonBlock className="h-4 w-36" />
-          </div>
-          <div>
-            <SkeletonBlock className="h-14 w-48 mb-4" />
-            <div className="flex gap-3">
-              <SkeletonBlock className="h-6 w-20 rounded-md" />
-              <SkeletonBlock className="h-4 w-28" />
-            </div>
-          </div>
-        </div>
+      {/* 3 Bento Stats Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatSkeleton />
         <StatSkeleton />
-        <div className="md:col-span-2 surface-card p-5 lg:p-6 min-h-[133px]">
-          <div className="flex items-center justify-between gap-4 mb-5">
-            <div className="flex-1">
-              <SkeletonBlock className="h-3 w-28 mb-2" />
-              <SkeletonBlock className="h-3 w-40" />
+        <StatSkeleton />
+      </div>
+
+      {/* Chart and Quick Actions Row */}
+      <div className="flex flex-col lg:flex-row gap-6 mb-6 items-stretch select-none">
+        {/* Chart Card */}
+        <div className="flex-1 bg-card rounded-xl border border-card-border p-6 min-h-[380px] flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <SkeletonBlock className="h-4 w-36 mb-2" />
+              <SkeletonBlock className="h-3 w-56" />
             </div>
-            <SkeletonBlock className="size-9 rounded-lg" />
+            <SkeletonBlock className="h-8 w-32 rounded-lg" />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="rounded-lg border border-card-border p-3">
-                <SkeletonBlock className="h-6 w-10 mb-2" />
-                <SkeletonBlock className="h-3 w-14" />
-              </div>
+          {/* Chart representation */}
+          <div className="flex h-48 items-end gap-2 border-t border-card-border/50 pt-6">
+            {[45, 68, 52, 85, 60, 92, 74].map((height, index) => (
+              <SkeletonBlock key={index} className="flex-1 rounded-t-lg" style={{ height: `${height}%` }} />
             ))}
           </div>
         </div>
-        <div className="md:col-span-2 lg:col-span-4 surface-card p-6 min-h-[180px]">
-          <div className="flex justify-between mb-8">
-            <SkeletonBlock className="h-3 w-28" />
-            <SkeletonBlock className="h-3 w-16" />
+
+        {/* Quick Actions Card */}
+        <div className="w-full lg:w-96 shrink-0 bg-card rounded-xl border border-card-border p-6 flex flex-col justify-between min-h-[380px]">
+          <div>
+            <SkeletonBlock className="h-4 w-28 mb-1.5" />
+            <SkeletonBlock className="h-3 w-40 mb-6" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-3 flex-1">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index}>
-                <div className="flex items-center gap-3 mb-4">
-                  <SkeletonBlock className="size-9 rounded-lg" />
-                  <div className="flex-1">
-                    <SkeletonBlock className="h-3 w-24 mb-2" />
-                    <SkeletonBlock className="h-2.5 w-14" />
-                  </div>
+              <div key={index} className="rounded-lg border border-card-border/60 bg-foreground/[0.015] p-4 flex flex-col justify-between">
+                <SkeletonBlock className="size-6 rounded-md mb-3" />
+                <div>
+                  <SkeletonBlock className="h-3 w-16 mb-1.5" />
+                  <SkeletonBlock className="h-2.5 w-12" />
                 </div>
-                <SkeletonBlock className="h-5 w-20 mb-2" />
-                <SkeletonBlock className="h-3 w-28" />
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Recent Invoices Card */}
+      <div className="bg-card rounded-xl border border-card-border p-6 min-h-[280px] select-none">
+        <div className="flex justify-between items-center mb-6">
+          <SkeletonBlock className="h-4 w-32" />
+          <SkeletonBlock className="h-3.5 w-16" />
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className={`flex items-center justify-between py-3.5 ${index > 0 ? "border-t border-card-border/50" : ""}`}>
+              <div className="flex items-center gap-3">
+                <SkeletonBlock className="size-9 rounded-lg" />
+                <div>
+                  <SkeletonBlock className="h-3.5 w-32 mb-1.5" />
+                  <SkeletonBlock className="h-2.5 w-20" />
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <SkeletonBlock className="h-4.5 w-16" />
+                <SkeletonBlock className="h-6 w-20 rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </>
@@ -120,29 +157,45 @@ function DashboardSkeleton() {
 function RecordsSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <StatSkeleton key={index} featured={index === 0} />
-        ))}
+      {/* 4 Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
       </div>
-      <div className="mb-6 flex flex-col md:flex-row gap-3 md:items-center">
-        <SkeletonBlock className="h-10 w-full max-w-md rounded-lg" />
-        <div className="flex gap-2">
+
+      {/* Search and Filters Bar */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3 sm:items-center justify-between select-none">
+        <SkeletonBlock className="h-10 w-full sm:w-[320px] rounded-xl" />
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
           {Array.from({ length: 4 }).map((_, index) => (
-            <SkeletonBlock key={index} className="h-8 w-20 rounded-lg" />
+            <SkeletonBlock key={index} className="h-9 w-20 rounded-xl shrink-0" />
           ))}
         </div>
       </div>
-      <div className="surface-card p-4 sm:p-5 min-h-[320px]">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className={`flex items-center gap-4 py-4 ${index > 0 ? "border-t border-card-border" : ""}`}>
-            <SkeletonBlock className="size-11 rounded-lg shrink-0" />
-            <div className="flex-1 min-w-0">
-              <SkeletonBlock className="h-4 w-40 mb-2" />
-              <SkeletonBlock className="h-3 w-56 max-w-full" />
+
+      {/* Main Content List Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 select-none">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="bg-card border border-card-border rounded-xl p-5 flex flex-col justify-between min-h-[160px]">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <SkeletonBlock className="size-10 rounded-xl shrink-0" />
+                <div>
+                  <SkeletonBlock className="h-4 w-32 mb-1.5" />
+                  <SkeletonBlock className="h-2.5 w-20" />
+                </div>
+              </div>
+              <SkeletonBlock className="h-5.5 w-16 rounded-lg" />
             </div>
-            <SkeletonBlock className="hidden sm:block h-5 w-24" />
-            <SkeletonBlock className="h-6 w-20 rounded-md" />
+            <div className="border-t border-card-border/55 border-dashed pt-3.5 mt-3 flex items-center justify-between">
+              <SkeletonBlock className="h-4 w-24" />
+              <div className="flex gap-2">
+                <SkeletonBlock className="size-7 rounded-lg" />
+                <SkeletonBlock className="size-7 rounded-lg" />
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -153,31 +206,46 @@ function RecordsSkeleton() {
 function AnalyticsSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 auto-rows-auto mb-3">
-        <div className="md:col-span-2 surface-card p-6 lg:p-7 min-h-[320px]">
+      {/* 4 Bento Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 select-none">
+        {/* Main Chart Card (2/3 Width) */}
+        <div className="lg:col-span-2 bg-card rounded-xl border border-card-border p-6 min-h-[360px] flex flex-col justify-between">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <SkeletonBlock className="h-5 w-32 mb-2" />
+              <SkeletonBlock className="h-4.5 w-32 mb-2" />
               <SkeletonBlock className="h-3 w-48" />
             </div>
-            <SkeletonBlock className="size-9 rounded-lg" />
+            <SkeletonBlock className="h-8 w-24 rounded-lg" />
           </div>
-          <div className="flex h-48 items-end gap-2 border-t border-card-border pt-6">
+          <div className="flex h-48 items-end gap-2 border-t border-card-border/50 pt-6">
             {[35, 54, 42, 76, 58, 88, 64].map((height, index) => (
               <SkeletonBlock key={index} className="flex-1 rounded-t-lg" style={{ height: `${height}%` }} />
             ))}
           </div>
         </div>
-        <div className="surface-featured p-6 lg:p-7 min-h-[320px] flex flex-col items-center justify-center">
-          <SkeletonBlock className="size-32 rounded-full mb-5" />
-          <SkeletonBlock className="h-4 w-36 mb-2" />
-          <SkeletonBlock className="h-3 w-48" />
+
+        {/* Paid Ratio Circle Card (1/3 Width) */}
+        <div className="bg-card rounded-xl border border-card-border p-6 min-h-[360px] flex flex-col items-center justify-center">
+          <div className="text-center w-full mb-6">
+            <SkeletonBlock className="h-4.5 w-28 mx-auto mb-1.5" />
+            <SkeletonBlock className="h-3 w-36 mx-auto" />
+          </div>
+          <div className="relative size-40 flex items-center justify-center mb-4">
+            {/* Outer track ring */}
+            <div className="absolute inset-0 rounded-full border-[10px] border-card-border/40" />
+            <SkeletonBlock className="size-28 rounded-full" />
+          </div>
+          <SkeletonBlock className="h-3.5 w-24 mb-1.5" />
+          <SkeletonBlock className="h-3 w-16" />
         </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-auto">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <StatSkeleton key={index} />
-        ))}
       </div>
     </>
   );
@@ -186,44 +254,55 @@ function AnalyticsSkeleton() {
 function KanbanSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <StatSkeleton key={index} featured={index === 0} />
-        ))}
+      {/* 4 Stats Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
+        <StatSkeleton />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-start">
-        {Array.from({ length: 4 }).map((_, columnIndex) => (
-          <div key={columnIndex} className="surface-card p-3 min-h-[320px] md:min-h-[520px]">
-            <div className="flex items-center justify-between gap-3 pb-3">
-              <div className="flex items-center gap-2.5">
-                <SkeletonBlock className="size-8 rounded-lg" />
-                <div>
-                  <SkeletonBlock className="h-4 w-24 mb-2" />
-                  <SkeletonBlock className="h-2.5 w-12" />
+
+      {/* Board Scroll Wrapper */}
+      <div className="relative">
+        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar min-w-full items-start select-none">
+          {Array.from({ length: 4 }).map((_, columnIndex) => (
+            <section key={columnIndex} className="w-[300px] sm:w-[340px] shrink-0 bg-card/60 border border-card-border rounded-xl p-3.5 flex flex-col min-h-[460px]">
+              {/* Column Header */}
+              <div className="flex items-center justify-between gap-3 pb-3 border-b border-card-border/60 mb-3.5">
+                <div className="flex items-center gap-2">
+                  <SkeletonBlock className="size-6 rounded-lg" />
+                  <SkeletonBlock className="h-4 w-20" />
+                  <SkeletonBlock className="size-4.5 rounded-full" />
                 </div>
+                <SkeletonBlock className="size-6 rounded-md" />
               </div>
-              <SkeletonBlock className="size-7 rounded-lg" />
-            </div>
-            <div className="space-y-2.5">
-              {Array.from({ length: columnIndex === 0 ? 2 : 1 }).map((_, cardIndex) => (
-                <div key={cardIndex} className="rounded-lg border border-card-border bg-background/45 p-3">
-                  <div className="flex gap-1.5 mb-3">
-                    <SkeletonBlock className="h-5 w-16 rounded-md" />
-                    <SkeletonBlock className="h-5 w-14 rounded-md" />
+              {/* Cards List */}
+              <div className="space-y-3 flex-1">
+                {Array.from({ length: columnIndex === 0 ? 2 : 1 }).map((_, cardIndex) => (
+                  <div key={cardIndex} className="rounded-xl border border-card-border bg-card p-3.5 shadow-sm">
+                    {/* Header tags */}
+                    <div className="flex gap-1.5 mb-3">
+                      <SkeletonBlock className="h-5 w-14 rounded-md" />
+                      <SkeletonBlock className="h-5 w-12 rounded-md" />
+                    </div>
+                    {/* Title and descriptions */}
+                    <SkeletonBlock className="h-4 w-44 max-w-full mb-3" />
+                    <SkeletonBlock className="h-3 w-full mb-1.5" />
+                    <SkeletonBlock className="h-3 w-4/5 mb-4" />
+                    {/* Footer indicators */}
+                    <div className="pt-3 border-t border-card-border border-dashed flex gap-3 items-center justify-between">
+                      <SkeletonBlock className="h-3.5 w-16" />
+                      <div className="flex gap-1.5">
+                        <SkeletonBlock className="size-5 rounded-md" />
+                        <SkeletonBlock className="size-5 rounded-md" />
+                      </div>
+                    </div>
                   </div>
-                  <SkeletonBlock className="h-4 w-44 max-w-full mb-3" />
-                  <SkeletonBlock className="h-3 w-full mb-2" />
-                  <SkeletonBlock className="h-3 w-4/5 mb-4" />
-                  <div className="pt-3 border-t border-card-border flex gap-3">
-                    <SkeletonBlock className="h-4 w-24" />
-                    <SkeletonBlock className="h-4 w-16" />
-                    <SkeletonBlock className="h-4 w-12" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </>
   );
@@ -231,25 +310,40 @@ function KanbanSkeleton() {
 
 function SettingsSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-3">
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="surface-card p-5 sm:p-7">
-            <SkeletonBlock className="h-3 w-24 mb-3" />
-            <SkeletonBlock className="h-7 w-56 mb-5" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <SkeletonBlock className="h-10 rounded-lg" />
-              <SkeletonBlock className="h-10 rounded-lg" />
-              <SkeletonBlock className="h-10 rounded-lg sm:col-span-2" />
+    <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 select-none">
+      {/* Navigation Sidebar Skeleton */}
+      <div className="lg:w-72 shrink-0 flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-4 px-4 py-3.5 rounded-xl border border-card-border/40 bg-card min-w-[200px] lg:min-w-0">
+            <SkeletonBlock className="size-10 rounded-xl shrink-0" />
+            <div className="flex-1">
+              <SkeletonBlock className="h-3.5 w-16 mb-1.5" />
+              <SkeletonBlock className="hidden lg:block h-2.5 w-32" />
             </div>
           </div>
         ))}
       </div>
-      <div className="surface-card p-5 sm:p-6 h-fit">
-        <SkeletonBlock className="size-16 rounded-lg mb-4" />
-        <SkeletonBlock className="h-5 w-36 mb-2" />
-        <SkeletonBlock className="h-3 w-44 mb-5" />
-        <SkeletonBlock className="h-9 w-full rounded-lg" />
+
+      {/* Dynamic Content Area Skeleton */}
+      <div className="flex-1 min-w-0 space-y-6">
+        <div className="bg-card border border-card-border rounded-xl p-6 lg:p-8">
+          <SkeletonBlock className="h-4.5 w-32 mb-2" />
+          <SkeletonBlock className="h-3 w-56 mb-8" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <SkeletonBlock className="h-3 w-16" />
+              <SkeletonBlock className="h-10 rounded-xl w-full" />
+            </div>
+            <div className="space-y-2">
+              <SkeletonBlock className="h-3 w-16" />
+              <SkeletonBlock className="h-10 rounded-xl w-full" />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <SkeletonBlock className="h-3.5 w-20" />
+              <SkeletonBlock className="h-24 rounded-xl w-full" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -259,7 +353,7 @@ export function PageLoadingSkeleton({ variant = "dashboard" }: { variant?: Skele
   return (
     <main className="app-main flex-1" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading</span>
-      <HeadingSkeleton showAction={variant !== "analytics"} />
+      <HeadingSkeleton showAction={variant !== "analytics"} isSettings={variant === "settings"} />
       {variant === "dashboard" && <DashboardSkeleton />}
       {variant === "records" && <RecordsSkeleton />}
       {variant === "analytics" && <AnalyticsSkeleton />}

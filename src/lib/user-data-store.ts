@@ -42,6 +42,8 @@ type ProfileDraft = {
   email?: string;
   phone?: string;
   businessName?: string;
+  taxId?: string;
+  website?: string;
   defaultDeliveryLink?: string;
   profilePic?: string;
   signature?: string;
@@ -344,6 +346,8 @@ async function normalizeProfileAssets(profileId: string, draft: ProfileDraft, ex
     email: draft.email?.trim() || undefined,
     phone: draft.phone?.trim() || undefined,
     businessName: draft.businessName?.trim() || undefined,
+    taxId: draft.taxId?.trim() || undefined,
+    website: draft.website?.trim() || undefined,
     defaultDeliveryLink: draft.defaultDeliveryLink?.trim() || undefined,
     profilePic: await saveDataUrlAsset(profileId, "profile-picture", draft.profilePic || existingProfile?.profilePic),
     signature: await saveDataUrlAsset(profileId, "signature", draft.signature || existingProfile?.signature),

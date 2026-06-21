@@ -149,7 +149,7 @@ export function InvoicePreviewModal({
             return (
               <div className="space-y-6">
                 {/* Bold Header Banner */}
-                <div className="bg-foreground text-background p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="bg-foreground text-background p-6 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <h3 className="text-xs font-bold tracking-[0.25em] uppercase text-background/60">Invoice</h3>
                     <p className="text-3xl font-extrabold font-display tracking-tight mt-1">{selectedInvoice.id}</p>
@@ -420,7 +420,7 @@ export function InvoicePreviewModal({
       <PaymentSummary currency={currency} record={selectedInvoice} />
 
       {/* Glassmorphic Simulated Integrations & Webhooks Panel */}
-      <div className="surface-card p-5 border border-dashed border-accent/[0.25] bg-accent/[0.01] rounded-2xl relative overflow-hidden backdrop-blur-md mt-5">
+      <div className="surface-card p-5 border border-dashed border-accent/[0.25] bg-accent/[0.01] rounded-xl relative overflow-hidden backdrop-blur-md mt-5">
         <div className="absolute top-0 right-0 p-3 flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

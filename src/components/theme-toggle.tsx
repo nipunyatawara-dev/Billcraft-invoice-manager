@@ -3,6 +3,7 @@
 import * as React from "react";
 import { flushSync } from "react-dom";
 import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
 
 type ThemeMode = "light" | "dark";
 
@@ -87,8 +88,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="relative p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/[0.04]">
-        <i className="ph ph-sun text-2xl"></i>
+      <button className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs">
+        <Sun className="size-5" />
       </button>
     );
   }
@@ -99,10 +100,14 @@ export function ThemeToggle() {
       type="button"
       onClick={() => handleToggle(nextTheme)}
       disabled={isAnimating}
-      className="relative p-2 text-muted hover:text-foreground transition-colors rounded-full hover:bg-foreground/[0.04]"
+      className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
       aria-label={`Switch to ${nextTheme} mode`}
     >
-      <i className={`ph text-2xl ${activeTheme === "light" ? "ph-sun ph-fill" : "ph-moon ph-fill"}`}></i>
+      {activeTheme === "light" ? (
+        <Sun className="size-5" />
+      ) : (
+        <Moon className="size-5" />
+      )}
     </button>
   );
 }
