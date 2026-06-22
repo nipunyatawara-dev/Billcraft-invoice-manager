@@ -79,7 +79,7 @@ html:not(.dark)[data-light-palette="palette-1"] {
   --accent: var(--palette-4);
   --accent-hover: color-mix(in srgb, var(--palette-4) 80%, #000000);
   --action: var(--palette-4);
-  --action-hover: color-mix(in srgb, var(--palette-4) 85%, #000000);
+  --action-hover: color-mix(in srgb, var(--accent) 85%, #000000);
   --action-hover-text: #ffffff;
   --action-text: #ffffff;
   --positive: #12b886;
@@ -108,7 +108,7 @@ html:not(.dark)[data-light-palette="palette-2"] {
   --accent: var(--palette-3);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: color-mix(in srgb, var(--palette-4) 85%, #000000);
+  --action-hover: color-mix(in srgb, var(--accent) 85%, #000000);
   --action-hover-text: #ffffff;
   --action-text: #ffffff;
   --positive: #12b886;
@@ -137,7 +137,7 @@ html:not(.dark)[data-light-palette="palette-3"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-3);
   --action: var(--palette-4);
-  --action-hover: var(--palette-3);
+  --action-hover: color-mix(in srgb, var(--accent) 85%, #000000);
   --action-hover-text: #ffffff;
   --action-text: #ffffff;
   --positive: #12b886;
@@ -166,7 +166,7 @@ html:not(.dark)[data-light-palette="palette-4"] {
   --accent: var(--palette-3);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: color-mix(in srgb, var(--palette-4) 85%, #000000);
+  --action-hover: color-mix(in srgb, var(--accent) 85%, #000000);
   --action-hover-text: #ffffff;
   --action-text: #ffffff;
   --positive: #12b886;
@@ -195,7 +195,7 @@ html:not(.dark)[data-light-palette="palette-5"] {
   --accent: var(--palette-3);
   --accent-hover: var(--palette-4);
   --action: var(--palette-4);
-  --action-hover: color-mix(in srgb, var(--palette-4) 85%, #000000);
+  --action-hover: color-mix(in srgb, var(--accent) 85%, #000000);
   --action-hover-text: #ffffff;
   --action-text: #ffffff;
   --positive: #12b886;
@@ -224,7 +224,7 @@ html.dark[data-dark-palette="palette-1"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-1);
   --action: var(--palette-2);
-  --action-hover: var(--palette-1);
+  --action-hover: color-mix(in srgb, var(--accent) 80%, #ffffff);
   --action-text: #151225;
   --action-hover-text: #151225;
   --positive: #00c48c;
@@ -253,7 +253,7 @@ html.dark[data-dark-palette="palette-2"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-1);
   --action: var(--palette-2);
-  --action-hover: var(--palette-1);
+  --action-hover: color-mix(in srgb, var(--accent) 80%, #ffffff);
   --action-text: var(--palette-4);
   --action-hover-text: var(--palette-4);
   --positive: #00c48c;
@@ -282,7 +282,7 @@ html.dark[data-dark-palette="palette-3"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-1);
   --action: var(--palette-2);
-  --action-hover: var(--palette-1);
+  --action-hover: color-mix(in srgb, var(--accent) 80%, #ffffff);
   --action-text: var(--palette-4);
   --action-hover-text: var(--palette-4);
   --positive: #00c48c;
@@ -311,7 +311,7 @@ html.dark[data-dark-palette="palette-4"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-1);
   --action: var(--palette-2);
-  --action-hover: var(--palette-1);
+  --action-hover: color-mix(in srgb, var(--accent) 80%, #ffffff);
   --action-text: var(--palette-4);
   --action-hover-text: var(--palette-4);
   --positive: #00c48c;
@@ -340,7 +340,7 @@ html.dark[data-dark-palette="palette-5"] {
   --accent: var(--palette-2);
   --accent-hover: var(--palette-1);
   --action: var(--palette-2);
-  --action-hover: var(--palette-1);
+  --action-hover: color-mix(in srgb, var(--accent) 80%, #ffffff);
   --action-text: var(--palette-4);
   --action-hover-text: var(--palette-4);
   --positive: #00c48c;

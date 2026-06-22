@@ -20,7 +20,6 @@ import {
   User, 
   LayoutGrid, 
   Maximize2, 
-  RotateCcw, 
   Sliders,
   TrendingDown,
   Percent
@@ -36,7 +35,6 @@ export function AppearanceTab() {
   const [activeFont, setActiveFont] = useState<string>("inter");
   const [activeRadius, setActiveRadius] = useState<string>("rounded");
   const [activeDensity, setActiveDensity] = useState<string>("standard");
-  const [customAccent, setCustomAccent] = useState<string>("");
   const [fontPreviewText, setFontPreviewText] = useState<string>("");
   
   const [isLightPaletteCollapsed, setIsLightPaletteCollapsed] = useState(false);
@@ -56,8 +54,6 @@ export function AppearanceTab() {
       const storedDensity = window.localStorage.getItem("billcraft.density.v1");
       if (storedDensity) setActiveDensity(storedDensity);
 
-      const storedAccent = window.localStorage.getItem("billcraft.custom-accent.v1");
-      if (storedAccent) setCustomAccent(storedAccent);
     }
   }, []);
 
@@ -71,51 +67,6 @@ export function AppearanceTab() {
     }
   }, [activeTheme]);
 
-  // Helper: Hex to RGB
-  function hexToRgb(hex: string) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  }
-
-  const handleCustomAccentChange = (hex: string) => {
-    setCustomAccent(hex);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("billcraft.custom-accent.v1", hex);
-      
-      const root = document.documentElement;
-      root.style.setProperty("--accent", hex);
-      root.style.setProperty("--ring", hex);
-      root.style.setProperty("--sidebar-ring", hex);
-      
-      const rgb = hexToRgb(hex);
-      if (rgb) {
-        root.style.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-      }
-
-      window.dispatchEvent(new Event("billcraft:mode-palette-change"));
-    }
-  };
-
-  const clearCustomAccent = () => {
-    setCustomAccent("");
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("billcraft.custom-accent.v1");
-      const root = document.documentElement;
-      root.style.removeProperty("--accent");
-      root.style.removeProperty("--ring");
-      root.style.removeProperty("--sidebar-ring");
-      root.style.removeProperty("--accent-rgb");
-      window.dispatchEvent(new Event("billcraft:mode-palette-change"));
-      notify.info({
-        title: "Custom colors cleared",
-        description: "Reverted to the selected preset color palette.",
-      });
-    }
-  };
 
   const handleFontChange = (fontId: string) => {
     setActiveFont(fontId);
@@ -195,17 +146,6 @@ export function AppearanceTab() {
     if (mode === "light") setLightPalette(paletteId);
     else setDarkPalette(paletteId);
 
-    // Auto-clear custom color override when selecting a preset
-    if (customAccent) {
-      window.localStorage.removeItem("billcraft.custom-accent.v1");
-      setCustomAccent("");
-      const root = document.documentElement;
-      root.style.removeProperty("--accent");
-      root.style.removeProperty("--ring");
-      root.style.removeProperty("--sidebar-ring");
-      root.style.removeProperty("--accent-rgb");
-      window.dispatchEvent(new Event("billcraft:mode-palette-change"));
-    }
 
     notify.success({
       title: `${mode === "light" ? "Light" : "Dark"} palette updated`,
@@ -285,55 +225,6 @@ export function AppearanceTab() {
             </div>
           </div>
 
-          {/* Custom Palette Builder */}
-          <div className="surface-card p-5 rounded-xl border border-card-border/60 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-xs font-bold text-foreground tracking-wider uppercase flex items-center gap-2">
-                  Custom Color accent Designer
-                </h3>
-                <p className="text-[11px] text-muted mt-0.5">Pick a custom brand hex color to override default styles.</p>
-              </div>
-              
-              {customAccent && (
-                <button
-                  type="button"
-                  onClick={clearCustomAccent}
-                  className="text-[10px] font-bold text-muted hover:text-foreground hover:bg-foreground/[0.04] px-2 py-1 border border-card-border rounded-lg transition-all flex items-center gap-1 shrink-0"
-                >
-                  <RotateCcw className="size-3" />
-                  Reset Custom
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4 bg-background/40 p-4 rounded-xl border border-card-border/50">
-              <div className="relative size-12 rounded-xl overflow-hidden border border-card-border shadow-inner cursor-pointer shrink-0">
-                <input
-                  type="color"
-                  value={customAccent || (activeTheme === "dark" ? "#00c48c" : "#111111")}
-                  onChange={(e) => handleCustomAccentChange(e.target.value)}
-                  className="absolute inset-0 size-full cursor-pointer scale-125 border-0 p-0"
-                />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <span className="block text-[12px] font-bold text-foreground">
-                  {customAccent ? "Custom Hex Accent Active" : "No Custom Accent Selected"}
-                </span>
-                <span className="block text-[10px] text-muted mt-0.5 truncate uppercase">
-                  {customAccent ? `HEX VALUE: ${customAccent}` : "Click square color block to select hex"}
-                </span>
-              </div>
-              
-              {customAccent && (
-                <span 
-                  className="size-4 rounded-full border border-card-border shadow-xs" 
-                  style={{ backgroundColor: customAccent }}
-                />
-              )}
-            </div>
-          </div>
 
           {/* Layout Spacing Density */}
           <div className="surface-card p-5 rounded-xl border border-card-border/60 space-y-4">
@@ -412,7 +303,7 @@ export function AppearanceTab() {
                   <div className="overflow-hidden">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 pb-2 pt-1">
                       {COLOR_PALETTES.filter((palette) => setting.mode === "light" ? palette.id !== "palette-7" : palette.id !== "palette-6").map((palette) => {
-                        const isSelected = !customAccent && setting.selectedPalette === palette.id;
+                        const isSelected = setting.selectedPalette === palette.id;
 
                         return (
                           <button

@@ -1475,7 +1475,7 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close task editor"
-            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closeModal}
           />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
@@ -1700,7 +1700,7 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close outsource panel"
-            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setOutsourcingTask(null)}
           />
           <form onSubmit={handleOutsourceSubmit} className="modal-surface relative max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
@@ -1841,7 +1841,7 @@ export default function TodoPage() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           <button
             aria-label="Close inform panel"
-            className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setInformTask(null)}
           />
           <div className="modal-surface relative max-w-sm w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">

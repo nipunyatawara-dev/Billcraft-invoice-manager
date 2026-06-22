@@ -454,7 +454,7 @@ export default function Expenses() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
           <div role="dialog" aria-modal="true" className="modal-surface relative max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0">

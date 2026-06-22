@@ -217,7 +217,7 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
 
 export default function Invoices() {
   const { invoices, clientRecords, saveInvoice, exportInvoice, deleteInvoices, updateInvoicesStatus } = useInvoices();
-  const { activeProfile, todoTasks = [], saveTodoTasks } = useUserData();
+  const { activeProfile, todoTasks = [], saveTodoTasks, catalogItems = [] } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1223,7 +1223,7 @@ export default function Invoices() {
 
       {modalMode && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-foreground/25 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
+          <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
           {isFormMode ? (
             <InvoiceFormModal
               modalMode={modalMode}
@@ -1253,6 +1253,7 @@ export default function Invoices() {
               invoiceSubtotal={invoiceSubtotal}
               invoiceTotal={invoiceTotal}
               createItem={createItem}
+              catalogItems={catalogItems}
             />
           ) : selectedInvoice && (
             <InvoicePreviewModal
