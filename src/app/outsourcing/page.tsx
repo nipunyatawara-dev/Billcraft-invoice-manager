@@ -762,11 +762,18 @@ export default function Outsourcing() {
                   const totalAmount = getOutsourcingInvoiceTotal(invoice);
 
                   return (
-                    <button
-                      type="button"
+                    <div
                       key={invoice.id}
                       onClick={() => openShareModal(invoice)}
-                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover:shadow-xl hover:border-accent/30 transition-all duration-300 relative group overflow-hidden"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openShareModal(invoice);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover:shadow-xl hover:border-accent/30 transition-all duration-300 relative group overflow-hidden cursor-pointer"
                     >
                       <div className="flex items-center gap-4 relative z-10">
                         {/* Avatar with Status Ring */}
@@ -837,7 +844,7 @@ export default function Outsourcing() {
                         <p className="font-bold text-foreground">Total: <span className="font-display font-semibold">{formatCurrency(totalAmount, activeInvoiceCurrency)}</span></p>
                         <p className="font-semibold text-muted">Due: <span className="text-negative">{formatCurrency(balanceDue, activeInvoiceCurrency)}</span></p>
                       </div>
-                    </button>
+                    </div>
                   );
                 })()
               ))}

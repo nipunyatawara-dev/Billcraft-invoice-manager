@@ -12,101 +12,94 @@
   <img src="https://img.shields.io/badge/local--first-JSON%20data-c4a7e7?style=for-the-badge" alt="Local-first JSON data" />
 </p>
 
-### Premium invoice management for freelancers and growing small businesses.
+BillCraft is a local-first invoicing dashboard for freelancers, consultants, and small businesses. It provides a single workspace to manage invoices, clients, vendors, tasks, and revenue analytics.
 
-BillCraft is a polished, local-first invoicing dashboard built for freelancers, consultants, and small businesses that need one workspace for invoices, clients, outsourced work, revenue analytics, and billing tasks.
-
-It is built with **Next.js App Router**, **React 19**, **TypeScript**, **Tailwind CSS v4**, and a lightweight local JSON data layer.
+All data is stored locally on your machine in profile folders, keeping your invoicing and client details private.
 
 ---
 
-## What is BillCraft?
+## Key Features
 
-BillCraft helps freelancers, consultants, and early-stage small businesses run the everyday billing loop without jumping between spreadsheets, notes, and separate invoice trackers.
-
-The app keeps each user's workspace in local profile folders, so invoices, clients, vendors, uploaded assets, security metadata, analytics preferences, and tasks stay on the machine by default. From the dashboard you can see paid revenue, pending totals, overdue invoices, recent clients, and payment health at a glance.
-
----
-
-# Core Features
-
-## Dashboard for payment health
-
-Track collected revenue, pending invoices, overdue totals, paid ratios, and recent invoice activity from a compact dashboard.
+### Dashboard Analytics
+Monitor collected revenue, pending invoices, overdue totals, paid ratios, and recent billing activity at a glance.
 
 <p align="center">
   <img src="./assets/01-dashboard.png" width="800" alt="BillCraft dashboard screenshot">
 </p>
 
-## Invoice creation and tracking
-
-Create, edit, view, filter, search, and export invoices. BillCraft supports line items, due dates, paid/unpaid/overdue status, reusable clients, and one-time client entries.
+### Invoice Tracking & Management
+Create, edit, search, filter, and export itemized invoices as PDF files. Supports due dates, payment status (paid, unpaid, overdue), and reusable or one-time client entries.
 
 <p align="center">
   <img src="./assets/02-invoices.png" width="800" alt="BillCraft invoices screenshot">
 </p>
 
+<p align="center">
+  <img src="./assets/03-create-invoice.png" width="800" alt="BillCraft invoice creator screenshot">
+</p>
 
-## Theme & Typography Customization
-
-Switch between light and dark modes, choose separate palettes for each mode, and collapse the color selectors to keep settings tidy. 
-
-BillCraft features an advanced **Typography Settings** engine allowing you to switch typefaces across the platform (Inter, Open Sans, Google Sans Flex, Outfit, or Plus Jakarta Sans) to customize your workspace style. You can also toggle the global **Corner Style** between classic "Rounded" and modern macOS like "Squircle".
+### Customization & Appearance
+Choose between light and dark modes, customize color palettes, select system-wide typefaces (Inter, Open Sans, Google Sans Flex, Outfit, or Plus Jakarta Sans), and toggle corner styles between Rounded and Squircle (macOS-like).
 
 <p align="center">
   <img src="./assets/04-settings-appearance.png" width="800" alt="BillCraft theme & typography customization screenshot">
 </p>
 
-## All Features
-
-- **Profiles & Local Data**: Up to 5 password-protected billing profiles. All profile identity, configuration, phone, email, signature, and avatars remain stored locally in private folders under `User data/`.
-- **Invoices**: Create, edit, view, search, filter, and export itemized invoices as `.pdf`.
-- **Payment Tracking & Simulators**: Track partial payments/installments with details like amount, date, method, receipt files (base64 image/PDF uploads), and overall payment notes. Simulators in the UI process Stripe Checkout sandboxes (card checks, webhook events, auto-paid updates) and compile SMTP Email Reminders with log output.
-- **Task-to-Invoice Automation**: Import done tasks from the To-Do board directly into invoice line items. Estimate durations (e.g. "2h 45m") auto-convert to billable hours based on profile rates, tagging tasks as "Billed" to avoid double-charging.
-- **Bulk Actions**: Glassmorphic bottom actions bar for staggered multi-PDF downloads (avoiding browser pop-up blocks), bulk status transitions, and bulk invoice deletions.
-- **Clients & Outsourcing**: Manage clients (breakdown stats, total billed, invoices) and subcontractors (vendors list, vendor payable logs, vendor invoice exports as `.pdf`).
-- **Service Catalog**: Register reusable services and products with default pricing, units (hourly, daily, flat, unit), and descriptions.
-- **Expense & Tax Logging**: Track vendor-facing expenses across categories (Travel, Software, office supplies, etc.) and toggle tax-deductible switches.
-- **Redesigned To-Do Board**: Drag-and-drop Kanban tiles (estimate, priority, tags) with a top drag-to-delete Trash zone, countdown Undo pill, Done notification controls (Email, WhatsApp, SMS), and vendor outsourcing payable automation.
-- **Settings, Appearance & Fonts**: Switch toast positions, toggle auto-reminders, export data to JSON/CSV, collapse theme color palettes, dynamically change system-wide typefaces (Inter, Open Sans, Google Sans Flex, Outfit, Plus Jakarta Sans), toggle Squircle/Rounded corners, and manage the Trash Bin settings tab.
-- **Premium UX & Animations**: Immersive circular theme-switch reveals, custom route skeletons, and premium glassmorphic modals/bars powered by Motion.
+### Core Functionality
+- **Local Data & Profiles**: Supports up to 5 password-protected billing profiles. Personal details, configuration, and avatars are stored locally in the `User data/` folder.
+- **Payment & Reminders Simulators**: Track partial payments/installments with attachments. Test checkout flows using simulated Stripe sandboxes and SMTP email reminders.
+- **Task-to-Invoice Import**: Import completed tasks from the Kanban board directly into invoice line items. Estimated hours automatically calculate based on profile rates.
+- **Bulk Actions**: Perform bulk operations, including downloading multiple PDFs, updating invoice statuses, and deleting entries.
+- **Subcontractor Management**: Track billing stats for clients and manage subcontractor (vendor) payable logs and PDF invoice exports.
+- **Product & Service Catalog**: Save reusable services and products with default pricing units (hourly, daily, flat rate, or unit price).
+- **Expense Tracking**: Log expenses by category (e.g., Travel, Software, Office Supplies) and mark them as tax-deductible.
+- **Kanban Task Board**: Manage tasks using a drag-and-drop board with estimates, priorities, tags, and automated notifications (Email, SMS, WhatsApp).
 
 ---
 
-# Tech Stack
+## Tech Stack
 
-| Area | Technology |
+| Component | Technology |
 | --- | --- |
-| Framework | Next.js 15 App Router |
-| UI | React 19 |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 and CSS custom properties |
-| Theme | next-themes |
-| Charts | Recharts with local EvilCharts wrappers |
-| Animation | Motion |
-| UI utilities | Base UI, lucide-react, shadcn, class-variance-authority, tailwind-merge |
-| Toasts | Sileo |
-| Cross-Platform | cross-env for seamless multi-platform development environment setup |
-| Data | Local JSON files through Next.js API routes |
-| Persistence | `User data/` profile folders |
-| Assets | Local profile asset storage served through `/api/user-data/asset` |
+| **Framework** | Next.js 15 (App Router) |
+| **Frontend UI** | React 19 |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS v4 & CSS Variables |
+| **Theme Management** | next-themes |
+| **Charts** | Recharts |
+| **Animations** | Motion |
+| **UI Components** | Base UI, shadcn/ui, Lucide React |
+| **Data Layer** | Local JSON files accessed via API routes |
+| **Storage** | Local file system (`User data/` directory) |
 
 ---
 
-# Installation
+## Installation
 
-## Prerequisites
-
+### Prerequisites
 - Node.js 20+
 - npm
 
-## Run locally
+### Run Locally
 
-```bash
-git clone https://github.com/NippaGG/Billcraft-invoice-manager.git
-cd Billcraft-invoice-manager
-npm install
-npm run dev
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/NippaGG/Billcraft-invoice-manager.git
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+2. Navigate to the project directory:
+   ```bash
+   cd Billcraft-invoice-manager
+   ```
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
