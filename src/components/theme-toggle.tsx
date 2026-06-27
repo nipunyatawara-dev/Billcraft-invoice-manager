@@ -3,7 +3,9 @@
 import * as React from "react";
 import { flushSync } from "react-dom";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import BrightnessDownIcon from "@/components/icons/brightness-down-icon";
+import MoonIcon from "@/components/icons/moon-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 type ThemeMode = "light" | "dark";
 
@@ -20,6 +22,8 @@ export function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false);
   const [isAnimating, setIsAnimating] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const sunIconRef = React.useRef<AnimatedIconHandle>(null);
+  const moonIconRef = React.useRef<AnimatedIconHandle>(null);
 
   // Avoid hydration mismatch by only rendering after mounting
   React.useEffect(() => {
@@ -89,7 +93,7 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <button className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs">
-        <Sun className="size-5" />
+        <BrightnessDownIcon size={20} />
       </button>
     );
   }
@@ -99,14 +103,28 @@ export function ThemeToggle() {
       ref={buttonRef}
       type="button"
       onClick={() => handleToggle(nextTheme)}
+      onMouseEnter={() => {
+        if (activeTheme === "light") {
+          sunIconRef.current?.startAnimation();
+        } else {
+          moonIconRef.current?.startAnimation();
+        }
+      }}
+      onMouseLeave={() => {
+        if (activeTheme === "light") {
+          sunIconRef.current?.stopAnimation();
+        } else {
+          moonIconRef.current?.stopAnimation();
+        }
+      }}
       disabled={isAnimating}
       className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
       aria-label={`Switch to ${nextTheme} mode`}
     >
       {activeTheme === "light" ? (
-        <Sun className="size-5" />
+        <BrightnessDownIcon ref={sunIconRef} size={20} />
       ) : (
-        <Moon className="size-5" />
+        <MoonIcon ref={moonIconRef} size={20} />
       )}
     </button>
   );

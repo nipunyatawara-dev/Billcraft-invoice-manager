@@ -21,10 +21,16 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { InvoiceList } from "./components/InvoiceList";
 import { InvoiceFormModal } from "./components/InvoiceFormModal";
 import { InvoicePreviewModal } from "./components/InvoicePreviewModal";
+import PlusIcon from "@/components/icons/plus-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import RosetteDiscountCheckIcon from "@/components/icons/rosette-discount-check-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
 const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
@@ -216,6 +222,12 @@ function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
 }
 
 export default function Invoices() {
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const billedIconRef = useRef<AnimatedIconHandle>(null);
+  const invoicesIconRef = useRef<AnimatedIconHandle>(null);
+  const collectedIconRef = useRef<AnimatedIconHandle>(null);
+  const attentionIconRef = useRef<AnimatedIconHandle>(null);
+
   const { invoices, clientRecords, saveInvoice, exportInvoice, deleteInvoices, updateInvoicesStatus } = useInvoices();
   const { activeProfile, todoTasks = [], saveTodoTasks, catalogItems = [] } = useUserData();
   const { currency } = useCurrency();
@@ -1053,9 +1065,11 @@ export default function Invoices() {
           
           <button 
             onClick={() => openCreateModal()} 
+            onMouseEnter={() => plusIconRef.current?.startAnimation()}
+            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
             className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
           >
-            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
+            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
             New Invoice
           </button>
         </header>
@@ -1063,10 +1077,14 @@ export default function Invoices() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Total Billed */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => billedIconRef.current?.startAnimation()}
+            onMouseLeave={() => billedIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Total Billed</span>
-              <i className="ph ph-invoice text-lg text-muted-foreground"></i>
+              <FileDescriptionIcon ref={billedIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -1084,10 +1102,14 @@ export default function Invoices() {
           </div>
 
           {/* Total Invoices */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => invoicesIconRef.current?.startAnimation()}
+            onMouseLeave={() => invoicesIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Invoices</span>
-              <i className="ph ph-receipt text-lg text-muted-foreground"></i>
+              <RosetteDiscountCheckIcon ref={invoicesIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -1105,10 +1127,14 @@ export default function Invoices() {
           </div>
 
           {/* Collected */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => collectedIconRef.current?.startAnimation()}
+            onMouseLeave={() => collectedIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Collected</span>
-              <i className="ph ph-wallet text-lg text-muted-foreground"></i>
+              <WalletIcon ref={collectedIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -1126,10 +1152,14 @@ export default function Invoices() {
           </div>
 
           {/* Attention */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => attentionIconRef.current?.startAnimation()}
+            onMouseLeave={() => attentionIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Attention</span>
-              <i className="ph ph-warning-circle text-lg text-accent"></i>
+              <TriangleAlertIcon ref={attentionIconRef} size={20} className="text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">

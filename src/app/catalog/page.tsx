@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, useRef } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, type CatalogItem } from "@/data/invoices";
@@ -8,6 +8,14 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+import PlusIcon from "@/components/icons/plus-icon";
+import StackIcon from "@/components/icons/stack-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import StarIcon from "@/components/icons/star-icon";
+import ClockIcon from "@/components/icons/clock-icon";
+import PenIcon from "@/components/icons/pen-icon";
+import TrashIcon from "@/components/icons/trash-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 import { 
   Package, 
   DollarSign, 
@@ -43,6 +51,12 @@ const UNITS: { value: CatalogItem["unit"]; label: string }[] = [
 ];
 
 export default function Catalog() {
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const totalItemsRef = useRef<AnimatedIconHandle>(null);
+  const avgRateRef = useRef<AnimatedIconHandle>(null);
+  const topServiceRef = useRef<AnimatedIconHandle>(null);
+  const hourlyRateRef = useRef<AnimatedIconHandle>(null);
+
   const { catalogItems = [], saveCatalogItem, deleteCatalogItem } = useUserData();
   const { currency } = useCurrency();
 
@@ -242,9 +256,11 @@ export default function Catalog() {
           </div>
           <button 
             onClick={openAddItem} 
+            onMouseEnter={() => plusIconRef.current?.startAnimation()}
+            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
             className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
           >
-            <Plus className="size-4.5 group-hover:rotate-90 transition-transform" />
+            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
             Add Item
           </button>
         </header>
@@ -252,10 +268,14 @@ export default function Catalog() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Total Services */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => totalItemsRef.current?.startAnimation()}
+            onMouseLeave={() => totalItemsRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Total Services</span>
-              <Package className="size-5 text-muted-foreground" />
+              <StackIcon ref={totalItemsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -273,10 +293,14 @@ export default function Catalog() {
           </div>
 
           {/* Average Rate */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => avgRateRef.current?.startAnimation()}
+            onMouseLeave={() => avgRateRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Average Rate</span>
-              <DollarSign className="size-5 text-muted-foreground" />
+              <WalletIcon ref={avgRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-display">
@@ -286,10 +310,14 @@ export default function Catalog() {
           </div>
 
           {/* Premium Service Rate */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => topServiceRef.current?.startAnimation()}
+            onMouseLeave={() => topServiceRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Premium Rate</span>
-              <Crown className="size-5 text-accent" />
+              <StarIcon ref={topServiceRef} size={20} className="text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -307,10 +335,14 @@ export default function Catalog() {
           </div>
 
           {/* Hourly Services */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => hourlyRateRef.current?.startAnimation()}
+            onMouseLeave={() => hourlyRateRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Hourly Services</span>
-              <Clock className="size-5 text-muted-foreground" />
+              <ClockIcon ref={hourlyRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -349,7 +381,7 @@ export default function Catalog() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-xl bg-foreground/[0.04] flex items-center justify-center border border-card-border shrink-0 text-muted-foreground group-hover:text-accent group-hover:bg-accent/5 transition-all duration-300">
-                        <Package className="size-4.5" />
+                        <StackIcon size={18} />
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-[13px] sm:text-[14px] text-foreground truncate group-hover:text-accent transition-smooth">
@@ -383,14 +415,14 @@ export default function Catalog() {
                       className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer"
                       aria-label="Edit catalog item"
                     >
-                      <Pencil className="size-3.5" />
+                      <PenIcon size={14} />
                     </button>
                     <button
                       onClick={() => handleDeleteItem(item.id, item.name)}
                       className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer"
                       aria-label="Delete catalog item"
                     >
-                      <Trash2 className="size-3.5" />
+                      <TrashIcon size={14} />
                     </button>
                   </div>
                 </div>

@@ -10,13 +10,117 @@ import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useUserData } from "@/hooks/use-user-data";
 import { useBillingAlerts } from "@/hooks/use-billing-alerts";
 import { notify } from "@/lib/toast";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, WORK_NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Check, Plus, Search, Bell, User } from "lucide-react";
+
+import HomeIcon from "@/components/icons/home-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import UsersIcon from "@/components/icons/users-icon";
+import ChartBarIcon from "@/components/icons/chart-bar-icon";
+import TravelBag from "@/components/icons/travel-bag";
+import CheckedIcon from "@/components/icons/checked-icon";
+import CartIcon from "@/components/icons/cart-icon";
+import GearIcon from "@/components/icons/gear-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
+
+const ICON_MAP: Record<string, React.ForwardRefExoticComponent<any>> = {
+  dashboard: HomeIcon,
+  invoices: FileDescriptionIcon,
+  expenses: WalletIcon,
+  clients: UsersIcon,
+  analytics: ChartBarIcon,
+  outsourcing: TravelBag,
+  todo: CheckedIcon,
+  catalog: CartIcon,
+  settings: GearIcon,
+};
+
+interface SidebarLinkProps {
+  item: {
+    href: string;
+    label: string;
+    iconKey: string;
+  };
+  isActive: boolean;
+  tooltip?: string;
+}
+
+function SidebarLink({ item, isActive, tooltip }: SidebarLinkProps) {
+  const iconRef = useRef<AnimatedIconHandle>(null);
+  const IconComponent = ICON_MAP[item.iconKey];
+
+  if (!IconComponent) return null;
+
+  // Custom visual weight adjustments to ensure uniform size on the sidebar
+  const iconSizes: Record<string, number> = {
+    todo: 24,
+    catalog: 24,
+    settings: 24,
+    dashboard: 24,
+    invoices: 24,
+    expenses: 24,
+    clients: 24,
+    analytics: 24,
+    outsourcing: 24,
+  };
+  const size = iconSizes[item.iconKey] || 24;
+
+  const iconStrokes: Record<string, number> = {
+    todo: 1.8,
+    catalog: 1.8,
+    settings: 2,
+    dashboard: 2,
+    invoices: 2,
+    expenses: 2,
+    clients: 2,
+    analytics: 2,
+    outsourcing: 2,
+  };
+  const strokeWidth = iconStrokes[item.iconKey] || 2;
+
+  return (
+    <SidebarMenuButton
+      asChild
+      isActive={isActive}
+      tooltip={tooltip}
+      className={cn(
+        "w-full px-3.5 py-3 h-[46px] rounded-xl font-medium transition-all text-[16px] group/btn",
+        isActive
+          ? "bg-accent/10 text-accent font-semibold"
+          : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
+      )}
+    >
+      <Link
+        href={item.href}
+        onMouseEnter={() => iconRef.current?.startAnimation()}
+        onMouseLeave={() => iconRef.current?.stopAnimation()}
+        className="flex items-center w-full"
+      >
+        <div className={cn(
+          "flex items-center justify-center size-8 shrink-0",
+          item.iconKey === "outsourcing" && "translate-x-[2px]"
+        )}>
+          <IconComponent
+            ref={iconRef}
+            size={size}
+            strokeWidth={strokeWidth}
+            className={cn(
+              "transition-colors",
+              isActive ? "text-accent" : "text-muted group-hover/btn:text-foreground"
+            )}
+          />
+        </div>
+        <span className="ml-3 group-data-[collapsible=icon]:hidden">{item.label}</span>
+      </Link>
+    </SidebarMenuButton>
+  );
+}
 import {
   Sidebar,
   SidebarContent,
@@ -180,8 +284,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         
         {/* Permanent Sidebar */}
         <Sidebar collapsible="none" className="border-r border-card-border bg-sidebar-bg">
-          <SidebarHeader className="border-b border-card-border/50 p-4">
-            <div className="flex items-center gap-3 px-2 h-10 select-none">
+          <SidebarHeader className="border-b border-card-border/50 p-5">
+            <div className="flex items-center gap-3 px-2 h-11 select-none">
               <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-foreground">
                 <span className="relative size-8 shrink-0 overflow-hidden rounded-full">
                   <Image
@@ -204,29 +308,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="p-4 space-y-6">
+          <SidebarContent className="p-5 space-y-6">
             <div>
-              <SidebarMenu>
+              <SidebarMenu className="gap-1.5">
                 {NAV_ITEMS.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                        className={cn(
-                          "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
-                          isActive
-                            ? "bg-accent/10 text-accent font-semibold"
-                            : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
-                        )}
-                      >
-                        <Link href={item.href}>
-                          <i className={cn("text-xl", isActive ? item.activeIcon : item.icon)}></i>
-                          <span className="ml-3 group-data-[collapsible=icon]:hidden">{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
+                      <SidebarLink item={item} isActive={isActive} tooltip={item.label} />
                     </SidebarMenuItem>
                   );
                 })}
@@ -236,27 +325,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="h-px bg-card-border mx-2"></div>
 
             <div>
-              <SidebarMenu>
+              <SidebarMenu className="gap-1.5">
                 {WORK_NAV_ITEMS.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                        className={cn(
-                          "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
-                          isActive
-                            ? "bg-accent/10 text-accent font-semibold"
-                            : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
-                        )}
-                      >
-                        <Link href={item.href}>
-                          <i className={cn("text-xl", isActive ? item.activeIcon : item.icon)}></i>
-                          <span className="ml-3 group-data-[collapsible=icon]:hidden">{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
+                      <SidebarLink item={item} isActive={isActive} tooltip={item.label} />
                     </SidebarMenuItem>
                   );
                 })}
@@ -264,24 +338,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SidebarContent>
 
-          <SidebarFooter className="p-4 border-t border-card-border/50">
-            <SidebarMenu>
+          <SidebarFooter className="p-5 border-t border-card-border/50">
+            <SidebarMenu className="gap-1.5">
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
+                <SidebarLink
+                  item={{ href: "/settings", label: "Settings", iconKey: "settings" }}
+                  isActive={pathname === "/settings"}
                   tooltip="Settings"
-                  className={cn(
-                    "w-full px-3 py-2.5 h-10 rounded-xl font-medium transition-all text-sm",
-                    pathname === "/settings"
-                      ? "bg-accent/10 text-accent font-semibold"
-                      : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
-                  )}
-                >
-                  <Link href="/settings">
-                    <i className={cn("text-xl", pathname === "/settings" ? "ph-fill ph-gear" : "ph ph-gear")}></i>
-                    <span className="ml-3 group-data-[collapsible=icon]:hidden">Settings</span>
-                  </Link>
-                </SidebarMenuButton>
+                />
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>

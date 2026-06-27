@@ -14,6 +14,9 @@ import {
   getPaymentState,
   type Invoice,
 } from "@/data/invoices";
+import PenIcon from "@/components/icons/pen-icon";
+import LinkIcon from "@/components/icons/link-icon";
+import DownloadIcon from "@/components/icons/download-icon";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 
@@ -187,7 +190,7 @@ export function InvoiceList({
                       className="size-8 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer" 
                       title="Edit"
                     >
-                      <i className="ph ph-pencil-simple text-sm"></i>
+                      <PenIcon size={16} />
                     </button>
                     <button 
                       type="button"
@@ -195,7 +198,7 @@ export function InvoiceList({
                       className="size-8 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer" 
                       title="Send/Share"
                     >
-                      <i className="ph ph-share-network text-sm"></i>
+                      <LinkIcon size={16} />
                     </button>
                     <button 
                       type="button"
@@ -203,7 +206,7 @@ export function InvoiceList({
                       className="size-8 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer" 
                       title="Export PDF"
                     >
-                      <i className="ph ph-download text-sm"></i>
+                      <DownloadIcon size={16} />
                     </button>
                   </div>
                 </div>

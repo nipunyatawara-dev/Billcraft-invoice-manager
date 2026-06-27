@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, useRef } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, type Expense } from "@/data/invoices";
@@ -8,6 +8,14 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+import PlusIcon from "@/components/icons/plus-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import ShieldCheckIcon from "@/components/icons/shield-check";
+import ChartBarIcon from "@/components/icons/chart-bar-icon";
+import UnorderedListIcon from "@/components/icons/unordered-list-icon";
+import PenIcon from "@/components/icons/pen-icon";
+import TrashIcon from "@/components/icons/trash-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 type ExpenseForm = {
   merchant: string;
@@ -50,6 +58,12 @@ const CATEGORY_ICONS: Record<Expense["category"], string> = {
 };
 
 export default function Expenses() {
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const totalBilledRef = useRef<AnimatedIconHandle>(null);
+  const taxDeductibleRef = useRef<AnimatedIconHandle>(null);
+  const avgSpendRef = useRef<AnimatedIconHandle>(null);
+  const totalRecordsRef = useRef<AnimatedIconHandle>(null);
+
   const { expenses = [], saveExpense, deleteExpense } = useUserData();
   const { currency } = useCurrency();
 
@@ -244,9 +258,11 @@ export default function Expenses() {
           
           <button 
             onClick={openAddExpense} 
+            onMouseEnter={() => plusIconRef.current?.startAnimation()}
+            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
             className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
           >
-            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
+            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
             Add Expense
           </button>
         </header>
@@ -254,10 +270,14 @@ export default function Expenses() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Total Expenses */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => totalBilledRef.current?.startAnimation()}
+            onMouseLeave={() => totalBilledRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Total Expenses</span>
-              <i className="ph ph-invoice text-lg text-muted-foreground"></i>
+              <FileDescriptionIcon ref={totalBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -275,10 +295,14 @@ export default function Expenses() {
           </div>
 
           {/* Tax Deductible */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => taxDeductibleRef.current?.startAnimation()}
+            onMouseLeave={() => taxDeductibleRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Tax Deductible</span>
-              <i className="ph ph-shield-check text-lg text-accent"></i>
+              <ShieldCheckIcon ref={taxDeductibleRef} size={20} className="text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -296,10 +320,14 @@ export default function Expenses() {
           </div>
 
           {/* Average Spend */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => avgSpendRef.current?.startAnimation()}
+            onMouseLeave={() => avgSpendRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Average Spend</span>
-              <i className="ph ph-chart-bar text-lg text-muted-foreground"></i>
+              <ChartBarIcon ref={avgSpendRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -317,10 +345,14 @@ export default function Expenses() {
           </div>
 
           {/* Total Records */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => totalRecordsRef.current?.startAnimation()}
+            onMouseLeave={() => totalRecordsRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Total Records</span>
-              <i className="ph ph-list-numbers text-lg text-muted-foreground"></i>
+              <UnorderedListIcon ref={totalRecordsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -429,14 +461,14 @@ export default function Expenses() {
                       className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer"
                       aria-label="Edit expense"
                     >
-                      <i className="ph ph-pencil-simple text-[13px]"></i>
+                      <PenIcon size={14} />
                     </button>
                     <button
                       onClick={() => handleDeleteExpense(expense.id, expense.merchant)}
                       className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer"
                       aria-label="Delete expense"
                     >
-                      <i className="ph ph-trash text-[13px]"></i>
+                      <TrashIcon size={14} />
                     </button>
                   </div>
                 </div>

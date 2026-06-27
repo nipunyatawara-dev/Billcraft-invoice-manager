@@ -18,6 +18,11 @@ import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { useExpectedCashflow } from "@/hooks/use-expected-cashflow";
 import { cn } from "@/lib/utils";
+import PlusIcon from "@/components/icons/plus-icon";
+import ChartLineIcon from "@/components/icons/chart-line-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 import {
   Area,
   AreaChart,
@@ -205,6 +210,12 @@ function getProjectionData(
 }
 
 export default function Home() {
+  const analyticsIconRef = useRef<AnimatedIconHandle>(null);
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const outstandingBilledRef = useRef<AnimatedIconHandle>(null);
+  const totalCollectedRef = useRef<AnimatedIconHandle>(null);
+  const revenueGrowthRef = useRef<AnimatedIconHandle>(null);
+
   const { invoices } = useInvoices();
   const { currency } = useCurrency();
   const { activeProfile, outsourcingInvoices } = useUserData();
@@ -355,12 +366,22 @@ export default function Home() {
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="flex items-center gap-3"
         >
-          <Link href="/analytics" className="flex items-center gap-2 bg-card border border-card-border hover:border-foreground/20 text-foreground px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs group">
-            <i className="ph ph-trend-up text-lg group-hover:scale-110 transition-transform"></i>
+          <Link 
+            href="/analytics" 
+            onMouseEnter={() => analyticsIconRef.current?.startAnimation()}
+            onMouseLeave={() => analyticsIconRef.current?.stopAnimation()}
+            className="flex items-center gap-2 bg-card border border-card-border hover:border-foreground/20 text-foreground px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs group"
+          >
+            <ChartLineIcon ref={analyticsIconRef} size={20} className="text-muted-foreground group-hover:text-accent transition-colors" />
             Analytics
           </Link>
-          <Link href="/invoices?action=new" className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group">
-            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
+          <Link 
+            href="/invoices?action=new" 
+            onMouseEnter={() => plusIconRef.current?.startAnimation()}
+            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group"
+          >
+            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
             New Invoice
           </Link>
         </motion.div>
@@ -369,10 +390,14 @@ export default function Home() {
       {/* STATS CARDS ROW (Dashboard-4 style) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Outstanding Revenue Card */}
-        <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+        <div 
+          onMouseEnter={() => outstandingBilledRef.current?.startAnimation()}
+          onMouseLeave={() => outstandingBilledRef.current?.stopAnimation()}
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+        >
           <div className="flex items-center justify-between mb-3.5">
             <span className="text-sm font-semibold text-muted">Outstanding Revenue</span>
-            <i className="ph ph-receipt text-lg text-muted-foreground"></i>
+            <FileDescriptionIcon ref={outstandingBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
           </div>
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
@@ -393,10 +418,14 @@ export default function Home() {
         </div>
 
         {/* Total Collected Card */}
-        <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+        <div 
+          onMouseEnter={() => totalCollectedRef.current?.startAnimation()}
+          onMouseLeave={() => totalCollectedRef.current?.stopAnimation()}
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+        >
           <div className="flex items-center justify-between mb-3.5">
             <span className="text-sm font-semibold text-muted">Total Collected</span>
-            <i className="ph ph-wallet text-lg text-muted-foreground"></i>
+            <WalletIcon ref={totalCollectedRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
           </div>
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
@@ -417,10 +446,14 @@ export default function Home() {
         </div>
 
         {/* Revenue Growth Card */}
-        <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+        <div 
+          onMouseEnter={() => revenueGrowthRef.current?.startAnimation()}
+          onMouseLeave={() => revenueGrowthRef.current?.stopAnimation()}
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+        >
           <div className="flex items-center justify-between mb-3.5">
             <span className="text-sm font-semibold text-muted">Revenue Growth (MoM)</span>
-            <i className={cn("text-lg", isNegative ? "ph ph-trend-down text-negative" : "ph ph-trend-up text-positive")}></i>
+            <ChartLineIcon ref={revenueGrowthRef} size={20} className={cn("transition-colors", isNegative ? "text-negative" : "text-positive")} />
           </div>
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">

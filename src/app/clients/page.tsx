@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useState, useRef } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
@@ -12,6 +12,12 @@ import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import UserPlusIcon from "@/components/icons/user-plus-icon";
+import UsersIcon from "@/components/icons/users-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import ChartLineIcon from "@/components/icons/chart-line-icon";
+import PenIcon from "@/components/icons/pen-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -40,6 +46,12 @@ const EMPTY_FORM: ClientForm = {
 };
 
 export default function Clients() {
+  const userPlusIconRef = useRef<AnimatedIconHandle>(null);
+  const totalRevenueRef = useRef<AnimatedIconHandle>(null);
+  const activeClientsRef = useRef<AnimatedIconHandle>(null);
+  const invoicesIconRef = useRef<AnimatedIconHandle>(null);
+  const avgClientRef = useRef<AnimatedIconHandle>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -283,9 +295,11 @@ export default function Clients() {
           
           <button 
             onClick={openAddClient} 
+            onMouseEnter={() => userPlusIconRef.current?.startAnimation()}
+            onMouseLeave={() => userPlusIconRef.current?.stopAnimation()}
             className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
           >
-            <i className="ph ph-user-plus text-lg group-hover:rotate-90 transition-transform"></i>
+            <UserPlusIcon ref={userPlusIconRef} size={20} className="transition-transform duration-300" />
             Add Client
           </button>
         </header>
@@ -293,10 +307,14 @@ export default function Clients() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {/* Total Revenue */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => totalRevenueRef.current?.startAnimation()}
+            onMouseLeave={() => totalRevenueRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Total Revenue</span>
-              <i className="ph ph-trend-up text-lg text-positive"></i>
+              <ChartLineIcon ref={totalRevenueRef} size={20} className="text-positive transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -314,10 +332,14 @@ export default function Clients() {
           </div>
 
           {/* Regular Clients */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => activeClientsRef.current?.startAnimation()}
+            onMouseLeave={() => activeClientsRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Active Clients</span>
-              <i className="ph ph-users-three text-lg text-muted-foreground"></i>
+              <UsersIcon ref={activeClientsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -335,10 +357,14 @@ export default function Clients() {
           </div>
 
           {/* Invoices */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => invoicesIconRef.current?.startAnimation()}
+            onMouseLeave={() => invoicesIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Invoices</span>
-              <i className="ph ph-receipt text-lg text-muted-foreground"></i>
+              <FileDescriptionIcon ref={invoicesIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -356,10 +382,14 @@ export default function Clients() {
           </div>
 
           {/* Average per Client */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => avgClientRef.current?.startAnimation()}
+            onMouseLeave={() => avgClientRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5">
               <span className="text-sm font-semibold text-muted">Avg / Client</span>
-              <i className="ph ph-chart-line text-lg text-muted-foreground"></i>
+              <ChartLineIcon ref={avgClientRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-center justify-between gap-3">
@@ -427,7 +457,7 @@ export default function Clients() {
                           className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer opacity-0 group-hover:opacity-100"
                           aria-label={`Edit ${client.name}`}
                         >
-                          <i className="ph ph-pencil-simple text-[13px]"></i>
+                          <PenIcon size={14} />
                         </button>
                       </div>
 

@@ -28,7 +28,17 @@ import { useOutsourcing } from "@/hooks/use-outsourcing";
 import { useUserData, type VendorDraft } from "@/hooks/use-user-data";
 import { exportVendorStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState, useRef } from "react";
+import PlusIcon from "@/components/icons/plus-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import CheckedIcon from "@/components/icons/checked-icon";
+import ClockIcon from "@/components/icons/clock-icon";
+import UsersIcon from "@/components/icons/users-icon";
+import PenIcon from "@/components/icons/pen-icon";
+import SendIcon from "@/components/icons/send-icon";
+import DownloadIcon from "@/components/icons/download-icon";
+import TrashIcon from "@/components/icons/trash-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid"] as const;
 const TEMPLATES = [
@@ -187,6 +197,12 @@ function getVendorStripeUrl(stripe: string) {
 }
 
 export default function Outsourcing() {
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const totalBilledRef = useRef<AnimatedIconHandle>(null);
+  const paidIconRef = useRef<AnimatedIconHandle>(null);
+  const pendingIconRef = useRef<AnimatedIconHandle>(null);
+  const activeVendorsRef = useRef<AnimatedIconHandle>(null);
+
   const { vendors, outsourcingInvoices, saveVendor, saveOutsourcingInvoice, exportOutsourcingInvoice } = useOutsourcing();
   const { activeProfile } = useUserData();
   const { currency } = useCurrency();
@@ -658,9 +674,11 @@ export default function Outsourcing() {
           </div>
           <button
             onClick={openCreateModal}
+            onMouseEnter={() => plusIconRef.current?.startAnimation()}
+            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
             className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
           >
-            <i className="ph ph-plus text-lg group-hover:rotate-90 transition-transform"></i>
+            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
             New Payable
           </button>
         </header>
@@ -668,10 +686,14 @@ export default function Outsourcing() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Outsourced */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200">
+          <div 
+            onMouseEnter={() => totalBilledRef.current?.startAnimation()}
+            onMouseLeave={() => totalBilledRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Total Outsourced</span>
-              <i className="ph ph-wallet text-lg text-muted-foreground"></i>
+              <WalletIcon ref={totalBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
@@ -681,10 +703,14 @@ export default function Outsourcing() {
           </div>
 
           {/* Total Settled */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-75">
+          <div 
+            onMouseEnter={() => paidIconRef.current?.startAnimation()}
+            onMouseLeave={() => paidIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-75 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Total Settled</span>
-              <i className="ph ph-check-circle text-lg text-positive"></i>
+              <CheckedIcon ref={paidIconRef} size={20} className="text-positive transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
@@ -694,10 +720,14 @@ export default function Outsourcing() {
           </div>
 
           {/* Open Vendor Bills */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-100">
+          <div 
+            onMouseEnter={() => pendingIconRef.current?.startAnimation()}
+            onMouseLeave={() => pendingIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-100 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Open Bills</span>
-              <i className="ph ph-clock text-lg text-amber-500"></i>
+              <ClockIcon ref={pendingIconRef} size={20} className="text-amber-500 transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
@@ -707,10 +737,14 @@ export default function Outsourcing() {
           </div>
 
           {/* Active Vendors */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-150">
+          <div 
+            onMouseEnter={() => activeVendorsRef.current?.startAnimation()}
+            onMouseLeave={() => activeVendorsRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 animate-in fade-in-50 duration-200 delay-150 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Active Vendors</span>
-              <i className="ph ph-users-three text-lg text-muted-foreground"></i>
+              <UsersIcon ref={activeVendorsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-baseline gap-2">
@@ -818,7 +852,7 @@ export default function Outsourcing() {
                             className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
                             title="Edit"
                           >
-                            <i className="ph ph-pencil text-xs"></i>
+                            <PenIcon size={12} />
                           </button>
                           <button
                             type="button"
@@ -826,7 +860,7 @@ export default function Outsourcing() {
                             className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
                             title="Send"
                           >
-                            <i className="ph ph-paper-plane-tilt text-xs"></i>
+                            <SendIcon size={12} />
                           </button>
                           <button
                             type="button"
@@ -834,7 +868,7 @@ export default function Outsourcing() {
                             className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
                             title="Download"
                           >
-                            <i className="ph ph-download text-xs"></i>
+                            <DownloadIcon size={12} />
                           </button>
                         </div>
                       </div>

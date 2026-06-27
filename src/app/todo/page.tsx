@@ -47,6 +47,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Separator } from "@/components/ui/separator";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
+import PlusIcon from "@/components/icons/plus-icon";
+import LayersIcon from "@/components/icons/layers-icon";
+import ClockIcon from "@/components/icons/clock-icon";
+import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
+import CheckedIcon from "@/components/icons/checked-icon";
+import PenIcon from "@/components/icons/pen-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
+
 
 type TaskForm = {
   title: string;
@@ -218,6 +226,12 @@ const DoneStatusIcon = () => (
 );
 
 export default function TodoPage() {
+  const plusIconRef = useRef<AnimatedIconHandle>(null);
+  const activeTasksIconRef = useRef<AnimatedIconHandle>(null);
+  const inProgressIconRef = useRef<AnimatedIconHandle>(null);
+  const dueSoonIconRef = useRef<AnimatedIconHandle>(null);
+  const completedIconRef = useRef<AnimatedIconHandle>(null);
+
   const { activeProfile, loading, todoTasks, saveTodoTasks, clients, vendors, saveOutsourcingInvoice } = useUserData();
   const [tasks, setTasks] = useState<TodoTask[]>([]);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -911,9 +925,11 @@ export default function TodoPage() {
             )}
             <button 
               onClick={() => openCreateModal()} 
+              onMouseEnter={() => plusIconRef.current?.startAnimation()}
+              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
               className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
             >
-              <Plus className="size-4 group-hover:rotate-90 transition-transform" />
+              <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
               Add Task
             </button>
           </div>
@@ -922,10 +938,14 @@ export default function TodoPage() {
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Active Tasks */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => activeTasksIconRef.current?.startAnimation()}
+            onMouseLeave={() => activeTasksIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Active Tasks</span>
-              <Layers className="size-4 text-muted-foreground" />
+              <LayersIcon ref={activeTasksIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-baseline gap-2">
@@ -938,10 +958,14 @@ export default function TodoPage() {
           </div>
 
           {/* In Progress */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => inProgressIconRef.current?.startAnimation()}
+            onMouseLeave={() => inProgressIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">In Progress</span>
-              <Clock className="size-4 text-amber-500" />
+              <ClockIcon ref={inProgressIconRef} size={20} className="text-amber-500 transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-baseline gap-2">
@@ -954,10 +978,14 @@ export default function TodoPage() {
           </div>
 
           {/* Due Soon */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => dueSoonIconRef.current?.startAnimation()}
+            onMouseLeave={() => dueSoonIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Due Soon</span>
-              <AlertCircle className="size-4 text-accent" />
+              <TriangleAlertIcon ref={dueSoonIconRef} size={20} className="text-accent transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-baseline gap-2">
@@ -970,10 +998,14 @@ export default function TodoPage() {
           </div>
 
           {/* Completed */}
-          <div className="bg-card text-card-foreground rounded-xl border border-card-border p-5">
+          <div 
+            onMouseEnter={() => completedIconRef.current?.startAnimation()}
+            onMouseLeave={() => completedIconRef.current?.stopAnimation()}
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Completed</span>
-              <CheckCircle2 className="size-4 text-positive" />
+              <CheckedIcon ref={completedIconRef} size={20} className="text-positive transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <div className="flex items-baseline gap-2">
@@ -1340,7 +1372,7 @@ export default function TodoPage() {
                                 className="size-6 flex items-center justify-center rounded-md text-foreground/20 hover:text-accent hover:bg-accent/10 transition-all duration-200 shrink-0 hover:scale-110 active:scale-95 cursor-pointer"
                                 aria-label={`Edit ${task.title}`}
                               >
-                                <span className="material-symbols-outlined text-[14px]">edit</span>
+                                <PenIcon size={12} />
                               </button>
                             </div>
 

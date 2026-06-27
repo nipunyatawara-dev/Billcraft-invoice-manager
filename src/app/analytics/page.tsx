@@ -27,6 +27,17 @@ import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import PlusIcon from "@/components/icons/plus-icon";
+import ChartLineIcon from "@/components/icons/chart-line-icon";
+import CheckedIcon from "@/components/icons/checked-icon";
+import FileDescriptionIcon from "@/components/icons/file-description-icon";
+import UsersIcon from "@/components/icons/users-icon";
+import StarIcon from "@/components/icons/star-icon";
+import WalletIcon from "@/components/icons/wallet-icon";
+import ArrowNarrowUpIcon from "@/components/icons/arrow-narrow-up-icon";
+import ArrowNarrowDownIcon from "@/components/icons/arrow-narrow-down-icon";
+import SlidersHorizontalIcon from "@/components/icons/sliders-horizontal-icon";
+import type { AnimatedIconHandle } from "@/components/icons/types";
 
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -923,7 +934,7 @@ function CustomizePanel({
                   aria-label={`Move ${definition.title} up`}
                   disabled={index === 0}
                 >
-                  <i className="ph ph-arrow-up text-sm" />
+                  <ArrowNarrowUpIcon size={14} />
                 </button>
                 <button
                   type="button"
@@ -932,7 +943,7 @@ function CustomizePanel({
                   aria-label={`Move ${definition.title} down`}
                   disabled={index === draftPreferences.widgetOrder.length - 1}
                 >
-                  <i className="ph ph-arrow-down text-sm" />
+                  <ArrowNarrowDownIcon size={14} />
                 </button>
                 <button
                   type="button"
@@ -968,6 +979,7 @@ export default function Analytics() {
   const toolbarRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const slidersIconRef = useRef<AnimatedIconHandle>(null);
 
   const updateIndicator = useCallback(() => {
     const toolbar = toolbarRef.current;
@@ -1195,13 +1207,15 @@ export default function Analytics() {
           <button
             type="button"
             onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
+            onMouseEnter={() => slidersIconRef.current?.startAnimation()}
+            onMouseLeave={() => slidersIconRef.current?.stopAnimation()}
             className={`flex items-center gap-2 px-5 py-2.5 border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.95] select-none ${
               isCustomizeOpen 
                 ? "bg-accent/10 border-accent/20 text-accent font-bold" 
                 : "text-muted"
             }`}
           >
-            <i className="ph ph-sliders text-lg" />
+            <SlidersHorizontalIcon ref={slidersIconRef} size={16} />
             Customise
           </button>
           <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">
