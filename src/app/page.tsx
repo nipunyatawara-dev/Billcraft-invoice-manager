@@ -14,7 +14,6 @@ import {
   CURRENCY_RATES,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
-import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { useExpectedCashflow } from "@/hooks/use-expected-cashflow";
 import { cn } from "@/lib/utils";
@@ -216,9 +215,8 @@ export default function Home() {
   const totalCollectedRef = useRef<AnimatedIconHandle>(null);
   const revenueGrowthRef = useRef<AnimatedIconHandle>(null);
 
-  const { invoices } = useInvoices();
   const { currency } = useCurrency();
-  const { activeProfile, outsourcingInvoices } = useUserData();
+  const { invoices, activeProfile, outsourcingInvoices } = useUserData();
   const [greeting, setGreeting] = useState("Good Morning");
   const [hasSyncedGreeting, setHasSyncedGreeting] = useState(false);
   const [expectedTimeframe, setExpectedTimeframe] = useState("30days");

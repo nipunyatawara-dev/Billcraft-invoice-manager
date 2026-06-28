@@ -18,7 +18,6 @@ import {
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
-import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
@@ -228,8 +227,18 @@ export default function Invoices() {
   const collectedIconRef = useRef<AnimatedIconHandle>(null);
   const attentionIconRef = useRef<AnimatedIconHandle>(null);
 
-  const { invoices, clientRecords, saveInvoice, exportInvoice, deleteInvoices, updateInvoicesStatus } = useInvoices();
-  const { activeProfile, todoTasks = [], saveTodoTasks, catalogItems = [] } = useUserData();
+  const {
+    invoices,
+    clients: clientRecords,
+    saveInvoice,
+    exportInvoice,
+    deleteInvoices,
+    updateInvoicesStatus,
+    activeProfile,
+    todoTasks = [],
+    saveTodoTasks,
+    catalogItems = []
+  } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");

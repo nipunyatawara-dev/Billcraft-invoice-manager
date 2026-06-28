@@ -24,7 +24,6 @@ import {
   createAvatar,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
-import { useOutsourcing } from "@/hooks/use-outsourcing";
 import { useUserData, type VendorDraft } from "@/hooks/use-user-data";
 import { exportVendorStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
@@ -203,8 +202,14 @@ export default function Outsourcing() {
   const pendingIconRef = useRef<AnimatedIconHandle>(null);
   const activeVendorsRef = useRef<AnimatedIconHandle>(null);
 
-  const { vendors, outsourcingInvoices, saveVendor, saveOutsourcingInvoice, exportOutsourcingInvoice } = useOutsourcing();
-  const { activeProfile } = useUserData();
+  const {
+    vendors,
+    outsourcingInvoices,
+    saveVendor,
+    saveOutsourcingInvoice,
+    exportOutsourcingInvoice,
+    activeProfile
+  } = useUserData();
   const { currency } = useCurrency();
   const [activeFilter, setActiveFilter] = useState<(typeof STATUS_FILTERS)[number]>("All");
   const [searchQuery, setSearchQuery] = useState("");

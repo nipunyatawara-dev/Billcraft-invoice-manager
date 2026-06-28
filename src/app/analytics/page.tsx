@@ -23,7 +23,6 @@ import {
   type OutsourcingInvoice,
 } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
-import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -969,8 +968,7 @@ function CustomizePanel({
 }
 
 export default function Analytics() {
-  const { invoices } = useInvoices();
-  const { activeProfile, outsourcingInvoices, saveAnalyticsPreferences } = useUserData();
+  const { invoices, activeProfile, outsourcingInvoices, saveAnalyticsPreferences } = useUserData();
   const { currency } = useCurrency();
   const [activeRange, setActiveRange] = useState<AnalyticsRange>("month");
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);

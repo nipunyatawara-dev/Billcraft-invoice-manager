@@ -5,7 +5,6 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
 import { useCurrency } from "@/hooks/use-currency";
-import { useInvoices } from "@/hooks/use-invoices";
 import { useUserData } from "@/hooks/use-user-data";
 import { exportClientStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
@@ -76,8 +75,7 @@ export default function Clients() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const { invoices, clientRecords, saveClient } = useInvoices();
-  const { activeProfile } = useUserData();
+  const { invoices, clients: clientRecords, saveClient, activeProfile } = useUserData();
   const { currency } = useCurrency();
   const shouldReduceMotion = useReducedMotion();
 
