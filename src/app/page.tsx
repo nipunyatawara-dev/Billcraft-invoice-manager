@@ -19,7 +19,6 @@ import { useExpectedCashflow } from "@/hooks/use-expected-cashflow";
 import { usePageEnterMotion } from "@/hooks/use-page-enter-motion";
 import { cn } from "@/lib/utils";
 import { PAGE_EYEBROWS } from "@/lib/page-meta";
-import PlusIcon from "@/components/icons/plus-icon";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
 import WalletIcon from "@/components/icons/wallet-icon";
@@ -221,8 +220,6 @@ function getProjectionData(
 }
 
 export default function Home() {
-  const analyticsIconRef = useRef<AnimatedIconHandle>(null);
-  const plusIconRef = useRef<AnimatedIconHandle>(null);
   const outstandingBilledRef = useRef<AnimatedIconHandle>(null);
   const totalCollectedRef = useRef<AnimatedIconHandle>(null);
   const revenueGrowthRef = useRef<AnimatedIconHandle>(null);
@@ -236,9 +233,8 @@ export default function Home() {
   const [chartType, setChartType] = useState<"area" | "line" | "bar">("area");
   const [mounted, setMounted] = useState(false);
   const timeframeRef = useRef<HTMLDivElement>(null);
-  const headerMotion = usePageEnterMotion("header");
-  const cashflowMotion = usePageEnterMotion("section");
-  const recentInvoicesMotion = usePageEnterMotion("footer");
+  const recentInvoicesMotion = usePageEnterMotion("section");
+  const cashflowMotion = usePageEnterMotion("footer");
 
   useEffect(() => {
     setMounted(true);
@@ -303,7 +299,7 @@ export default function Home() {
     { value: "all", label: "All Time" },
   ];
 
-  const recentInvoices = invoices.slice(0, 4);
+  const recentInvoices = invoices.slice(0, 3);
   const firstName = activeProfile?.name.trim().split(/\s+/)[0];
   const greetingText = `${greeting}${firstName ? `, ${firstName}` : ""}`;
 
@@ -362,53 +358,27 @@ export default function Home() {
   return (
     <main className="app-main flex-1">
       {/* Page Header Area */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-        <div>
-          <AnimatedText as="p" text={PAGE_EYEBROWS["/"]} effect="micro-scale-fade" className="section-eyebrow" />
-          <AnimatedText
-            as="h1"
-            text={hasSyncedGreeting ? greetingText : "Good Morning"}
-            effect="micro-scale-fade"
-            className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-            delayMs={70}
-          />
-          <AnimatedText as="p" text="Here's what's happening with your business today." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
-        </div>
-        
-        <motion.div 
-          {...headerMotion}
-          className="flex items-center gap-3"
-        >
-          <Link 
-            href="/analytics" 
-            onMouseEnter={() => analyticsIconRef.current?.startAnimation()}
-            onMouseLeave={() => analyticsIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border hover:border-foreground/20 text-foreground px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs group"
-          >
-            <ChartLineIcon ref={analyticsIconRef} size={20} className="text-muted-foreground group-hover:text-accent transition-colors" />
-            Analytics
-          </Link>
-          <Link 
-            href="/invoices?action=new" 
-            onMouseEnter={() => plusIconRef.current?.startAnimation()}
-            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
-          >
-            <PlusIcon ref={plusIconRef} size={20} />
-            New Invoice
-          </Link>
-        </motion.div>
+      <header className="mb-8">
+        <AnimatedText as="p" text={PAGE_EYEBROWS["/"]} effect="micro-scale-fade" className="section-eyebrow" />
+        <AnimatedText
+          as="h1"
+          text={hasSyncedGreeting ? greetingText : "Good Morning"}
+          effect="micro-scale-fade"
+          className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+          delayMs={70}
+        />
+        <AnimatedText as="p" text="Here's what's happening with your business today." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
       </header>
 
-      {/* STATS CARDS ROW (Dashboard-4 style) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* STATS CARDS ROW */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {/* Outstanding Revenue Card */}
         <div 
           onMouseEnter={() => outstandingBilledRef.current?.startAnimation()}
           onMouseLeave={() => outstandingBilledRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
         >
-          <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Outstanding Revenue</span>
             <FileDescriptionIcon ref={outstandingBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
           </div>
@@ -434,9 +404,9 @@ export default function Home() {
         <div 
           onMouseEnter={() => totalCollectedRef.current?.startAnimation()}
           onMouseLeave={() => totalCollectedRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
         >
-          <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Total Collected</span>
             <WalletIcon ref={totalCollectedRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
           </div>
@@ -462,9 +432,9 @@ export default function Home() {
         <div 
           onMouseEnter={() => revenueGrowthRef.current?.startAnimation()}
           onMouseLeave={() => revenueGrowthRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
         >
-          <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Revenue Growth (MoM)</span>
             <ChartLineIcon ref={revenueGrowthRef} size={20} className={cn("transition-colors", isNegative ? "text-negative" : "text-positive")} />
           </div>
@@ -490,15 +460,106 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SECOND ROW: CHART & QUICK ACTIONS (Dashboard-4 flex layout) */}
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch mb-6">
+      {/* RECENT INVOICES — above chart so activity stays above the fold */}
+      <motion.div 
+        {...recentInvoicesMotion}
+        className="w-full bg-card rounded-xl border border-card-border shadow-xs flex flex-col overflow-hidden mb-4"
+      >
+        <div className="px-5 py-3.5 flex items-center justify-between border-b border-card-border bg-foreground/[0.01]">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <History className="size-4 text-muted" /> Recent Invoices
+          </h2>
+          <Link href="/invoices" className="text-accent font-semibold text-sm hover:text-accent/80 transition-colors flex items-center gap-1 group">
+            View All <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+        
+        <div className="overflow-x-auto flex-1 px-1 py-1">
+          <table className="w-full text-left text-sm border-separate border-spacing-y-1 px-4">
+            <thead className="text-[10px] text-muted font-bold uppercase tracking-wider">
+              <tr>
+                <th className="px-3 py-2">Client</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2">Amount</th>
+                <th className="px-3 py-2">Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentInvoices.map((inv) => (
+                <tr key={inv.id} className="bg-foreground/[0.015] hover:bg-foreground/[0.04] transition-colors group rounded-xl">
+                  <td className="px-3 py-2.5 rounded-l-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="size-9 rounded-full border border-card-border bg-accent/10 text-accent flex items-center justify-center font-bold text-xs overflow-hidden shrink-0 shadow-xs">
+                        {inv.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
+                        ) : (
+                          (inv.client || "C")[0].toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm text-foreground group-hover:text-accent transition-colors">{inv.id}</div>
+                        <div className="text-xs font-medium text-muted">{inv.client}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={cn(
+                      "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border",
+                      inv.status === "Paid" 
+                        ? "bg-positive/10 border-positive/20 text-positive" 
+                        : inv.status === "Overdue" 
+                          ? "bg-negative/10 border-negative/20 text-negative" 
+                          : "bg-foreground/[0.03] border-card-border text-muted"
+                    )}>
+                      {getPaymentState(inv)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="font-bold text-sm text-foreground">
+                      <AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} />
+                    </div>
+                    <div className="text-[11px] font-medium text-muted">
+                      <AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 rounded-r-xl">
+                    <div className="text-sm text-foreground font-semibold">
+                      {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'}) : "-"}
+                    </div>
+                    {getBalanceDue(inv) > 0 && (
+                      <div className="text-[11px] font-bold text-negative">
+                        <AnimatedNumber value={formatCurrency(getBalanceDue(inv), currency)} /> remaining
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {recentInvoices.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center rounded-xl bg-foreground/[0.02]">
+                    <div className="size-12 rounded-full bg-foreground/5 flex items-center justify-center mx-auto mb-3">
+                      <Receipt className="size-6 text-muted" />
+                    </div>
+                    <h3 className="font-bold text-sm text-foreground mb-0.5">No invoices yet</h3>
+                    <p className="text-xs text-muted font-medium">Create your first invoice to get started</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* CHART & QUICK ACTIONS */}
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch">
         
         {/* Expected Cashflow Interactive Card */}
         <motion.div 
           {...cashflowMotion}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-6 flex-1 flex flex-col justify-between relative overflow-hidden"
+          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 flex-1 flex flex-col relative overflow-hidden min-h-0"
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-20">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 relative z-20">
             <div>
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <ChartLineIcon size={18} className="text-accent" /> Expected Cashflow
@@ -572,29 +633,29 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10 mb-6">
-            <div className="bg-foreground/[0.01] rounded-lg p-3 border border-card-border/50">
-              <div className="text-[10px] font-bold tracking-widest text-accent uppercase mb-1">Receivable</div>
-              <div className="text-xl font-bold text-foreground">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10 mb-4">
+            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50">
+              <div className="text-[10px] font-bold tracking-widest text-accent uppercase mb-0.5">Receivable</div>
+              <div className="text-lg font-bold text-foreground">
                 <AnimatedNumber value={formatCurrency(expectedOutstandingAmount, currency)} />
               </div>
             </div>
-            <div className="bg-foreground/[0.01] rounded-lg p-3 border border-card-border/50">
-              <div className="text-[10px] font-bold tracking-widest text-muted uppercase mb-1">Payable</div>
-              <div className="text-xl font-bold text-muted">
+            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50">
+              <div className="text-[10px] font-bold tracking-widest text-muted uppercase mb-0.5">Payable</div>
+              <div className="text-lg font-bold text-muted">
                 <AnimatedNumber value={formatCurrency(expectedOpenPayablesAmount, currency)} />
               </div>
             </div>
             <div className={cn(
-              "rounded-lg p-3 border",
+              "rounded-lg p-2.5 border",
               expectedCashNet < 0 ? 'bg-negative/5 border-negative/20' : 'bg-accent/5 border-accent/20'
             )}>
               <div className={cn(
-                "text-[10px] font-bold tracking-widest uppercase mb-1",
+                "text-[10px] font-bold tracking-widest uppercase mb-0.5",
                 expectedCashNet < 0 ? 'text-negative' : 'text-accent'
               )}>Net Open</div>
               <div className={cn(
-                "text-xl font-bold",
+                "text-lg font-bold",
                 expectedCashNet < 0 ? 'text-negative' : 'text-foreground'
               )}>
                 <AnimatedNumber value={formatCurrency(expectedCashNet, currency)} />
@@ -603,7 +664,7 @@ export default function Home() {
           </div>
 
           {/* Interactive Recharts Component */}
-          <div className="h-[210px] w-full mt-2">
+          <div className="h-[160px] w-full mt-auto">
             {mounted ? (
               <ResponsiveContainer width="100%" height="100%">
                 {chartType === "area" ? (
@@ -653,99 +714,8 @@ export default function Home() {
           </div>
         </motion.div>
 
-        <QuickActionsCard />
+        <QuickActionsCard className="lg:self-stretch" />
       </div>
-
-      {/* THIRD ROW: RECENT INVOICES (Dashboard-4 style full width) */}
-      <motion.div 
-        {...recentInvoicesMotion}
-        className="w-full bg-card rounded-xl border border-card-border shadow-xs flex flex-col overflow-hidden"
-      >
-        <div className="px-8 py-6 flex items-center justify-between border-b border-card-border bg-foreground/[0.01]">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <History className="size-5 text-muted" /> Recent Invoices
-          </h2>
-          <Link href="/invoices" className="text-accent font-semibold text-sm hover:text-accent/80 transition-colors flex items-center gap-1 group">
-            View All <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-        
-        <div className="overflow-x-auto flex-1 p-2">
-          <table className="w-full text-left text-sm border-separate border-spacing-y-2 px-6">
-            <thead className="text-xs text-muted font-bold uppercase tracking-wider">
-              <tr>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Due Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentInvoices.map((inv) => (
-                <tr key={inv.id} className="bg-foreground/[0.015] hover:bg-foreground/[0.04] transition-colors group rounded-xl">
-                  <td className="px-4 py-4 rounded-l-xl">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full border border-card-border bg-accent/10 text-accent flex items-center justify-center font-bold text-xs overflow-hidden shrink-0 shadow-xs">
-                        {inv.avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img className="w-full h-full object-cover" alt={inv.client} src={inv.avatar} />
-                        ) : (
-                          (inv.client || "C")[0].toUpperCase()
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-bold text-foreground group-hover:text-accent transition-colors">{inv.id}</div>
-                        <div className="text-xs font-medium text-muted mt-0.5">{inv.client}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={cn(
-                      "inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border",
-                      inv.status === "Paid" 
-                        ? "bg-positive/10 border-positive/20 text-positive" 
-                        : inv.status === "Overdue" 
-                          ? "bg-negative/10 border-negative/20 text-negative" 
-                          : "bg-foreground/[0.03] border-card-border text-muted"
-                    )}>
-                      {getPaymentState(inv)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="font-bold text-foreground text-base">
-                      <AnimatedNumber value={formatCurrency(getInvoiceTotal(inv), currency)} />
-                    </div>
-                    <div className="text-xs font-medium text-muted mt-0.5">
-                      <AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 rounded-r-xl">
-                    <div className="text-foreground font-semibold">
-                      {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'}) : "-"}
-                    </div>
-                    {getBalanceDue(inv) > 0 && (
-                      <div className="text-xs font-bold text-negative mt-0.5">
-                        <AnimatedNumber value={formatCurrency(getBalanceDue(inv), currency)} /> remaining
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {recentInvoices.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center rounded-xl bg-foreground/[0.02]">
-                    <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mx-auto mb-4">
-                      <Receipt className="size-8 text-muted" />
-                    </div>
-                    <h3 className="font-bold text-foreground mb-1">No invoices yet</h3>
-                    <p className="text-sm text-muted font-medium">Create your first invoice to get started</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
     </main>
   );
 }

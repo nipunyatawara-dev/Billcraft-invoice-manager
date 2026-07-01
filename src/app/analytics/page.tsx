@@ -530,18 +530,19 @@ function MetricWidget({
   value: React.ReactNode;
 }) {
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px]">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">{title}</span>
-        <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
+    <div className="relative overflow-hidden rounded-xl border border-card-border bg-card p-4 hover-panel shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)] select-none group flex flex-col justify-between min-h-[150px]">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{title}</span>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-foreground/[0.04] border-card-border/60 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_6%,transparent)] group-hover:bg-accent/10 group-hover:border-accent/20 group-hover:text-accent transition-colors duration-200">
           <span className="material-symbols-outlined text-[16px] text-muted group-hover:text-accent transition-colors">{icon}</span>
         </div>
       </div>
-      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 flex flex-col gap-1 flex-1">
-        <h3 className="font-display text-2xl font-bold text-foreground tracking-tight leading-none">
+      
+      <div className="rounded-lg border border-card-border/55 bg-foreground/[0.015] px-3.5 py-3 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_4%,transparent)] flex flex-col gap-1.5 flex-1 justify-center">
+        <h3 className="min-w-0 truncate text-xl font-bold tracking-tight text-foreground font-display currency-value sm:text-2xl leading-tight">
           {value}
         </h3>
-        <p className="text-[10px] font-medium text-muted mt-auto leading-relaxed select-none">
+        <p className="text-[10px] font-medium text-muted mt-auto leading-normal select-none">
           {caption}
         </p>
       </div>
@@ -575,7 +576,7 @@ function CashflowOverview({
   const projectedNetCash = receivables - openPayables;
 
   return (
-    <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
       <MetricWidget
         title="Revenue"
         icon="payments"

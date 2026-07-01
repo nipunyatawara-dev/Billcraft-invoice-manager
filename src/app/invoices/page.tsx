@@ -32,8 +32,16 @@ import WalletIcon from "@/components/icons/wallet-icon";
 import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
+import { ShareWhatsAppButton } from "@/components/share-whatsapp-button";
 import { SHARE_CHANNEL_ICONS, ShareChannelIcon } from "@/components/brand-icons/share-channel-icons";
+import type { WhatsAppTarget } from "@/lib/whatsapp-phone";
 import { PAGE_EYEBROWS } from "@/lib/page-meta";
+import {
+  downloadInvoicePdfWithMessage,
+  openShareChannelNow,
+  shareInvoicePdf,
+  type ShareChannel,
+} from "@/lib/share-billable-pdf";
 
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
 const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
@@ -130,12 +138,6 @@ function toDateInputValue(date?: string) {
 function getJobColor(invoiceId: string) {
   const colorIndex = [...invoiceId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % JOB_COLORS.length;
   return JOB_COLORS[colorIndex];
-}
-
-function getWhatsAppUrl(phone: string, message: string) {
-  const digits = phone.replace(/[^\d]/g, "");
-
-  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : "";
 }
 
 function getInvoiceContactMessage(invoice: Invoice) {
@@ -263,6 +265,7 @@ export default function Invoices() {
 
   const [importedTaskIds, setImportedTaskIds] = useState<string[]>([]);
   const [shareInvoice, setShareInvoice] = useState<Invoice | null>(null);
+  const [sharingChannel, setSharingChannel] = useState<ShareChannel | null>(null);
 
   // Task-to-invoice automation state
   const [linkedTaskId, setLinkedTaskId] = useState<string | null>(null);
@@ -316,6 +319,59 @@ export default function Invoices() {
 
   function openShareModal(invoice: Invoice) {
     setShareInvoice(invoice);
+  }
+
+  async function handleShareInvoice(channel: ShareChannel, invoice: Invoice) {
+    setSharingChannel(channel);
+
+    try {
+      const message = getInvoiceContactMessage(invoice);
+      await shareInvoicePdf(channel, invoice, activeProfile, currency, message);
+    } catch (error) {
+      notify.error({
+        title: "Could not share invoice",
+        description: getToastErrorMessage(error),
+      });
+    } finally {
+      setSharingChannel(null);
+    }
+  }
+
+  function beginInvoiceShare(channel: ShareChannel, invoice: Invoice, whatsappTarget?: WhatsAppTarget) {
+    openShareChannelNow(channel, {
+      message: getInvoiceContactMessage(invoice),
+      phone: invoice.phone,
+      whatsapp: invoice.whatsapp,
+      profilePhone: activeProfile?.phone,
+      email: invoice.email,
+      subject: `Invoice ${invoice.id}`,
+      whatsappTarget,
+    });
+    void handleShareInvoice(channel, invoice);
+  }
+
+  function beginInvoiceWhatsAppShare(invoice: Invoice, target: WhatsAppTarget) {
+    beginInvoiceShare("whatsapp", invoice, target);
+  }
+
+  async function handleDownloadInvoicePdf(invoice: Invoice) {
+    setSharingChannel("message");
+
+    try {
+      await downloadInvoicePdfWithMessage(
+        invoice,
+        activeProfile,
+        currency,
+        getInvoiceContactMessage(invoice),
+      );
+    } catch (error) {
+      notify.error({
+        title: "Could not prepare invoice",
+        description: getToastErrorMessage(error),
+      });
+    } finally {
+      setSharingChannel(null);
+    }
   }
 
   // Reset selection state when filters or search queries change
@@ -1262,6 +1318,7 @@ export default function Invoices() {
               invoiceTotal={invoiceTotal}
               createItem={createItem}
               catalogItems={catalogItems}
+              profilePhone={activeProfile?.phone}
             />
           ) : selectedInvoice && (
             <InvoicePreviewModal
@@ -1391,55 +1448,46 @@ export default function Invoices() {
                 <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Share Channels</span>
                 <div className="grid grid-cols-3 gap-2">
                   {shareInvoice.phone ? (
-                    <a
-                      href={`sms:${shareInvoice.phone}?body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
+                    <button
+                      type="button"
+                      disabled={sharingChannel !== null}
+                      onClick={() => beginInvoiceShare("message", shareInvoice)}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ShareChannelIcon src={SHARE_CHANNEL_ICONS.messages} alt="Google Messages" />
-                      <span>Message</span>
-                    </a>
+                      <span>{sharingChannel === "message" ? "Preparing…" : "Message"}</span>
+                    </button>
                   ) : (
-                    <button 
-                      onClick={() => {
-                        const msg = getInvoiceContactMessage(shareInvoice);
-                        void navigator.clipboard.writeText(msg);
-                        notify.success({ title: "Message copied", description: "Details copied to clipboard." });
-                      }}
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
+                    <button
+                      type="button"
+                      disabled={sharingChannel !== null}
+                      onClick={() => { void handleDownloadInvoicePdf(shareInvoice); }}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ShareChannelIcon src={SHARE_CHANNEL_ICONS.messages} alt="Google Messages" />
-                      <span>Copy Message</span>
+                      <span>{sharingChannel === "message" ? "Preparing…" : "Download PDF"}</span>
                     </button>
                   )}
 
-                  {shareInvoice.phone ? (
-                    <a
-                      href={getWhatsAppUrl(shareInvoice.phone, getInvoiceContactMessage(shareInvoice))}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
-                    >
-                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.whatsapp} alt="WhatsApp" />
-                      <span>WhatsApp</span>
-                    </a>
-                  ) : (
-                    <button 
-                      disabled
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border"
-                    >
-                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.whatsapp} alt="WhatsApp" />
-                      <span>WhatsApp</span>
-                    </button>
-                  )}
+                  <ShareWhatsAppButton
+                    whatsapp={shareInvoice.whatsapp}
+                    phone={shareInvoice.phone}
+                    profilePhone={activeProfile?.phone}
+                    busy={sharingChannel === "whatsapp"}
+                    disabled={sharingChannel !== null}
+                    onSelectTarget={(target) => beginInvoiceWhatsAppShare(shareInvoice, target)}
+                  />
 
                   {shareInvoice.email ? (
-                    <a
-                      href={`mailto:${shareInvoice.email}?subject=${encodeURIComponent("Invoice " + shareInvoice.id)}&body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
+                    <button
+                      type="button"
+                      disabled={sharingChannel !== null}
+                      onClick={() => beginInvoiceShare("gmail", shareInvoice)}
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ShareChannelIcon src={SHARE_CHANNEL_ICONS.gmail} alt="Gmail" />
-                      <span>Gmail</span>
-                    </a>
+                      <span>{sharingChannel === "gmail" ? "Preparing…" : "Gmail"}</span>
+                    </button>
                   ) : (
                     <button 
                       disabled

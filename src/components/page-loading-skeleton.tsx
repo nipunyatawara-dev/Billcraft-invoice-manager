@@ -53,7 +53,7 @@ function StatSkeleton() {
 function HeadingSkeleton({ showAction = true, isSettings = false }: { showAction?: boolean; isSettings?: boolean }) {
   if (isSettings) {
     return (
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-6 sm:pt-8 lg:pt-12 pb-4 -mt-6 sm:-mt-8 lg:-mt-12 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8 select-none">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-3 sm:pt-4 lg:pt-5 pb-4 -mt-3 sm:-mt-4 lg:-mt-5 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8 select-none">
         <div className="min-w-0">
           <SkeletonBlock className="h-3.5 w-16 mb-2.5" />
           <SkeletonBlock className="h-9 w-48 mb-2.5" />
@@ -81,25 +81,55 @@ function DashboardSkeleton() {
   return (
     <>
       {/* 3 Bento Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <StatSkeleton />
         <StatSkeleton />
         <StatSkeleton />
       </div>
 
+      {/* Recent Invoices Card */}
+      <div className="bg-card rounded-xl border border-card-border mb-4 select-none">
+        <div className="flex justify-between items-center px-5 py-3.5 border-b border-card-border">
+          <SkeletonBlock className="h-4 w-32" />
+          <SkeletonBlock className="h-3.5 w-16" />
+        </div>
+        <div className="px-4 py-2 space-y-1">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between py-2.5">
+              <div className="flex items-center gap-3">
+                <SkeletonBlock className="size-9 rounded-full" />
+                <div>
+                  <SkeletonBlock className="h-3.5 w-28 mb-1" />
+                  <SkeletonBlock className="h-2.5 w-20" />
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <SkeletonBlock className="h-4 w-16" />
+                <SkeletonBlock className="h-5 w-20 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Chart and Quick Actions Row */}
-      <div className="flex flex-col lg:flex-row gap-6 mb-6 items-stretch select-none">
+      <div className="flex flex-col lg:flex-row gap-4 items-stretch select-none">
         {/* Chart Card */}
-        <div className="flex-1 bg-card rounded-xl border border-card-border p-6 min-h-[380px] flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-6">
+        <div className="flex-1 bg-card rounded-xl border border-card-border p-5 min-h-[320px] flex flex-col">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <SkeletonBlock className="h-4 w-36 mb-2" />
               <SkeletonBlock className="h-3 w-56" />
             </div>
             <SkeletonBlock className="h-8 w-32 rounded-lg" />
           </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <SkeletonBlock className="h-14 rounded-lg" />
+            <SkeletonBlock className="h-14 rounded-lg" />
+            <SkeletonBlock className="h-14 rounded-lg" />
+          </div>
           {/* Chart representation */}
-          <div className="flex h-48 items-end gap-2 border-t border-card-border/50 pt-6">
+          <div className="flex h-40 items-end gap-2 border-t border-card-border/50 pt-4 mt-auto">
             {[45, 68, 52, 85, 60, 92, 74].map((height, index) => (
               <SkeletonBlock key={index} className="flex-1 rounded-t-lg" style={{ height: `${height}%` }} />
             ))}
@@ -107,14 +137,14 @@ function DashboardSkeleton() {
         </div>
 
         {/* Quick Actions Card */}
-        <div className="w-full lg:w-[360px] shrink-0 bg-card rounded-xl border border-card-border flex flex-col overflow-hidden min-h-[380px]">
-          <div className="p-6 pb-4">
+        <div className="w-full lg:w-[340px] shrink-0 bg-card rounded-xl border border-card-border flex flex-col overflow-hidden min-h-[320px]">
+          <div className="p-5 pb-3">
             <SkeletonBlock className="h-4 w-28 mb-1.5" />
             <SkeletonBlock className="h-3 w-48" />
           </div>
-          <div className="flex flex-col gap-1.5 px-4 pb-4 flex-1">
+          <div className="flex flex-col gap-1 px-3 pb-3 flex-1">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+              <div key={index} className="flex flex-1 items-center gap-3 rounded-xl px-3 py-3">
                 <SkeletonBlock className="size-9 rounded-lg shrink-0" />
                 <div className="flex-1">
                   <SkeletonBlock className="h-3.5 w-24 mb-1.5" />
@@ -123,34 +153,9 @@ function DashboardSkeleton() {
               </div>
             ))}
           </div>
-          <div className="border-t border-card-border px-6 py-3">
+          <div className="border-t border-card-border px-5 py-2.5">
             <SkeletonBlock className="h-3 w-40 mx-auto" />
           </div>
-        </div>
-      </div>
-
-      {/* Recent Invoices Card */}
-      <div className="bg-card rounded-xl border border-card-border p-6 min-h-[280px] select-none">
-        <div className="flex justify-between items-center mb-6">
-          <SkeletonBlock className="h-4 w-32" />
-          <SkeletonBlock className="h-3.5 w-16" />
-        </div>
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className={`flex items-center justify-between py-3.5 ${index > 0 ? "border-t border-card-border/50" : ""}`}>
-              <div className="flex items-center gap-3">
-                <SkeletonBlock className="size-9 rounded-lg" />
-                <div>
-                  <SkeletonBlock className="h-3.5 w-32 mb-1.5" />
-                  <SkeletonBlock className="h-2.5 w-20" />
-                </div>
-              </div>
-              <div className="flex items-center gap-6">
-                <SkeletonBlock className="h-4.5 w-16" />
-                <SkeletonBlock className="h-6 w-20 rounded-lg" />
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </>
@@ -385,7 +390,7 @@ export function PageLoadingSkeleton({ variant = "dashboard" }: { variant?: Skele
   return (
     <main className="app-main flex-1" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading</span>
-      <HeadingSkeleton showAction={variant !== "analytics"} isSettings={variant === "settings"} />
+      <HeadingSkeleton showAction={!["analytics", "dashboard"].includes(variant)} isSettings={variant === "settings"} />
       {variant === "dashboard" && <DashboardSkeleton />}
       {variant === "records" && <RecordsSkeleton />}
       {variant === "analytics" && <AnalyticsSkeleton />}

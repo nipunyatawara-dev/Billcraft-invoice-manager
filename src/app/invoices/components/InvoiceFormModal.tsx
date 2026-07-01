@@ -4,6 +4,7 @@
 
 import * as React from "react";
 import { AnimatedText } from "@/components/animated-text";
+import { PhoneInput } from "@/components/phone-input";
 import { PaymentTrackingForm } from "@/components/payment-tracking";
 import {
   formatCurrency,
@@ -93,6 +94,7 @@ interface InvoiceFormModalProps {
   invoiceTotal: number;
   createItem: (description?: string, quantity?: number, price?: number) => InvoiceItem;
   catalogItems: CatalogItem[];
+  profilePhone?: string;
 }
 
 export function InvoiceFormModal({
@@ -124,6 +126,7 @@ export function InvoiceFormModal({
   invoiceTotal,
   createItem,
   catalogItems,
+  profilePhone,
 }: InvoiceFormModalProps) {
   const modalTitle = modalMode === "create" ? "New Invoice" : "Edit Invoice";
 
@@ -320,22 +323,24 @@ export function InvoiceFormModal({
                       onChange={(event) => setForm({ ...form, email: event.target.value })}
                       className="field-control px-3 py-1.5 text-[12px] rounded-lg"
                     />
-                    <input
-                      type="text"
-                      placeholder="Billing Phone"
+                    <PhoneInput
                       value={form.phone}
-                      onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                      className="field-control px-3 py-1.5 text-[12px] rounded-lg"
+                      onChange={(phone) => setForm({ ...form, phone })}
+                      hintPhone={profilePhone || form.phone || form.whatsapp}
+                      placeholder="771234567"
+                      inputClassName="px-3 py-1.5 text-[12px] rounded-lg"
+                      selectClassName="px-2 py-1.5 text-[11px] rounded-lg"
                     />
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder="WhatsApp (Optional)"
+                    <PhoneInput
                       value={form.whatsapp}
-                      onChange={(event) => setForm({ ...form, whatsapp: event.target.value })}
-                      className="field-control px-3 py-1.5 text-[12px] rounded-lg"
+                      onChange={(whatsapp) => setForm({ ...form, whatsapp })}
+                      hintPhone={form.phone || form.whatsapp || profilePhone}
+                      placeholder="771234567"
+                      inputClassName="px-3 py-1.5 text-[12px] rounded-lg"
+                      selectClassName="px-2 py-1.5 text-[11px] rounded-lg"
                     />
                     <input
                       type="text"

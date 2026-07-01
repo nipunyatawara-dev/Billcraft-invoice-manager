@@ -256,7 +256,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         
         {/* Permanent Sidebar */}
         <Sidebar collapsible="none" className="border-r border-card-border bg-sidebar-bg">
-          <SidebarHeader className="border-b border-card-border/50 p-5">
+          <SidebarHeader className="p-5">
             <div className="flex items-center gap-3 px-2 h-11 select-none">
               <Link href="/" className="flex items-center gap-3 text-xl font-bold tracking-tight text-foreground">
                 <span className="relative size-8 shrink-0 overflow-hidden rounded-full">
@@ -294,7 +294,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenu>
             </div>
 
-            <div className="h-px bg-card-border mx-2"></div>
+            <div className="h-px bg-card-border mx-2" aria-hidden="true" />
 
             <div>
               <SidebarMenu className="gap-1.5">
@@ -310,7 +310,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SidebarContent>
 
-          <SidebarFooter className="p-5 border-t border-card-border/50">
+          <SidebarFooter className="p-5">
             <SidebarMenu className="gap-1.5">
               <SidebarMenuItem>
                 <SidebarLink
@@ -327,7 +327,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 bg-transparent h-screen overflow-hidden relative">
           
           {/* Header Bar */}
-          <header className="flex items-center justify-end px-6 py-4 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-card-border shrink-0">
+          <header className="flex items-center justify-end px-6 py-3 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-card-border shrink-0">
             <div className="flex items-center gap-3 sm:gap-4">
               {/* Global Command Palette search trigger */}
               <button 
@@ -407,7 +407,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
           {/* Main Scroll Area */}
           <div className="flex-1 overflow-y-auto bg-background/50">
-            <div className="p-6 sm:p-8 lg:p-12 max-w-[1600px] mx-auto w-full">
+            <div className="px-6 pb-6 pt-3 sm:px-8 sm:pb-8 sm:pt-4 lg:px-12 lg:pb-10 lg:pt-5 max-w-[1600px] mx-auto w-full">
               {loading ? <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} /> : children}
             </div>
           </div>

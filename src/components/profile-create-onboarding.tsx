@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { AnimatedNumber } from "@/components/animated-number";
+import { PhoneInput } from "@/components/phone-input";
 import type { ProfileDraft } from "@/hooks/use-user-data";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -291,12 +292,13 @@ export function ProfileCreateOnboarding({
             </div>
             <div className="flex flex-col gap-3">
               <label className="text-[13px] font-medium text-foreground" htmlFor="profile-phone">Phone Number</label>
-              <input
+              <PhoneInput
                 id="profile-phone"
-                value={profileForm.phone}
-                onChange={(event) => updateProfileField(setProfileForm, "phone", event.target.value)}
-                placeholder="+1 234 567 890"
-                className="field-control px-3 py-2.5"
+                value={profileForm.phone || ""}
+                onChange={(phone) => updateProfileField(setProfileForm, "phone", phone)}
+                hintPhone={profileForm.phone}
+                inputClassName="py-2.5"
+                selectClassName="py-2.5"
               />
             </div>
           </div>

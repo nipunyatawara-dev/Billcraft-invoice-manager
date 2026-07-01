@@ -3,6 +3,7 @@ import { CURRENCIES, type CurrencyCode, useCurrency } from "@/hooks/use-currency
 import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedText } from "@/components/animated-text";
+import { PhoneInput } from "@/components/phone-input";
 import { useTheme } from "next-themes";
 import { 
   User, 
@@ -340,13 +341,13 @@ export function ProfileTab() {
                 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted uppercase tracking-wider" htmlFor="profile-phone">Phone Number</label>
-                  <input
+                  <PhoneInput
                     id="profile-phone"
-                    type="text"
-                    value={profileForm.phone}
-                    onChange={(event) => setProfileForm({ ...profileForm, phone: event.target.value })}
-                    className="w-full bg-background border border-card-border rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted/40 outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
-                    placeholder="+1 (555) 019-9234"
+                    value={profileForm.phone || ""}
+                    onChange={(phone) => setProfileForm({ ...profileForm, phone })}
+                    hintPhone={profileForm.phone}
+                    inputClassName="py-2.5 text-sm font-semibold bg-background rounded-lg"
+                    selectClassName="py-2.5 text-xs bg-background rounded-lg"
                   />
                 </div>
               </div>

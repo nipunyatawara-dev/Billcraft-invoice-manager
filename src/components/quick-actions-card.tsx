@@ -59,21 +59,24 @@ function QuickActionItem({
   action,
   index,
   iconRefs,
+  fillHeight = false,
 }: {
   action: (typeof QUICK_ACTIONS)[number];
   index: number;
   iconRefs: MutableRefObject<(AnimatedIconHandle | null)[]>;
+  fillHeight?: boolean;
 }) {
   const itemMotion = useStaggerEnterMotion(index);
 
   return (
-    <motion.div {...itemMotion}>
+    <motion.div {...itemMotion} className={fillHeight ? "flex-1 min-h-0" : undefined}>
       <Link
         href={action.href}
         onMouseEnter={() => iconRefs.current[index]?.startAnimation()}
         onMouseLeave={() => iconRefs.current[index]?.stopAnimation()}
         className={cn(
-          "group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 transition-all",
+          "group flex items-center gap-3 rounded-xl border border-transparent px-3 transition-all h-full",
+          fillHeight ? "py-3" : "py-2.5",
           action.hoverBg,
           action.hoverBorder,
           "hover:border-card-border hover:shadow-xs active:scale-[0.99]"
@@ -109,16 +112,19 @@ function QuickActionItem({
   );
 }
 
-export function QuickActionsCard() {
+export function QuickActionsCard({ className }: { className?: string }) {
   const iconRefs = useRef<(AnimatedIconHandle | null)[]>([]);
   const cardMotion = usePageEnterMotion("actions");
 
   return (
     <motion.div
       {...cardMotion}
-      className="bg-card text-card-foreground rounded-xl border border-card-border w-full lg:w-[360px] shrink-0 flex flex-col overflow-hidden"
+      className={cn(
+        "bg-card text-card-foreground rounded-xl border border-card-border w-full lg:w-[340px] shrink-0 flex flex-col overflow-hidden h-full",
+        className
+      )}
     >
-      <div className="p-6 pb-4">
+      <div className="p-5 pb-3">
         <h2 className="text-base font-bold text-foreground flex items-center gap-2">
           <Zap className="size-[18px] text-accent" />
           Quick Actions
@@ -128,18 +134,19 @@ export function QuickActionsCard() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-1.5 px-4 pb-4 flex-1">
+      <div className="flex flex-col gap-1 px-3 pb-3 flex-1 min-h-0">
         {QUICK_ACTIONS.map((action, index) => (
           <QuickActionItem
             key={action.href}
             action={action}
             index={index}
             iconRefs={iconRefs}
+            fillHeight
           />
         ))}
       </div>
 
-      <div className="mt-auto border-t border-card-border bg-foreground/[0.015] px-6 py-3">
+      <div className="border-t border-card-border bg-foreground/[0.015] px-5 py-2.5">
         <p className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-muted">
           <span>Press</span>
           <kbd className="inline-flex items-center gap-0.5 rounded-md border border-card-border bg-card px-1.5 py-0.5 font-mono text-[10px] text-foreground shadow-xs">

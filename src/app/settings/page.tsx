@@ -84,7 +84,7 @@ function SettingsContent() {
       {/* Header */}
       <div 
         ref={headerRef}
-        className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-6 sm:pt-8 lg:pt-12 pb-4 -mt-6 sm:-mt-8 lg:-mt-12 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8"
+        className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-3 sm:pt-4 lg:pt-5 pb-4 -mt-3 sm:-mt-4 lg:-mt-5 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8"
       >
         <div>
           <AnimatedText as="p" text={PAGE_EYEBROWS["/settings"]} effect="micro-scale-fade" className="section-eyebrow" />

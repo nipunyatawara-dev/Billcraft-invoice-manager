@@ -82,7 +82,7 @@ function formatPdfCurrency(value: number, currency: string) {
   }).format(value)}`;
 }
 
-function invoiceFileName(invoice: Invoice) {
+export function invoiceFileName(invoice: Invoice) {
   return `${invoice.id.replace(/[^a-z0-9-]+/gi, "").toUpperCase() || "INVOICE"}.pdf`;
 }
 
@@ -218,7 +218,7 @@ function addTextBlock(
   return nextY;
 }
 
-async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | null, currency: string) {
+export async function createInvoicePdfBlob(invoice: Invoice, profile: UserProfile | null, currency: string) {
   const pdf = await PDFDocument.create();
   const fonts = await embedGoogleSansFlex(pdf);
   let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
@@ -641,7 +641,11 @@ export async function exportInvoicePdf(invoice: Invoice, profile: UserProfile | 
   URL.revokeObjectURL(url);
 }
 
-async function createOutsourcingInvoicePdfBlob(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
+export function outsourcingInvoiceFileName(invoice: OutsourcingInvoice) {
+  return `${invoice.id.replace("#", "").toUpperCase()}_VOUCHER.pdf`;
+}
+
+export async function createOutsourcingInvoicePdfBlob(invoice: OutsourcingInvoice, profile: UserProfile | null, currency: string) {
   const pdf = await PDFDocument.create();
   const fonts = await embedGoogleSansFlex(pdf);
   let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
@@ -797,7 +801,7 @@ export async function exportOutsourcingInvoicePdf(invoice: OutsourcingInvoice, p
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `${invoice.id.replace("#", "").toUpperCase()}_VOUCHER.pdf`;
+  link.download = outsourcingInvoiceFileName(invoice);
   link.click();
   URL.revokeObjectURL(url);
 }
