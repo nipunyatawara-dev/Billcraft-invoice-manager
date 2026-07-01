@@ -3,7 +3,8 @@
 
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { AnimatePresence, motion } from "motion/react";
+import { PayableFormModal } from "./components/PayableFormModal";
+import { ModalOverlay } from "@/components/workspace-form-modal";
 import { PaymentSummary, PaymentTrackingForm } from "@/components/payment-tracking";
 import { PhoneInput } from "@/components/phone-input";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
@@ -232,6 +233,7 @@ export default function Outsourcing() {
   const [form, setForm] = useState<OutsourcingForm>(createEmptyForm);
   const [needsVendorSaveChoice, setNeedsVendorSaveChoice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const [showPaymentOptions, setShowPaymentOptions] = useState(false);
   const [sharingChannel, setSharingChannel] = useState<ShareChannel | null>(null);
   const [activeDetailVendor, setActiveDetailVendor] = useState<Vendor | null>(null);
@@ -468,7 +470,6 @@ export default function Outsourcing() {
   const isFormMode = modalMode === "create" || modalMode === "edit";
   const selectedTemplate = TEMPLATES.find((template) => template.id === form.templateId) || TEMPLATES[0];
   const invoiceTotal = getInvoiceItemsTotal(form.items);
-  const modalTitle = modalMode === "create" ? "New Outsourcing Invoice" : modalMode === "edit" ? "Edit Outsourcing Invoice" : selectedInvoice?.id || "Outsourcing Invoice";
 
   function openCreateModal() {
     const initialForm = createEmptyForm();
@@ -502,6 +503,7 @@ export default function Outsourcing() {
     setModalMode(null);
     setSelectedInvoice(null);
     setNeedsVendorSaveChoice(false);
+    setIsTemplateDropdownOpen(false);
     setForm(createEmptyForm());
   }
 
@@ -719,11 +721,6 @@ export default function Outsourcing() {
     } finally {
       setIsSaving(false);
     }
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void submitOutsourcingInvoice();
   }
 
   async function handleExportOutsourcingInvoice(invoice: OutsourcingInvoice) {
@@ -994,350 +991,59 @@ export default function Outsourcing() {
         </div>
       </main>
 
-      {/* Main Creation & Editing Modal */}
-      <AnimatePresence>
-        {modalMode && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              aria-label="Close modal"
-              className="absolute inset-0 bg-[#030303]/60 backdrop-blur-md cursor-default"
-              onClick={closeModal}
-            />
-            
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ type: "spring", duration: 0.35, bounce: 0 }}
-              className="modal-surface relative max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden rounded-2xl border border-card-border bg-card shadow-2xl"
-            >
-              {/* Sticky Header */}
-              <div className="flex items-center justify-between px-6 py-4.5 border-b border-card-border/60 bg-card shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--accent)]"></span>
+      {isFormMode && (
+        <ModalOverlay onClose={closeModal}>
+          <PayableFormModal
+            modalMode={modalMode === "edit" ? "edit" : "create"}
+            form={form}
+            setForm={setForm}
+            vendors={vendors}
+            currency={currency}
+            isSaving={isSaving}
+            needsVendorSaveChoice={needsVendorSaveChoice}
+            TEMPLATES={TEMPLATES}
+            selectedTemplate={selectedTemplate}
+            isTemplateDropdownOpen={isTemplateDropdownOpen}
+            setIsTemplateDropdownOpen={setIsTemplateDropdownOpen}
+            closeModal={closeModal}
+            submitOutsourcingInvoice={submitOutsourcingInvoice}
+            setVendorMode={setVendorMode}
+            handleVendorSelect={handleVendorSelect}
+            handleVendorImageChange={handleVendorImageChange}
+            updateItem={updateItem}
+            removeItem={removeItem}
+            invoiceTotal={invoiceTotal}
+            createItem={createItem}
+            profilePhone={activeProfile?.phone}
+          />
+        </ModalOverlay>
+      )}
+
+      {modalMode === "view" && selectedInvoice && (
+        <ModalOverlay onClose={closeModal}>
+          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card/95 backdrop-blur-md shrink-0">
+              <div className="flex items-center gap-3">
+                <div>
                   <AnimatedText
                     as="h2"
-                    text={modalTitle}
+                    text={selectedInvoice.id}
                     effect="fade-through"
-                    className="text-base font-bold text-foreground leading-none font-display"
-                    replayKey={modalTitle}
+                    className="text-lg font-bold text-foreground leading-none font-display"
+                    replayKey={selectedInvoice.id}
                   />
-                  {!isFormMode && selectedInvoice && (
-                    <span className={`ml-2 px-2 py-0.5 text-[9px] font-bold rounded bg-foreground/[0.04] border border-card-border text-muted uppercase tracking-wider`}>
-                      {getOutsourcingPaymentState(selectedInvoice)}
-                    </span>
-                  )}
+                  <p className="text-[10px] font-semibold text-muted uppercase tracking-wider mt-1.5">
+                    Payable Preview
+                  </p>
                 </div>
-                <button type="button" onClick={closeModal} className="size-7 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
-                  <i className="ph ph-x text-sm"></i>
-                </button>
+                <span className="ml-2 px-2 py-0.5 text-[9px] font-bold rounded bg-foreground/[0.04] border border-card-border text-muted uppercase tracking-wider">
+                  {getOutsourcingPaymentState(selectedInvoice)}
+                </span>
               </div>
-
-              {isFormMode ? (
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 bg-background/20">
-                  {/* Scrollable Center Form Content */}
-                  <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-                    {/* Template Card Selection */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {TEMPLATES.map((template) => {
-                        const isSelected = form.templateId === template.id;
-
-                        return (
-                          <button
-                            key={template.id}
-                            type="button"
-                            role="radio"
-                            aria-checked={isSelected}
-                            onClick={() => setForm({ ...form, templateId: template.id })}
-                            className={`bg-card text-card-foreground p-4 text-left rounded-xl border transition-all duration-300 relative group active:scale-[0.98] ${
-                              isSelected 
-                                ? "border-accent/60 bg-accent/[0.02] shadow-[0_0_12px_rgba(var(--accent-rgb),0.05)]" 
-                                : "border-card-border hover:border-foreground/15"
-                            }`}
-                          >
-                            <span className="flex items-center justify-between gap-3">
-                              <span>
-                                <span className="block text-[12.5px] font-bold text-foreground">{template.name}</span>
-                                <span className="block mt-1 text-[11px] text-muted leading-relaxed">{template.description}</span>
-                              </span>
-                              <span className={`size-6 rounded-md flex items-center justify-center transition-colors shrink-0 ${isSelected ? "bg-action text-action-text" : "border border-card-border text-transparent"}`}>
-                                <i className="ph ph-check text-xs font-bold"></i>
-                              </span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Payee / Vendor Identity Card */}
-                    <div className="bg-card text-card-foreground p-5 border border-card-border rounded-xl space-y-5 shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-card-border/60 pb-4">
-                        <div>
-                          <p className="text-[9px] font-bold text-muted tracking-widest uppercase">Payee Identity</p>
-                          <p className="text-[11px] text-muted mt-0.5">Select a saved vendor profile or enter one-time details.</p>
-                        </div>
-                        
-                        {/* Segmented Control with motion slide */}
-                        <div className="relative grid grid-cols-2 gap-1 rounded-xl border border-card-border bg-foreground/[0.02] p-1 shrink-0 w-[150px] overflow-hidden select-none">
-                          <button
-                            type="button"
-                            onClick={() => setVendorMode("saved")}
-                            disabled={vendors.length === 0}
-                            className={`min-h-7 rounded-lg text-[11px] font-semibold transition-all active:scale-[0.96] relative z-10 ${
-                              form.vendorMode === "saved" ? "text-action-text font-bold" : "text-muted disabled:opacity-30"
-                            }`}
-                          >
-                            Saved
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setVendorMode("new")}
-                            className={`min-h-7 rounded-lg text-[11px] font-semibold transition-all active:scale-[0.96] relative z-10 ${
-                              form.vendorMode === "new" ? "text-action-text font-bold" : "text-muted"
-                            }`}
-                          >
-                            New Vendor
-                          </button>
-                          {/* Animated sliding background tab */}
-                          <motion.div
-                            layout
-                            className="absolute inset-y-1 bg-action rounded-lg shadow-xs w-[calc(50%-4px)] z-0"
-                            animate={{ x: form.vendorMode === "saved" ? 4 : 72 }}
-                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          />
-                        </div>
-                      </div>
-
-                      {form.vendorMode === "saved" && vendors.length > 0 ? (
-                        <div className="space-y-4">
-                          <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="saved-vendor">Select Vendor Profile</label>
-                            <div className="relative flex items-center">
-                              <select id="saved-vendor" required value={form.vendorId} onChange={(event) => handleVendorSelect(event.target.value)} className="field-control px-3.5 py-2.5 pr-10 text-[12.5px] bg-foreground/[0.01] border border-card-border rounded-xl focus:border-accent">
-                                {vendors.map((vendor) => (
-                                  <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                                ))}
-                              </select>
-                              <i className="ph ph-caret-down absolute right-3 text-muted pointer-events-none text-[16px]"></i>
-                            </div>
-                          </div>
-                          
-                          {/* Selected Saved Vendor Preview Card */}
-                          <div className="mt-3 flex items-start gap-4 rounded-xl border border-card-border bg-foreground/[0.02] p-4.5">
-                            {form.avatar ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img className="size-12 rounded-xl object-cover border border-card-border shadow-sm shrink-0" alt={form.vendor} src={form.avatar} />
-                            ) : (
-                              <span className="size-12 rounded-xl bg-foreground/[0.04] flex items-center justify-center border border-card-border shrink-0 text-muted">
-                                <i className="ph ph-user text-[22px]"></i>
-                              </span>
-                            )}
-                            <div className="min-w-0 text-[12px] text-muted leading-relaxed space-y-0.5">
-                              <p className="font-bold text-foreground truncate text-[13px]">{form.vendor}</p>
-                              <p className="truncate flex items-center gap-1.5"><i className="ph ph-envelope text-[14px] text-muted/60"></i>{form.email || "No email saved"}</p>
-                              <p className="truncate flex items-center gap-1.5"><i className="ph ph-phone text-[14px] text-muted/60"></i>{form.phone || "No phone saved"}</p>
-                              {form.address && (
-                                <p className="mt-2 whitespace-pre-line border-t border-card-border/40 pt-1.5 text-[11px] leading-normal">{form.address}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {/* Image Upload Zone */}
-                          <div className="flex items-center gap-4">
-                            <div className="size-13 rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
-                              {form.avatar ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img className="w-full h-full object-cover" alt="Vendor preview" src={form.avatar} />
-                              ) : (
-                                <i className="ph ph-image text-foreground/20 text-xl"></i>
-                              )}
-                            </div>
-                            <div>
-                              <label className="btn-secondary text-[11px] min-h-7.5 px-3 py-1.5 cursor-pointer rounded-xl font-semibold transition-all inline-flex items-center gap-1">
-                                <i className="ph ph-camera text-sm"></i>
-                                <span>{form.avatar ? "Change Picture" : "Upload Picture"}</span>
-                                <input className="sr-only" type="file" accept="image/*" onChange={handleVendorImageChange} />
-                              </label>
-                              <p className="text-[10px] text-muted mt-1">Recommended square formats.</p>
-                            </div>
-                          </div>
-
-                          {/* New Vendor detail fields */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-name">Payee Name *</label>
-                              <input id="outsourcing-vendor-name" required value={form.vendor} onChange={(event) => setForm({ ...form, vendor: event.target.value })} placeholder="Vendor or Person name" className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-company">Company</label>
-                              <input id="outsourcing-vendor-company" value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="e.g. Acme Corp" className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-email">Email Address</label>
-                              <input id="outsourcing-vendor-email" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="vendor@example.com" className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-phone">Phone Number</label>
-                              <PhoneInput
-                                id="outsourcing-vendor-phone"
-                                value={form.phone}
-                                onChange={(phone) => setForm({ ...form, phone })}
-                                hintPhone={activeProfile?.phone || form.phone}
-                                inputClassName="py-2.5 text-[12.5px] rounded-xl"
-                                selectClassName="py-2.5 text-[12px] rounded-xl"
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-paypal">PayPal Account</label>
-                              <input id="outsourcing-vendor-paypal" value={form.paypal} onChange={(event) => setForm({ ...form, paypal: event.target.value })} placeholder="paypal.me/username" className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-vendor-stripe">Stripe Link</label>
-                              <input id="outsourcing-vendor-stripe" value={form.stripe} onChange={(event) => setForm({ ...form, stripe: event.target.value })} placeholder="buy.stripe.com/..." className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="sm:col-span-2 space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-address">Vendor Billing Address</label>
-                              <textarea id="outsourcing-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="Billing address for receipt generation..." className="field-control min-h-20 px-3.5 py-2.5 resize-none text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Dates & Terms Card */}
-                    <div className="bg-card text-card-foreground p-5 border border-card-border rounded-xl space-y-4 shadow-sm">
-                      <h3 className="text-[9px] font-bold text-muted tracking-widest uppercase flex items-center gap-1.5 pb-2 border-b border-card-border/40 select-none">
-                        <i className="ph ph-calendar text-base text-muted/80"></i>
-                        Terms & Currencies
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-date">Invoice Date *</label>
-                          <input id="outsourcing-date" type="date" required value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border rounded-xl focus:border-accent" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-due-date">Due Date</label>
-                          <input id="outsourcing-due-date" type="date" value={form.dueDate} onChange={(event) => setForm({ ...form, dueDate: event.target.value })} className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border rounded-xl focus:border-accent" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor="outsourcing-currency">Currency Override</label>
-                          <div className="relative flex items-center">
-                            <select
-                              id="outsourcing-currency"
-                              value={form.currency}
-                              onChange={(e) => setForm({ ...form, currency: e.target.value })}
-                              className="field-control px-3.5 py-2.5 pr-10 text-[12.5px] bg-foreground/[0.01] border border-card-border rounded-xl focus:border-accent"
-                            >
-                              <option value="">Default Profile ({currency})</option>
-                              {CURRENCIES.map((c) => (
-                                <option key={c.code} value={c.code}>
-                                  {c.code} ({c.symbol})
-                                </option>
-                              ))}
-                            </select>
-                            <i className="ph ph-caret-down absolute right-3 text-muted pointer-events-none text-[16px]"></i>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Payable Items Table Editor */}
-                    <div className="bg-card text-card-foreground border border-card-border rounded-xl overflow-hidden shadow-sm">
-                      <div className="flex items-center justify-between px-5 py-4 border-b border-card-border/60 bg-foreground/[0.01] select-none">
-                        <p className="text-[9px] font-bold text-muted tracking-widest uppercase flex items-center gap-1.5">
-                          <i className="ph ph-list-bullets text-base text-muted/80"></i>
-                          Payable Items
-                        </p>
-                        <button type="button" onClick={() => setForm({ ...form, items: [...form.items, createItem()] })} className="text-accent hover:text-accent-hover hover:bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase active:scale-[0.97]">
-                          <i className="ph ph-plus text-xs"></i>
-                          Add Item
-                        </button>
-                      </div>
-                      
-                      <div className="divide-y divide-card-border bg-background/10">
-                        {form.items.map((item, index) => (
-                          <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_90px_130px_40px] gap-4 p-5 hover:bg-foreground/[0.01] transition-colors items-end">
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor={`outsourcing-item-description-${item.id}`}>Work Description</label>
-                              <input id={`outsourcing-item-description-${item.id}`} required value={item.description} onChange={(event) => updateItem(index, { description: event.target.value })} placeholder="Development work, subnetted design..." className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor={`outsourcing-item-quantity-${item.id}`}>Qty</label>
-                              <input id={`outsourcing-item-quantity-${item.id}`} type="number" min="0" step="1" value={item.quantity} onChange={(event) => {
-                                const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                                updateItem(index, { quantity: Number(cleanVal) });
-                              }} className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl text-center font-mono" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-bold text-muted tracking-widest uppercase" htmlFor={`outsourcing-item-price-${item.id}`}>Price</label>
-                              <input id={`outsourcing-item-price-${item.id}`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => {
-                                const cleanVal = event.target.value.replace(/^0+(?=\d)/, '');
-                                updateItem(index, { price: Number(cleanVal) });
-                              }} className="field-control px-3.5 py-2.5 text-[12.5px] bg-foreground/[0.01] border border-card-border focus:border-accent rounded-xl text-right font-mono" />
-                            </div>
-                            <div className="flex justify-end md:pb-0.5">
-                              <button type="button" onClick={() => removeItem(index)} className="size-9.5 flex items-center justify-center rounded-xl border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95" aria-label="Remove item">
-                                <i className="ph ph-trash text-sm"></i>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="flex items-center justify-between gap-3 px-5 py-4 bg-foreground/[0.02] border-t border-card-border">
-                        <span className="text-[9px] font-bold text-muted tracking-widest uppercase">Total Payable</span>
-                        <span className="text-xl font-bold text-foreground font-display font-mono tabular-nums"><AnimatedNumber value={formatCurrency(invoiceTotal, form.currency || currency)} /></span>
-                      </div>
-                    </div>
-
-                    <PaymentTrackingForm
-                      currency={currency}
-                      total={invoiceTotal}
-                      payments={form.payments}
-                      paymentNotes={form.paymentNotes}
-                      title="Payment Tracking"
-                      onPaymentsChange={(payments) => setForm((currentForm) => ({ ...currentForm, payments }))}
-                      onPaymentNotesChange={(paymentNotes) => setForm((currentForm) => ({ ...currentForm, paymentNotes }))}
-                    />
-
-                    {needsVendorSaveChoice && (
-                      <div className="rounded-xl border border-accent/25 bg-accent/5 p-5 space-y-3">
-                        <p className="text-[12.5px] font-bold text-foreground flex items-center gap-1.5">
-                          <i className="ph ph-floppy-disk text-base text-accent"></i>
-                          Save vendor details?
-                        </p>
-                        <p className="text-[11px] text-muted leading-relaxed">Regular vendors are stored for reuse in future payables. One-time payees remain attached only to this payable record.</p>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <button type="button" onClick={() => void submitOutsourcingInvoice("regular")} className="btn-primary active:scale-[0.97] px-4 py-2 text-xs font-semibold rounded-lg shadow-sm">
-                            Save Regular Vendor
-                          </button>
-                          <button type="button" onClick={() => void submitOutsourcingInvoice("onetime")} className="btn-secondary px-4 py-2 text-xs font-semibold rounded-lg">
-                            One-Time Only
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Sticky Footer */}
-                  <div className="flex justify-end gap-2.5 px-6 py-4.5 border-t border-card-border/60 bg-card shrink-0 z-10">
-                    <button type="button" onClick={closeModal} className="btn-ghost px-4 py-2 text-xs font-bold rounded-lg transition-all active:scale-[0.98]">
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn-primary px-5 py-2 text-xs font-bold rounded-lg active:scale-[0.96] shadow-md" disabled={isSaving}>
-                      {isSaving ? "Saving..." : modalMode === "edit" ? "Save Changes" : "Create Payable"}
-                    </button>
-                  </div>
-                </form>
-              ) : selectedInvoice && (
+              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full border border-card-border/40 bg-foreground/[0.02] text-muted hover:text-foreground hover:bg-foreground/[0.06] hover:border-card-border/80 active:scale-95 transition-[transform,background-color,border-color,color] duration-200 ease-out group" aria-label="Close modal">
+                <span className="material-symbols-outlined text-[16px] group-hover:rotate-90 transition-transform duration-300">close</span>
+              </button>
+            </div>
                 <div className="flex-1 flex flex-col min-h-0 bg-background/20 overflow-hidden">
                   {/* Scrollable Center View Content */}
                   <div className="flex-1 overflow-y-auto p-6 sm:p-8">
@@ -1432,24 +1138,21 @@ export default function Outsourcing() {
 
                     </div>
                   </div>
-
-                  {/* Sticky Footer */}
-                  <div className="flex justify-end gap-2.5 px-6 py-4.5 border-t border-card-border/60 bg-card shrink-0 z-10">
-                    <button type="button" onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-1.5 active:scale-[0.98] transition-all">
-                      <i className="ph ph-download text-sm"></i>
-                      Download PDF
-                    </button>
-                    <button type="button" onClick={() => openEditModal(selectedInvoice)} className="btn-primary px-5 py-2 text-xs font-bold rounded-lg active:scale-[0.96] shadow-sm flex items-center gap-1.5">
-                      <i className="ph ph-pencil text-sm"></i>
-                      Edit Payable
-                    </button>
-                  </div>
                 </div>
-              )}
-            </motion.div>
+            <div className="flex justify-end gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0 z-10">
+              <button type="button" onClick={() => handleExportOutsourcingInvoice(selectedInvoice)} className="btn-secondary min-h-9 px-4 rounded-xl text-[12px] font-bold flex items-center gap-1.5 active:scale-[0.98]">
+                <DownloadIcon size={14} />
+                Download PDF
+              </button>
+              <button type="button" onClick={() => openEditModal(selectedInvoice)} className="btn-primary min-h-9 px-5 rounded-xl text-[12px] font-bold active:scale-[0.98] shadow-md flex items-center gap-1.5">
+                <PenIcon size={14} />
+                Edit Payable
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </ModalOverlay>
+      )}
+
 
       {/* Share / Outsourcing Delivery Link Modal */}
       {shareInvoice && (
@@ -1858,7 +1561,6 @@ export default function Outsourcing() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
                 <i className="ph ph-users text-lg text-muted-foreground"></i>
                 <h2 className="text-lg font-bold text-foreground leading-none font-display">Edit Vendor</h2>
               </div>

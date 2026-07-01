@@ -1,5 +1,8 @@
 "use client";
 
+import { TaskFormModal, type TaskForm } from "./components/TaskFormModal";
+import { ModalOverlay } from "@/components/workspace-form-modal";
+import { motion } from "motion/react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, sortTasksByPriorityThenOrder, assignOrdersFromColumnSequence, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
@@ -21,6 +24,8 @@ import {
   AlertCircle, 
   Hexagon, 
   Minus,
+  ArrowDown,
+  ArrowUp,
   Layers, 
   User, 
   Mail, 
@@ -56,17 +61,6 @@ import CheckedIcon from "@/components/icons/checked-icon";
 import PenIcon from "@/components/icons/pen-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 
-
-type TaskForm = {
-  title: string;
-  description: string;
-  client: string;
-  dueDate: string;
-  estimate: string;
-  stage: TodoStageId;
-  priority: TodoPriority;
-  tags: string;
-};
 
 type DragTarget = {
   stage: TodoStageId;
@@ -858,7 +852,6 @@ export default function TodoPage() {
   }
 
   const showTrashZone = draggingTaskId !== null || selectedTaskIds.size > 0;
-  const taskModalTitle = editingTaskId ? "Update task" : "New task";
 
   return (
     <>
@@ -1473,228 +1466,20 @@ export default function TodoPage() {
     </main>
 
       {isTaskModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button
-            aria-label="Close task editor"
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={closeModal}
+        <ModalOverlay onClose={closeModal}>
+          <TaskFormModal
+            isEditing={Boolean(editingTaskId)}
+            form={form}
+            setForm={setForm}
+            clients={clients}
+            clientMode={clientMode}
+            setClientMode={setClientMode}
+            isSaving={isSaving}
+            closeModal={closeModal}
+            onSubmit={handleTaskSubmit}
+            onDelete={editingTaskId ? () => void deleteTask(editingTaskId) : undefined}
           />
-          <div role="dialog" aria-modal="true" className="modal-surface relative max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
-              <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <Layers className="size-4.5 text-muted-foreground" />
-                <AnimatedText
-                  as="h2"
-                  text={taskModalTitle}
-                  effect="fade-through"
-                  className="text-lg font-bold text-foreground leading-none font-display"
-                  replayKey={taskModalTitle}
-                />
-              </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground cursor-pointer">
-                <X className="size-4.5" />
-              </button>
-            </div>
-
-            {/* Scrollable Form Body */}
-            <form onSubmit={handleTaskSubmit} className="flex-1 flex flex-col min-h-0 bg-background/35">
-              <div className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar">
-                
-                {/* 1. Task Description & Scope Card */}
-                <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Task Definition</h3>
-                  
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-title">Title</label>
-                    <input
-                      id="task-title"
-                      required
-                      value={form.title}
-                      onChange={(event) => setForm({ ...form, title: event.target.value })}
-                      placeholder="What needs to be done?"
-                      className="field-control px-3 py-1.5 text-[13px]"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-description">Description</label>
-                    <textarea
-                      id="task-description"
-                      value={form.description}
-                      onChange={(event) => setForm({ ...form, description: event.target.value })}
-                      placeholder="Context details, bullet checklist, or scope notes..."
-                      className="field-control min-h-20 px-3 py-1.5 text-[13px] resize-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-stage">Stage</label>
-                      <div className="relative flex items-center">
-                        <select
-                          id="task-stage"
-                          value={form.stage}
-                          onChange={(event) => setForm({ ...form, stage: event.target.value as TodoStageId })}
-                          className="field-control px-3 py-1.5 text-[13px] appearance-none"
-                        >
-                          {TODO_STAGES.map((stage) => <option key={stage.id} value={stage.id} className="text-foreground bg-background">{stage.label}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-3 size-4 text-muted pointer-events-none" />
-                      </div>
-                    </div>
-
-                    {/* Priority Selector as button pills */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Priority Level</label>
-                      <div className="flex gap-1">
-                        {TODO_PRIORITIES.map((p) => {
-                          const isSelected = form.priority === p;
-                          let colorClass = "border-card-border text-muted bg-card hover:border-foreground/10";
-                          if (isSelected) {
-                            if (p === "Low") colorClass = "bg-slate-500/10 border-slate-500 text-slate-500 shadow-xs";
-                            else if (p === "Medium") colorClass = "bg-cyan-500/10 border-cyan-500 text-cyan-500 shadow-xs";
-                            else if (p === "High") colorClass = "bg-orange-500/10 border-orange-500 text-orange-500 shadow-xs";
-                          }
-                          return (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => setForm({ ...form, priority: p })}
-                              className={`flex-1 min-h-7 rounded-lg border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] cursor-pointer ${colorClass}`}
-                            >
-                              {p}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Relations, Deadlines & Tags Card */}
-                <div className="surface-card p-4 space-y-4 rounded-xl border border-card-border bg-card">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Relations & Constraints</h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-client-select">Client Link</label>
-                      {clientMode === "select" ? (
-                        <div className="relative flex items-center">
-                          <select
-                            id="task-client-select"
-                            value={form.client}
-                            onChange={(event) => {
-                              const val = event.target.value;
-                              if (val === "__custom__") {
-                                setClientMode("custom");
-                                setForm({ ...form, client: "" });
-                              } else {
-                                setForm({ ...form, client: val });
-                              }
-                            }}
-                            className="field-control px-3 py-1.5 text-[13px] appearance-none"
-                          >
-                            <option value="" className="text-foreground bg-background">General</option>
-                            {clients.map((c) => (
-                              <option key={c.id} value={c.name} className="text-foreground bg-background">{c.name}</option>
-                            ))}
-                            <option value="__custom__" className="text-foreground bg-background">+ Add Custom...</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 size-4 text-muted pointer-events-none" />
-                        </div>
-                      ) : (
-                        <div className="flex gap-1.5 items-center">
-                          <input
-                            id="task-client"
-                            value={form.client}
-                            onChange={(event) => setForm({ ...form, client: event.target.value })}
-                            placeholder="Client name"
-                            className="field-control px-2.5 py-1.5 text-[13px] flex-1"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setClientMode("select");
-                              setForm({ ...form, client: "" });
-                            }}
-                            className="text-[9px] font-bold text-accent hover:underline shrink-0 cursor-pointer"
-                          >
-                            Saved
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-due">Due Date</label>
-                      <input
-                        id="task-due"
-                        type="date"
-                        value={form.dueDate}
-                        onChange={(event) => setForm({ ...form, dueDate: event.target.value })}
-                        className="field-control px-3 py-1.5 text-[13px]"
-                      />
-                    </div>
-
-                    <div className="space-y-1 col-span-1">
-                      <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-estimate">Estimate / Effort</label>
-                      <div className="relative flex items-center">
-                        <Clock className="absolute left-3 size-4 text-muted-foreground/50 pointer-events-none" />
-                        <input
-                          id="task-estimate"
-                          value={form.estimate}
-                          onChange={(event) => setForm({ ...form, estimate: event.target.value })}
-                          placeholder="e.g. 2h, 45m"
-                          className="field-control pl-9 pr-3 py-1.5 text-[13px]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="task-tags">Category Tags</label>
-                    <div className="relative flex items-center">
-                      <Tag className="absolute left-3 size-4 text-muted-foreground/50 pointer-events-none" />
-                      <input
-                        id="task-tags"
-                        value={form.tags}
-                        onChange={(event) => setForm({ ...form, tags: event.target.value })}
-                        placeholder="e.g. Design, Scope, Revision (comma separated)"
-                        className="field-control pl-9 pr-3 py-1.5 text-[13px]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Sticky Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-card-border bg-card shrink-0 z-10 select-none">
-                {editingTaskId ? (
-                  <button
-                    type="button"
-                    onClick={() => void deleteTask(editingTaskId)}
-                    disabled={isSaving}
-                    className="text-[11px] font-bold text-negative hover:underline active:scale-[0.97] transition-all cursor-pointer"
-                  >
-                    Delete Task
-                  </button>
-                ) : <span />}
-                
-                <div className="flex gap-2">
-                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 rounded-xl text-[12px] font-bold cursor-pointer" disabled={isSaving}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary min-h-9 px-5 rounded-xl text-[12px] font-bold shadow-md active:scale-[0.97] cursor-pointer" disabled={isSaving}>
-                    {isSaving ? "Saving..." : "Save Task"}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
+        </ModalOverlay>
       )}
 
       {outsourcingTask && (
@@ -1708,7 +1493,6 @@ export default function TodoPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
                 <Handshake className="size-4.5 text-muted-foreground" />
                 <div>
                   <p className="text-[10px] font-bold text-muted uppercase tracking-wider leading-none mb-1">Outsource Task</p>
@@ -1849,7 +1633,6 @@ export default function TodoPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
                 <Info className="size-4.5 text-muted-foreground" />
                 <h2 className="text-sm font-bold text-foreground leading-none font-display">
                   Inform Client

@@ -233,12 +233,11 @@ function RecordsSkeleton() {
 function AnalyticsSkeleton() {
   return (
     <>
-      {/* 4 Bento Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
       </div>
 
       {/* Charts Row */}

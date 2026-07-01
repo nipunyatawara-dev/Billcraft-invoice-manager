@@ -1,6 +1,8 @@
 "use client";
 
 import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useState, useRef } from "react";
+import { ClientFormModal, type ClientForm } from "./components/ClientFormModal";
+import { ModalOverlay } from "@/components/workspace-form-modal";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Client, type Invoice } from "@/data/invoices";
@@ -9,7 +11,6 @@ import { useUserData } from "@/hooks/use-user-data";
 import { exportClientStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
-import { PhoneInput } from "@/components/phone-input";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { PAGE_EYEBROWS } from "@/lib/page-meta";
@@ -23,17 +24,6 @@ import { PageStatsRow } from "@/components/page-stats-row";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
-type ClientForm = {
-  name: string;
-  email: string;
-  phone: string;
-  whatsapp: string;
-  company: string;
-  address: string;
-  deliveryLink: string;
-  avatar: string;
-  notes: string;
-};
 
 const EMPTY_FORM: ClientForm = {
   name: "",
@@ -116,7 +106,6 @@ export default function Clients() {
 
   const totalRevenue = clients.reduce((sum, client) => sum + client.totalBilled, 0);
   const selectedClientData = selectedClientId ? clients.find((client) => client.id === selectedClientId) : null;
-  const clientModalTitle = editingClientId ? "Edit Client" : "Add Client";
 
   function openAddClient() {
     setEditingClientId(null);
@@ -560,198 +549,20 @@ export default function Clients() {
         )}
       </main>
 
-      <AnimatePresence>
-        {showClientModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              aria-label="Close modal"
-              className="absolute inset-0 bg-[#030303]/60 backdrop-blur-md cursor-default"
-              onClick={closeModal}
-            />
-            
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ type: "spring", duration: 0.35, bounce: 0 }}
-              className="modal-surface relative max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden rounded-2xl border border-card-border bg-card shadow-2xl"
-            >
-              {/* Form */}
-              <form onSubmit={handleSaveClient} className="flex-1 flex flex-col min-h-0">
-                {/* Header inside form so it is sticky on the right */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-card-border/60 bg-card shrink-0">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_6px_var(--accent)]"></span>
-                    <span className="material-symbols-outlined text-[16px] text-muted">person</span>
-                    <AnimatedText
-                      as="h2"
-                      text={clientModalTitle}
-                      effect="fade-through"
-                      className="text-base font-bold text-foreground leading-none font-display"
-                      replayKey={clientModalTitle}
-                    />
-                  </div>
-                  <button type="button" onClick={closeModal} className="size-7 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground">
-                    <span className="material-symbols-outlined text-[16px]">close</span>
-                  </button>
-                </div>
-
-                {/* Form fields */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                  {/* 1. Identity & Brand Card */}
-                  <div className="surface-card p-4.5 rounded-xl border border-card-border bg-card space-y-4 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted uppercase tracking-widest block">Profile & Company</span>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="size-14 rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] flex items-center justify-center shrink-0 shadow-inner relative group">
-                        {form.avatar ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img className="w-full h-full object-cover" alt="Client preview" src={form.avatar} />
-                        ) : (
-                          <span className="material-symbols-outlined text-[22px] text-foreground/20">person</span>
-                        )}
-                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white text-[10px] font-bold select-none">
-                          <span>Upload</span>
-                          <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
-                        </label>
-                      </div>
-                      <div>
-                        <label className="btn-secondary text-[11px] min-h-7 px-3 py-1 cursor-pointer hover:bg-foreground/[0.04] transition-smooth inline-flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">photo_camera</span>
-                          <span>{form.avatar ? "Change Picture" : "Upload Picture"}</span>
-                          <input className="sr-only" type="file" accept="image/*" onChange={handleImageChange} />
-                        </label>
-                        <p className="text-[10px] text-muted mt-1">Recommended square format. Maximum size 1MB.</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-name">Client Name *</label>
-                        <input
-                          id="client-name"
-                          required
-                          value={form.name}
-                          onChange={(event) => setForm({ ...form, name: event.target.value })}
-                          placeholder="Full Name"
-                          className="field-control px-3 py-2 text-[12.5px] transition-all bg-foreground/[0.01]"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-company">Company</label>
-                        <input
-                          id="client-company"
-                          value={form.company}
-                          onChange={(event) => setForm({ ...form, company: event.target.value })}
-                          placeholder="e.g. Acme Corp"
-                          className="field-control px-3 py-2 text-[12.5px] transition-all bg-foreground/[0.01]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. Contact Coordinates Card */}
-                  <div className="surface-card p-4.5 rounded-xl border border-card-border bg-card space-y-4 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted uppercase tracking-widest block">Contact Information</span>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-email">Email Address</label>
-                        <input
-                          id="client-email"
-                          type="email"
-                          value={form.email}
-                          onChange={(event) => setForm({ ...form, email: event.target.value })}
-                          placeholder="client@company.com"
-                          className="field-control px-3 py-2 text-[12.5px] transition-all bg-foreground/[0.01]"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-phone">Phone Number</label>
-                        <PhoneInput
-                          id="client-phone"
-                          value={form.phone}
-                          onChange={(phone) => setForm({ ...form, phone })}
-                          hintPhone={form.phone}
-                          inputClassName="text-[12.5px] transition-all"
-                          selectClassName="text-[12px] transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-whatsapp">WhatsApp Contact</label>
-                      <PhoneInput
-                        id="client-whatsapp"
-                        value={form.whatsapp}
-                        onChange={(whatsapp) => setForm({ ...form, whatsapp })}
-                        hintPhone={form.phone || form.whatsapp}
-                        inputClassName="text-[12.5px] transition-all"
-                        selectClassName="text-[12px] transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 3. Deliverables & Notes Card */}
-                  <div className="surface-card p-4.5 rounded-xl border border-card-border bg-card space-y-4 shadow-sm">
-                    <span className="text-[9px] font-bold text-muted uppercase tracking-widest block">Work Delivery & Address</span>
-                    
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-delivery-link">Finished Work Folder</label>
-                      <input
-                        id="client-delivery-link"
-                        type="url"
-                        value={form.deliveryLink}
-                        onChange={(event) => setForm({ ...form, deliveryLink: event.target.value })}
-                        placeholder="https://drive.google.com/..."
-                        className="field-control px-3 py-2 text-[12.5px] transition-all bg-foreground/[0.01]"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-address">Billing Address</label>
-                      <textarea
-                        id="client-address"
-                        value={form.address}
-                        onChange={(event) => setForm({ ...form, address: event.target.value })}
-                        placeholder="Billing address for client statements"
-                        className="field-control min-h-16 px-3 py-2 text-[12.5px] resize-none transition-all bg-foreground/[0.01]"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[9px] font-bold text-muted uppercase tracking-widest" htmlFor="client-notes">Relationship Notes</label>
-                      <textarea
-                        id="client-notes"
-                        value={form.notes}
-                        onChange={(event) => setForm({ ...form, notes: event.target.value })}
-                        placeholder="Scope rules, payment preferences, or context notes..."
-                        className="field-control min-h-16 px-3 py-2 text-[12.5px] resize-none transition-all bg-foreground/[0.01]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sticky Footer */}
-                <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-card-border/60 bg-card shrink-0 z-10">
-                  <button type="button" onClick={closeModal} className="btn-ghost min-h-9 px-4 text-[12px] font-bold rounded-lg transition-all active:scale-[0.98]">
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary min-h-9 px-5 text-[12px] font-bold shadow-md transition-all active:scale-[0.96] rounded-lg" disabled={isSaving}>
-                    {isSaving ? "Saving..." : editingClientId ? "Save Changes" : "Add Client"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {showClientModal && (
+        <ModalOverlay onClose={closeModal}>
+          <ClientFormModal
+            isEditing={Boolean(editingClientId)}
+            form={form}
+            setForm={setForm}
+            isSaving={isSaving}
+            closeModal={closeModal}
+            onSubmit={handleSaveClient}
+            onImageChange={handleImageChange}
+            profilePhone={activeProfile?.phone}
+          />
+        </ModalOverlay>
+      )}
 
     </>
   );

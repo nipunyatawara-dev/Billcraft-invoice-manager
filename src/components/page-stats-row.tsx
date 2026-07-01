@@ -45,21 +45,30 @@ export type PageStatItem = {
   tone?: PageStatTone;
   icon: AnimatedIconComponent;
   iconRef?: RefObject<AnimatedIconHandle | null>;
+  className?: string;
 };
 
-function PageStatTile({
+export function PageStatTile({
   label,
   value,
   hint,
   tone = "default",
   icon: Icon,
   iconRef,
+  className,
 }: PageStatItem) {
   const styles = toneStyles[tone];
+  const stretch = className?.includes("h-full");
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-card-border bg-card p-4 shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)] select-none">
-      <div className="flex items-start justify-between gap-3 mb-3">
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl border border-card-border bg-card p-4 shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)] select-none",
+        stretch && "flex h-full flex-col",
+        className
+      )}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
         <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{label}</span>
         <div
           className={cn(
@@ -71,7 +80,12 @@ function PageStatTile({
         </div>
       </div>
 
-      <div className="rounded-lg border border-card-border/55 bg-foreground/[0.015] px-3.5 py-3 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_4%,transparent)]">
+      <div
+        className={cn(
+          "rounded-lg border border-card-border/55 bg-foreground/[0.015] px-3.5 py-3 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_4%,transparent)]",
+          stretch && "flex flex-1 flex-col justify-center"
+        )}
+      >
         <div className="flex items-center justify-between gap-3 min-w-0">
           <span className="min-w-0 truncate text-xl font-bold tracking-tight text-foreground font-display currency-value sm:text-2xl">
             {value}

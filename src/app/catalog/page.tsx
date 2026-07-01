@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState, useRef } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { CatalogItemFormModal, type CatalogForm } from "./components/CatalogItemFormModal";
+import { ModalOverlay } from "@/components/workspace-form-modal";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { formatCurrency, type CatalogItem } from "@/data/invoices";
@@ -20,23 +21,10 @@ import TrashIcon from "@/components/icons/trash-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { 
   Package, 
-  DollarSign, 
-  Crown, 
-  Clock, 
   Plus, 
   Pencil, 
   Trash2, 
-  X, 
-  ChevronDown,
-  Info
 } from "lucide-react";
-
-type CatalogForm = {
-  name: string;
-  description: string;
-  defaultPrice: number;
-  unit: CatalogItem["unit"];
-};
 
 const EMPTY_FORM: CatalogForm = {
   name: "",
@@ -44,13 +32,6 @@ const EMPTY_FORM: CatalogForm = {
   defaultPrice: 0,
   unit: "hour",
 };
-
-const UNITS: { value: CatalogItem["unit"]; label: string }[] = [
-  { value: "hour", label: "Per Hour (hr)" },
-  { value: "flat", label: "Flat Rate" },
-  { value: "day", label: "Per Day (day)" },
-  { value: "unit", label: "Per Unit" },
-];
 
 export default function Catalog() {
   const plusIconRef = useRef<AnimatedIconHandle>(null);
@@ -439,126 +420,18 @@ export default function Catalog() {
         )}
       </main>
 
-      {/* Add / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <button aria-label="Close modal" className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
-          <div role="dialog" aria-modal="true" className="bg-card border border-card-border shadow-2xl rounded-xl relative max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-foreground/[0.01] shrink-0">
-              <div className="flex items-center gap-3">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
-                <Package className="size-4.5 text-muted-foreground" />
-                <AnimatedText
-                  as="h2"
-                  text={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
-                  effect="fade-through"
-                  className="text-lg font-bold text-foreground leading-none font-display"
-                  replayKey={editingItemId ? "Edit Catalog Item" : "Add Catalog Item"}
-                />
-              </div>
-              <button type="button" onClick={closeModal} className="size-8 flex items-center justify-center rounded-full hover:bg-foreground/[0.04] transition-smooth text-muted hover:text-foreground cursor-pointer">
-                <X className="size-4.5" />
-              </button>
-            </div>
-
-            {/* Scrollable Form Body */}
-            <form onSubmit={handleSaveItem} className="flex-1 flex flex-col min-h-0 bg-background/35">
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
-                
-                {/* Identity & Scope Card */}
-                <div className="bg-card border border-card-border rounded-xl p-5 space-y-4">
-                  <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider">Item Details</h3>
-                  
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-name">Item Name</label>
-                    <input
-                      id="catalog-name"
-                      required
-                      value={form.name}
-                      onChange={(event) => setForm({ ...form, name: event.target.value })}
-                      placeholder="e.g. Full-stack Web Design, Consultation, SEO Audit"
-                      className="field-control px-3.5 py-2.5 text-[13px] rounded-xl"
-                    />
-                  </div>
-
-                  {/* Segmented Button Selection for Units */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider">Billing Unit</label>
-                    <div className="flex flex-wrap gap-1">
-                      {UNITS.map((unit) => {
-                        const isSelected = form.unit === unit.value;
-                        return (
-                          <button
-                            key={unit.value}
-                            type="button"
-                            onClick={() => setForm({ ...form, unit: unit.value })}
-                            className={`flex-1 min-h-7 rounded-xl border text-[10px] font-bold transition-all duration-200 active:scale-[0.96] ${
-                              isSelected
-                                ? "bg-accent/10 border-accent/20 text-accent shadow-xs font-bold"
-                                : "border-card-border text-muted bg-card hover:border-foreground/10"
-                            }`}
-                          >
-                            {unit.label.replace("Per ", "").replace(" (hr)", "").replace(" (day)", "")}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-description">Default Description</label>
-                    <textarea
-                      id="catalog-description"
-                      required
-                      value={form.description}
-                      onChange={(event) => setForm({ ...form, description: event.target.value })}
-                      placeholder="Provide a default description for this service to include on invoice line items."
-                      className="field-control min-h-20 px-3.5 py-2.5 text-[13px] resize-none rounded-xl"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-semibold text-muted uppercase tracking-wider" htmlFor="catalog-price">Default Price ({currency})</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3 text-[13px] font-semibold text-muted/50">{currency}</span>
-                      <input
-                        id="catalog-price"
-                        type="number"
-                        step="0.01"
-                        min="0.00"
-                        required
-                        value={form.defaultPrice || ""}
-                        onChange={(event) => setForm({ ...form, defaultPrice: parseFloat(event.target.value) || 0 })}
-                        placeholder="0.00"
-                        className="field-control pl-9 pr-3 py-2.5 text-[13px] font-mono text-right rounded-xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Sticky Footer */}
-              <div className="flex justify-end items-center gap-2.5 px-6 py-4 border-t border-card-border bg-card shrink-0 z-10 select-none">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-5 py-2.5 border border-card-border text-sm font-semibold rounded-xl text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-200 cursor-pointer active:scale-[0.95]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-accent text-white hover:bg-accent/90 text-sm font-bold rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.95] shadow-md shadow-accent/15"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : editingItemId ? "Save Changes" : "Add to Catalog"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <ModalOverlay onClose={closeModal}>
+          <CatalogItemFormModal
+            isEditing={Boolean(editingItemId)}
+            form={form}
+            setForm={setForm}
+            currency={currency}
+            isSaving={isSaving}
+            closeModal={closeModal}
+            onSubmit={handleSaveItem}
+          />
+        </ModalOverlay>
       )}
     </>
   );

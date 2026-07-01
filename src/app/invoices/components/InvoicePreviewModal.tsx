@@ -421,11 +421,7 @@ export function InvoicePreviewModal({
 
       {/* Glassmorphic Simulated Integrations & Webhooks Panel */}
       <div className="surface-card p-5 border border-dashed border-accent/[0.25] bg-accent/[0.01] rounded-xl relative overflow-hidden backdrop-blur-md mt-5">
-        <div className="absolute top-0 right-0 p-3 flex items-center gap-1.5">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
+        <div className="absolute top-0 right-0 p-3">
           <span className="text-[9px] font-semibold tracking-wider text-emerald-500 uppercase">Live Sandbox Simulator</span>
         </div>
 

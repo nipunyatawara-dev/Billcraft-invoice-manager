@@ -29,15 +29,15 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
-import CheckedIcon from "@/components/icons/checked-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
 import UsersIcon from "@/components/icons/users-icon";
-import StarIcon from "@/components/icons/star-icon";
-import WalletIcon from "@/components/icons/wallet-icon";
+import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import ArrowNarrowUpIcon from "@/components/icons/arrow-narrow-up-icon";
 import ArrowNarrowDownIcon from "@/components/icons/arrow-narrow-down-icon";
 import SlidersHorizontalIcon from "@/components/icons/sliders-horizontal-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import { PageStatTile, PageStatsRow, type PageStatItem } from "@/components/page-stats-row";
+import { cn } from "@/lib/utils";
 
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -518,34 +518,36 @@ function PaidRatioWidget({
   );
 }
 
-function MetricWidget({
-  caption,
-  icon,
-  title,
-  value,
-}: {
-  caption: React.ReactNode;
-  icon: string;
-  title: string;
-  value: React.ReactNode;
-}) {
+function getAnalyticsMetricColSpan(
+  widgetId: "avg-invoice" | "avg-ltv" | "top-client",
+  visibleWidgetIds: AnalyticsWidgetId[]
+) {
+  const showAvgInvoice = visibleWidgetIds.includes("avg-invoice");
+  const showAvgLtv = visibleWidgetIds.includes("avg-ltv");
+  const visibleAvgCount = Number(showAvgInvoice) + Number(showAvgLtv);
+
+  if (widgetId === "top-client") {
+    if (visibleAvgCount === 2) {
+      return "lg:col-span-2";
+    }
+
+    if (visibleAvgCount === 1) {
+      return "lg:col-span-3";
+    }
+
+    return "lg:col-span-2";
+  }
+
+  return "lg:col-span-1";
+}
+
+function AnalyticsMetricTile({
+  className,
+  ...stat
+}: PageStatItem & { className?: string }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-card-border bg-card p-4 hover-panel shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)] select-none group flex flex-col justify-between min-h-[150px]">
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{title}</span>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-foreground/[0.04] border-card-border/60 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_6%,transparent)] group-hover:bg-accent/10 group-hover:border-accent/20 group-hover:text-accent transition-colors duration-200">
-          <span className="material-symbols-outlined text-[16px] text-muted group-hover:text-accent transition-colors">{icon}</span>
-        </div>
-      </div>
-      
-      <div className="rounded-lg border border-card-border/55 bg-foreground/[0.015] px-3.5 py-3 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_4%,transparent)] flex flex-col gap-1.5 flex-1 justify-center">
-        <h3 className="min-w-0 truncate text-xl font-bold tracking-tight text-foreground font-display currency-value sm:text-2xl leading-tight">
-          {value}
-        </h3>
-        <p className="text-[10px] font-medium text-muted mt-auto leading-normal select-none">
-          {caption}
-        </p>
-      </div>
+    <div className={cn("min-h-[150px] h-full", className)}>
+      <PageStatTile {...stat} className="h-full" />
     </div>
   );
 }
@@ -555,7 +557,6 @@ function CashflowOverview({
   currency,
   netProfit,
   openPayables,
-  paidOutsourcing,
   payablesCount,
   receivables,
   receivablesCount,
@@ -566,54 +567,58 @@ function CashflowOverview({
   currency: string;
   netProfit: number;
   openPayables: number;
-  paidOutsourcing: number;
   payablesCount: number;
   receivables: number;
   receivablesCount: number;
   revenue: number;
   revenueCount: number;
 }) {
-  const projectedNetCash = receivables - openPayables;
-
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
-      <MetricWidget
-        title="Revenue"
-        icon="payments"
-        value={<AnimatedNumber value={formatCurrency(revenue, currency)} />}
-        caption={revenueCount > 0 ? <>Collected from <AnimatedNumber value={revenueCount} /> client invoices in {activeRangeLabel.toLowerCase()}</> : `No collected revenue in ${activeRangeLabel.toLowerCase()}`}
-      />
-      <MetricWidget
-        title="Receivables"
-        icon="account_balance_wallet"
-        value={<AnimatedNumber value={formatCurrency(receivables, currency)} />}
-        caption={receivablesCount > 0 ? <>Clients still owe this across <AnimatedNumber value={receivablesCount} /> invoices</> : "No open client balances in this range"}
-      />
-      <MetricWidget
-        title="Payables"
-        icon="engineering"
-        value={<AnimatedNumber value={formatCurrency(openPayables, currency)} />}
-        caption={payablesCount > 0 ? <>You still owe vendors on <AnimatedNumber value={payablesCount} /> payables</> : "No open vendor payables in this range"}
-      />
-      <MetricWidget
-        title="Net Profit"
-        icon="show_chart"
-        value={<AnimatedNumber value={formatCurrency(netProfit, currency)} />}
-        caption={paidOutsourcing > 0 ? <>Collected revenue minus <AnimatedNumber value={formatCurrency(paidOutsourcing, currency)} /> paid outsourcing</> : <>Projected open cash: <AnimatedNumber value={formatCurrency(projectedNetCash, currency)} /></>}
-      />
-    </div>
+    <PageStatsRow
+      stats={[
+        {
+          label: "Revenue",
+          hint: revenueCount > 0 ? `${revenueCount} paid` : activeRangeLabel.toLowerCase(),
+          icon: FileDescriptionIcon,
+          value: <AnimatedNumber value={formatCurrency(revenue, currency)} />,
+        },
+        {
+          label: "Receivables",
+          hint: receivablesCount > 0 ? `${receivablesCount} open` : "none",
+          tone: "warning",
+          icon: TriangleAlertIcon,
+          value: <AnimatedNumber value={formatCurrency(receivables, currency)} />,
+        },
+        {
+          label: "Payables",
+          hint: payablesCount > 0 ? `${payablesCount} open` : "none",
+          tone: "warning",
+          icon: TriangleAlertIcon,
+          value: <AnimatedNumber value={formatCurrency(openPayables, currency)} />,
+        },
+        {
+          label: "Net Profit",
+          hint: netProfit >= 0 ? "positive" : "negative",
+          tone: netProfit >= 0 ? "positive" : "warning",
+          icon: ChartLineIcon,
+          value: <AnimatedNumber value={formatCurrency(netProfit, currency)} />,
+        },
+      ]}
+    />
   );
 }
 
 function TopClientWidget({
+  className,
   currency,
   topClient,
 }: {
+  className?: string;
   currency: string;
   topClient?: ReturnType<typeof getClientsFromInvoices>[number];
 }) {
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px] md:col-span-2 lg:col-span-2">
+    <div className={cn("bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px] md:col-span-2", className)}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">Top Client</span>
         <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
@@ -1143,28 +1148,36 @@ export default function Analytics() {
 
     if (widgetId === "avg-invoice") {
       return (
-        <MetricWidget
-          title="Avg. Invoice"
-          icon="request_quote"
+        <AnalyticsMetricTile
+          className={getAnalyticsMetricColSpan("avg-invoice", visibleWidgetIds)}
+          label="Avg. Invoice"
+          hint={filteredInvoices.length > 0 ? `${filteredInvoices.length} invoices` : activeRangeLabel.toLowerCase()}
+          icon={FileDescriptionIcon}
           value={<AnimatedNumber value={formatCurrency(averageInvoice, currency)} />}
-          caption={filteredInvoices.length > 0 ? <>Based on <AnimatedNumber value={filteredInvoices.length} /> invoices</> : `No invoices in ${activeRangeLabel.toLowerCase()}`}
         />
       );
     }
 
     if (widgetId === "avg-ltv") {
       return (
-        <MetricWidget
-          title="Avg. LTV"
-          icon="diamond"
+        <AnalyticsMetricTile
+          className={getAnalyticsMetricColSpan("avg-ltv", visibleWidgetIds)}
+          label="Avg. LTV"
+          hint={clients.length > 0 ? `${clients.length} clients` : "none"}
+          icon={UsersIcon}
           value={<AnimatedNumber value={formatCurrency(averageClientValue, currency)} />}
-          caption={clients.length > 0 ? <>Across <AnimatedNumber value={clients.length} /> clients</> : "No client totals yet"}
         />
       );
     }
 
     if (widgetId === "top-client") {
-      return <TopClientWidget currency={currency} topClient={topClient} />;
+      return (
+        <TopClientWidget
+          className={getAnalyticsMetricColSpan("top-client", visibleWidgetIds)}
+          currency={currency}
+          topClient={topClient}
+        />
+      );
     }
 
     if (widgetId === "revenue-trend") {
@@ -1258,7 +1271,6 @@ export default function Analytics() {
         currency={currency}
         netProfit={netProfit}
         openPayables={openPayables}
-        paidOutsourcing={paidOutsourcing}
         payablesCount={openPayablesCount}
         receivables={receivables}
         receivablesCount={receivablesCount}
@@ -1269,7 +1281,7 @@ export default function Analytics() {
       {visibleWidgetIds.length > 0 ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           {visibleWidgetIds.map((widgetId) => (
-            <div key={widgetId} className={widgetId === "avg-invoice" || widgetId === "avg-ltv" ? "" : "contents"}>
+            <div key={widgetId} className="contents">
               {renderWidget(widgetId)}
             </div>
           ))}

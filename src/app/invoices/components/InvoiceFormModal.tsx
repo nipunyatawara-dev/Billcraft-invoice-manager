@@ -141,7 +141,6 @@ export function InvoiceFormModal({
         {/* Visual Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-card-border bg-card/95 backdrop-blur-md sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-3">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_var(--accent)]"></span>
             <div>
               <AnimatedText
                 as="h2"
