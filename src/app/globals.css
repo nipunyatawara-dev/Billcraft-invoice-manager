@@ -34,6 +34,10 @@
   --color-field: var(--field);
   --color-chart-soft: var(--chart-soft);
   --color-chart-strong: var(--chart-strong);
+  --color-category-1: var(--category-1);
+  --color-category-2: var(--category-2);
+  --color-category-3: var(--category-3);
+  --color-category-4: var(--category-4);
 
   --color-border: var(--card-border);
   --color-input: var(--card-border);
@@ -63,25 +67,26 @@
 
 @variant dark (&:where(.dark, .dark *));
 
-html[data-font="inter"] {
+html[data-font="inter"],
+html:not([data-font]) {
   --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 html[data-font="open-sans"] {
-  --font-sans: var(--font-open-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-open-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 html[data-font="google-sans-flex"] {
-  --font-sans: var(--font-google-sans-flex), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-google-sans-flex), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Google Sans Flex', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 html[data-font="outfit"] {
-  --font-sans: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 html[data-font="plus-jakarta-sans"] {
-  --font-sans: var(--font-plus-jakarta-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-plus-jakarta-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Base Radius (Default mapping matching template corner style) */
@@ -97,7 +102,7 @@ html {
 
 html {
   color-scheme: light;
-  font-size: 14px;
+  font-size: 15px;
   --palette-1: #ffffff;
   --palette-2: #f7f7f7;
   --palette-3: #e2e2e2;
@@ -128,6 +133,10 @@ html {
   --field: var(--palette-1);
   --chart-soft: var(--palette-6);
   --chart-strong: var(--palette-6);
+  --category-1: var(--accent);
+  --category-2: var(--chart-soft);
+  --category-3: var(--positive);
+  --category-4: var(--chart-strong);
   --theme-wipe-x: 50vw;
   --theme-wipe-y: 50vh;
   --theme-wipe-radius: 0px;
@@ -166,6 +175,10 @@ html.dark {
   --field: var(--palette-3);
   --chart-soft: var(--palette-7);
   --chart-strong: var(--palette-5);
+  --category-1: var(--accent);
+  --category-2: var(--chart-soft);
+  --category-3: var(--positive);
+  --category-4: var(--chart-strong);
 }
 
 :root {
@@ -373,6 +386,10 @@ html.dark {
 
 /* Smooth transitions for interactive elements */
 @layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
   .transition-smooth {
     transition-property: color, background-color, border-color, opacity, transform, box-shadow;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -424,11 +441,44 @@ html.dark {
   }
 
   .section-eyebrow {
-    margin-bottom: 0.375rem;
-    color: var(--muted);
-    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .currency-value {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nav-item-active {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--accent);
     font-weight: 600;
-    letter-spacing: 0.02em;
+  }
+
+  .hover-row {
+    transition:
+      box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-row:hover {
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--card-border));
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
+  .hover-panel {
+    transition:
+      box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-panel:hover {
+    border-color: color-mix(in srgb, var(--accent) 22%, var(--card-border));
+    box-shadow: 0 4px 18px color-mix(in srgb, var(--foreground) 7%, transparent);
   }
 
   .surface-card,

@@ -15,7 +15,7 @@ export function AnimatedNumber({ value, className = "", ariaLabel }: AnimatedNum
   return (
     <SlotText
       text={text}
-      className={className}
+      className={`tabular-nums ${className}`.trim()}
       aria-label={ariaLabel || text}
       role="text"
     />

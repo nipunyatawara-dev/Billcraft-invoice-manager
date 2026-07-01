@@ -78,7 +78,7 @@ export function NotificationsTab() {
                 onClick={() => selectToastPosition(position.id, position.label)}
                 className={`flex min-h-14 items-center justify-center gap-2.5 rounded-xl border-2 px-4 text-[13px] font-bold transition-all duration-300 active:scale-95 group ${
                   isSelected
-                    ? "border-action bg-action/10 text-action shadow-sm"
+                    ? "border-accent bg-accent/10 text-accent shadow-sm"
                     : "border-card-border bg-background/50 text-muted hover:border-accent/50 hover:text-foreground hover:bg-foreground/[0.02]"
                 }`}
               >

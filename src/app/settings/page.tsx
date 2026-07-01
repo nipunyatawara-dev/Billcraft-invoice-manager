@@ -4,6 +4,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { AnimatedText } from "@/components/animated-text";
 import { User, Palette, Bell, Database, Shield, Trash2 } from "lucide-react";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import { ProfileTab } from "./components/ProfileTab";
 import { AppearanceTab } from "./components/AppearanceTab";
 import { NotificationsTab } from "./components/NotificationsTab";
@@ -28,7 +29,7 @@ export default function Settings() {
       <main className="app-main flex-1">
         <div className="mb-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-accent mb-2">Account</p>
+            <p className="section-eyebrow">{PAGE_EYEBROWS["/settings"]}</p>
             <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">Settings</h1>
           </div>
         </div>
@@ -86,7 +87,7 @@ function SettingsContent() {
         className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-6 sm:pt-8 lg:pt-12 pb-4 -mt-6 sm:-mt-8 lg:-mt-12 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8"
       >
         <div>
-          <AnimatedText as="p" text="Account" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-1.5" />
+          <AnimatedText as="p" text={PAGE_EYEBROWS["/settings"]} effect="micro-scale-fade" className="section-eyebrow" />
           <AnimatedText
             as="h1"
             text="Settings"
@@ -116,13 +117,13 @@ function SettingsContent() {
                   onClick={() => handleTabChange(tab.id)}
                   className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
                     isActive
-                      ? "bg-action/10 text-action shadow-sm"
+                      ? "nav-item-active shadow-sm"
                       : "text-muted hover:bg-foreground/[0.03] hover:text-foreground"
                   }`}
                 >
                   <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300 ${
                     isActive 
-                      ? "bg-action text-action-text shadow-md" 
+                      ? "bg-accent/15 text-accent shadow-sm" 
                       : "bg-foreground/[0.04] group-hover:bg-foreground/[0.08]"
                   }`}>
                     <tab.icon className="size-5" />
@@ -130,7 +131,7 @@ function SettingsContent() {
                   
                   <div>
                     <div className="text-[14px] font-bold tracking-wide">{tab.label}</div>
-                    <div className={`text-[11px] mt-0.5 hidden lg:block ${isActive ? "text-action/70" : "text-muted/60"}`}>{tab.desc}</div>
+                    <div className={`text-[11px] mt-0.5 hidden lg:block ${isActive ? "text-accent/70" : "text-muted/60"}`}>{tab.desc}</div>
                   </div>
                 </button>
               );

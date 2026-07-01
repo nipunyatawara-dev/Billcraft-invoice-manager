@@ -4,16 +4,96 @@ import * as React from "react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import {
+  Archive,
+  BarChart3,
+  Bell,
+  Briefcase,
+  CheckSquare,
+  CornerDownLeft,
+  Database,
+  FilePlus,
+  FileText,
+  Home,
+  Package,
+  Palette,
+  Receipt,
+  Search,
+  Settings,
+  Shield,
+  Store,
+  Trash2,
+  User,
+  UserCircle,
+  UserPlus,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useUserData } from "@/hooks/use-user-data";
 
 interface CommandPaletteProps {
   onClose: () => void;
 }
 
+type CommandIconKey =
+  | "home"
+  | "invoices"
+  | "expenses"
+  | "clients"
+  | "analytics"
+  | "outsourcing"
+  | "todo"
+  | "catalog"
+  | "settings"
+  | "new-invoice"
+  | "new-expense"
+  | "new-client"
+  | "profile"
+  | "appearance"
+  | "notifications"
+  | "data"
+  | "security"
+  | "trash"
+  | "client"
+  | "invoice"
+  | "expense"
+  | "service"
+  | "task"
+  | "vendor"
+  | "payable";
+
+const COMMAND_ICONS: Record<CommandIconKey, LucideIcon> = {
+  home: Home,
+  invoices: FileText,
+  expenses: Wallet,
+  clients: User,
+  analytics: BarChart3,
+  outsourcing: Briefcase,
+  todo: CheckSquare,
+  catalog: Package,
+  settings: Settings,
+  "new-invoice": FilePlus,
+  "new-expense": Receipt,
+  "new-client": UserPlus,
+  profile: User,
+  appearance: Palette,
+  notifications: Bell,
+  data: Database,
+  security: Shield,
+  trash: Trash2,
+  client: UserCircle,
+  invoice: Receipt,
+  expense: Wallet,
+  service: Archive,
+  task: CheckSquare,
+  vendor: Store,
+  payable: Receipt,
+};
+
 interface SearchItem {
   id: string;
   label: string;
-  icon: string;
+  iconKey: CommandIconKey;
   href: string;
   group?: string;
 }
@@ -56,23 +136,23 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
     {
       group: "Navigation Pages",
       items: [
-        { id: "nav-dashboard", label: "Go to Dashboard", icon: "ph ph-house", href: "/" },
-        { id: "nav-invoices", label: "Go to Invoices", icon: "ph ph-file-text", href: "/invoices" },
-        { id: "nav-expenses", label: "Go to Expenses", icon: "ph ph-wallet", href: "/expenses" },
-        { id: "nav-clients", label: "Go to Clients", icon: "ph ph-users", href: "/clients" },
-        { id: "nav-analytics", label: "Go to Analytics", icon: "ph ph-chart-bar", href: "/analytics" },
-        { id: "nav-outsourcing", label: "Go to Outsourcing", icon: "ph ph-briefcase", href: "/outsourcing" },
-        { id: "nav-todo", label: "Go to To-Do Board", icon: "ph ph-check-square-offset", href: "/todo" },
-        { id: "nav-catalog", label: "Go to Catalog", icon: "ph ph-box-arrow-down", href: "/catalog" },
-        { id: "nav-settings", label: "Go to Settings", icon: "ph ph-gear", href: "/settings" },
+        { id: "nav-dashboard", label: "Go to Dashboard", iconKey: "home", href: "/" },
+        { id: "nav-invoices", label: "Go to Invoices", iconKey: "invoices", href: "/invoices" },
+        { id: "nav-expenses", label: "Go to Expenses", iconKey: "expenses", href: "/expenses" },
+        { id: "nav-clients", label: "Go to Clients", iconKey: "clients", href: "/clients" },
+        { id: "nav-analytics", label: "Go to Analytics", iconKey: "analytics", href: "/analytics" },
+        { id: "nav-outsourcing", label: "Go to Outsourcing", iconKey: "outsourcing", href: "/outsourcing" },
+        { id: "nav-todo", label: "Go to To-Do Board", iconKey: "todo", href: "/todo" },
+        { id: "nav-catalog", label: "Go to Catalog", iconKey: "catalog", href: "/catalog" },
+        { id: "nav-settings", label: "Go to Settings", iconKey: "settings", href: "/settings" },
       ],
     },
     {
       group: "Quick Actions",
       items: [
-        { id: "act-new-invoice", label: "Create New Invoice", icon: "ph ph-file-plus", href: "/invoices?action=new" },
-        { id: "act-new-expense", label: "Add Business Expense", icon: "ph ph-receipt", href: "/expenses?action=new" },
-        { id: "act-new-client", label: "Add Client Profile", icon: "ph ph-user-plus", href: "/clients?action=new" },
+        { id: "act-new-invoice", label: "Create New Invoice", iconKey: "new-invoice", href: "/invoices?action=new" },
+        { id: "act-new-expense", label: "Add Business Expense", iconKey: "new-expense", href: "/expenses?action=new" },
+        { id: "act-new-client", label: "Add Client Profile", iconKey: "new-client", href: "/clients?action=new" },
       ],
     },
   ], []);
@@ -97,14 +177,14 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
     results.push(...matchedStatic);
 
     // 2. Settings Tabs
-    const settingsTabs = [
-      { id: "set-profile", label: "Settings: Profile & Business", icon: "ph ph-user", href: "/settings?tab=profile" },
-      { id: "set-appearance", label: "Settings: Appearance, Fonts, Palettes", icon: "ph ph-palette", href: "/settings?tab=appearance" },
-      { id: "set-notifications", label: "Settings: Alerts & Reminders", icon: "ph ph-bell", href: "/settings?tab=notifications" },
-      { id: "set-data", label: "Settings: Data Export / Backup", icon: "ph ph-database", href: "/settings?tab=data" },
-      { id: "set-security", label: "Settings: Passwords & Locks", icon: "ph ph-shield", href: "/settings?tab=security" },
-      { id: "set-trash", label: "Settings: Trash Bin & Deletions", icon: "ph ph-trash", href: "/settings?tab=trash" },
-    ].filter(tab => tab.label.toLowerCase().includes(q));
+    const settingsTabs = ([
+      { id: "set-profile", label: "Settings: Profile & Business", iconKey: "profile", href: "/settings?tab=profile" },
+      { id: "set-appearance", label: "Settings: Appearance, Fonts, Palettes", iconKey: "appearance", href: "/settings?tab=appearance" },
+      { id: "set-notifications", label: "Settings: Alerts & Reminders", iconKey: "notifications", href: "/settings?tab=notifications" },
+      { id: "set-data", label: "Settings: Data Export / Backup", iconKey: "data", href: "/settings?tab=data" },
+      { id: "set-security", label: "Settings: Passwords & Locks", iconKey: "security", href: "/settings?tab=security" },
+      { id: "set-trash", label: "Settings: Trash Bin & Deletions", iconKey: "trash", href: "/settings?tab=trash" },
+    ] satisfies SearchItem[]).filter(tab => tab.label.toLowerCase().includes(q));
     
     if (settingsTabs.length > 0) {
       results.push({ group: "Settings Sections", items: settingsTabs });
@@ -116,9 +196,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(c => ({
         id: `client-${c.id}`,
         label: `${c.name}${c.company ? ` (${c.company})` : ""}`,
-        icon: "ph ph-user-circle",
+        iconKey: "client" as const,
         href: `/clients?id=${c.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedClients.length > 0) {
       results.push({ group: "Clients", items: matchedClients.slice(0, 5) });
     }
@@ -129,9 +209,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(i => ({
         id: `invoice-${i.id}`,
         label: `${i.id} - ${i.client}`,
-        icon: "ph ph-receipt",
+        iconKey: "invoice" as const,
         href: `/invoices?id=${i.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedInvoices.length > 0) {
       results.push({ group: "Invoices", items: matchedInvoices.slice(0, 5) });
     }
@@ -142,9 +222,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(e => ({
         id: `expense-${e.id}`,
         label: `${e.merchant} - ${e.description}`,
-        icon: "ph ph-wallet",
+        iconKey: "expense" as const,
         href: `/expenses?id=${e.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedExpenses.length > 0) {
       results.push({ group: "Expenses", items: matchedExpenses.slice(0, 5) });
     }
@@ -155,9 +235,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(c => ({
         id: `catalog-${c.id}`,
         label: c.name,
-        icon: "ph ph-box-arrow-down",
+        iconKey: "service" as const,
         href: `/catalog?id=${c.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedCatalog.length > 0) {
       results.push({ group: "Catalog Services", items: matchedCatalog.slice(0, 5) });
     }
@@ -168,9 +248,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(t => ({
         id: `todo-${t.id}`,
         label: t.title,
-        icon: "ph ph-check-square-offset",
+        iconKey: "task" as const,
         href: `/todo?id=${t.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedTodos.length > 0) {
       results.push({ group: "To-Do Items", items: matchedTodos.slice(0, 5) });
     }
@@ -181,9 +261,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(v => ({
         id: `vendor-${v.id}`,
         label: v.name,
-        icon: "ph ph-storefront",
+        iconKey: "vendor" as const,
         href: `/outsourcing?vendor=${v.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedVendors.length > 0) {
       results.push({ group: "Outsourcing Vendors", items: matchedVendors.slice(0, 5) });
     }
@@ -194,9 +274,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
       .map(p => ({
         id: `payable-${p.id}`,
         label: `${p.id} - ${p.vendor}`,
-        icon: "ph ph-receipt-x",
+        iconKey: "payable" as const,
         href: `/outsourcing?id=${p.id}`,
-      }));
+      } satisfies SearchItem));
     if (matchedPayables.length > 0) {
       results.push({ group: "Outsourced Payables", items: matchedPayables.slice(0, 5) });
     }
@@ -270,7 +350,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
         >
             {/* Input Bar */}
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-card-border shrink-0 bg-card/40">
-              <i className="ph ph-magnifying-glass text-lg text-muted"></i>
+              <Search className="size-[18px] text-muted shrink-0" />
               <input
                 type="text"
                 placeholder="Search everything or type a command..."
@@ -299,7 +379,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
             >
               {flatItems.length === 0 ? (
                 <div className="py-12 text-center">
-                  <i className="ph ph-magnifying-glass text-3xl text-muted/30 block mb-2"></i>
+                  <Search className="mx-auto mb-2 size-8 text-muted/30" />
                   <p className="text-[13px] text-muted font-medium">No results found for &ldquo;{searchQuery}&rdquo;</p>
                 </div>
               ) : (
@@ -312,9 +392,9 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                         </div>
                         <div className="space-y-0.5">
                           {group.items.map((item) => {
-                            // Find corresponding global flat index
                             const flatIdx = flatItems.findIndex((fi) => fi.id === item.id);
                             const isActive = flatIdx === selectedIndex;
+                            const Icon = COMMAND_ICONS[item.iconKey];
 
                             return (
                               <div
@@ -326,17 +406,17 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                                 }}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                                   isActive
-                                    ? "bg-action text-action-text shadow-md translate-x-0.5"
+                                    ? "bg-accent text-action-text shadow-md translate-x-0.5"
                                     : "text-foreground hover:bg-foreground/[0.03]"
                                 }`}
                               >
                                 <span className="flex items-center justify-center shrink-0">
-                                  <i className={`${item.icon} text-lg ${isActive ? "text-action-text" : "text-muted"}`}></i>
+                                  <Icon className={`size-[18px] ${isActive ? "text-action-text" : "text-muted"}`} />
                                 </span>
                                 <span className="text-sm font-medium truncate flex-1">{item.label}</span>
                                 {isActive && (
                                   <span className="text-[10px] font-bold opacity-80 uppercase tracking-widest flex items-center gap-1">
-                                    Open <i className="ph ph-corner-down-left"></i>
+                                    Open <CornerDownLeft className="size-3" />
                                   </span>
                                 )}
                               </div>

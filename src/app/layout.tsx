@@ -1,8 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font, @next/next/google-font-display */
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Inter, Open_Sans, Outfit, Plus_Jakarta_Sans, Newsreader } from "next/font/google";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastViewport } from "@/components/toast-viewport";
@@ -14,56 +13,6 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  variable: "--font-open-sans",
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["100", "300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta-sans",
-  weight: ["200", "300", "400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-const googleSansFlex = localFont({
-  src: [
-    {
-      path: "../../public/fonts/google-sans-flex/google-sans-flex-latin-400-normal.ttf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/google-sans-flex/google-sans-flex-latin-600-normal.ttf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/google-sans-flex/google-sans-flex-latin-700-normal.ttf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-google-sans-flex",
   display: "swap",
 });
 
@@ -149,14 +98,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${inter.variable} ${openSans.variable} ${outfit.variable} ${plusJakartaSans.variable} ${newsreader.variable} ${googleSansFlex.variable}`}
+      className={`scroll-smooth ${inter.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>
-        <link 
-          rel="stylesheet" 
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" 
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
         />
         <script dangerouslySetInnerHTML={{ __html: paletteBootstrapScript }} />
       </head>
@@ -168,7 +117,6 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
         >
           <UserDataProvider>
             <DashboardLayout>{children}</DashboardLayout>

@@ -11,12 +11,14 @@ import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import UserPlusIcon from "@/components/icons/user-plus-icon";
 import UsersIcon from "@/components/icons/users-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
 import PenIcon from "@/components/icons/pen-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import { PageStatsRow } from "@/components/page-stats-row";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -280,7 +282,7 @@ export default function Clients() {
         {/* Page Header Area */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Manage" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/clients"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="Clients"
@@ -295,115 +297,51 @@ export default function Clients() {
             onClick={openAddClient} 
             onMouseEnter={() => userPlusIconRef.current?.startAnimation()}
             onMouseLeave={() => userPlusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
           >
-            <UserPlusIcon ref={userPlusIconRef} size={20} className="transition-transform duration-300" />
+            <UserPlusIcon ref={userPlusIconRef} size={20} />
             Add Client
           </button>
         </header>
 
-        {/* Overview Stats Bento Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {/* Total Revenue */}
-          <div 
-            onMouseEnter={() => totalRevenueRef.current?.startAnimation()}
-            onMouseLeave={() => totalRevenueRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Total Revenue</span>
-              <ChartLineIcon ref={totalRevenueRef} size={20} className="text-positive transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(totalRevenue, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>all-time</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Regular Clients */}
-          <div 
-            onMouseEnter={() => activeClientsRef.current?.startAnimation()}
-            onMouseLeave={() => activeClientsRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Active Clients</span>
-              <UsersIcon ref={activeClientsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={clients.length} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-accent leading-tight select-none">
-                    <div>saved</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Invoices */}
-          <div 
-            onMouseEnter={() => invoicesIconRef.current?.startAnimation()}
-            onMouseLeave={() => invoicesIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Invoices</span>
-              <FileDescriptionIcon ref={invoicesIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={invoices.length} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>issued</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Average per Client */}
-          <div 
-            onMouseEnter={() => avgClientRef.current?.startAnimation()}
-            onMouseLeave={() => avgClientRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Avg / Client</span>
-              <ChartLineIcon ref={avgClientRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>lifetime</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageStatsRow
+          stats={[
+            {
+              label: "Total Revenue",
+              hint: "all-time",
+              tone: "positive",
+              icon: ChartLineIcon,
+              iconRef: totalRevenueRef,
+              value: <AnimatedNumber value={formatCurrency(totalRevenue, currency)} />,
+            },
+            {
+              label: "Active Clients",
+              hint: "saved",
+              tone: "accent",
+              icon: UsersIcon,
+              iconRef: activeClientsRef,
+              value: <AnimatedNumber value={clients.length} />,
+            },
+            {
+              label: "Invoices",
+              hint: "issued",
+              icon: FileDescriptionIcon,
+              iconRef: invoicesIconRef,
+              value: <AnimatedNumber value={invoices.length} />,
+            },
+            {
+              label: "Avg / Client",
+              hint: "lifetime",
+              icon: ChartLineIcon,
+              iconRef: avgClientRef,
+              value: (
+                <AnimatedNumber
+                  value={formatCurrency(clients.length > 0 ? totalRevenue / clients.length : 0, currency)}
+                />
+              ),
+            },
+          ]}
+        />
 
         <div className="mb-6">
           <AnimatedSearchBar
@@ -432,7 +370,7 @@ export default function Clients() {
                   className={`bg-card text-card-foreground border p-5 cursor-pointer transition-all duration-300 group ${
                     isSelected
                       ? "border-accent/30 rounded-t-xl rounded-b-none shadow-xl"
-                      : "border-card-border hover:border-foreground/12 hover:shadow-xl hover:border-accent/30 rounded-xl"
+                      : "border-card-border hover:border-foreground/12 hover-row rounded-xl"
                   }`}
                 >
                   <div className="flex items-start gap-3">

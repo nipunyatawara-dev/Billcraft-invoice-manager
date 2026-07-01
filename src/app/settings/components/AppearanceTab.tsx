@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { COLOR_PALETTES, type ColorPaletteId, useModePalettes } from "@/hooks/use-mode-palettes";
+import { ensureFontLoaded, type FontId } from "@/lib/font-loader";
 import { notify } from "@/lib/toast";
 import { AnimatedText } from "@/components/animated-text";
 import { 
@@ -46,8 +47,11 @@ export function AppearanceTab() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedFont = window.localStorage.getItem("billcraft.font.v1");
-      if (storedFont) setActiveFont(storedFont);
-      
+      if (storedFont) {
+        setActiveFont(storedFont);
+        ensureFontLoaded(storedFont as FontId);
+      }
+
       const storedRadius = window.localStorage.getItem("billcraft.radius.v1");
       if (storedRadius) setActiveRadius(storedRadius);
 
@@ -73,6 +77,7 @@ export function AppearanceTab() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("billcraft.font.v1", fontId);
       document.documentElement.dataset.font = fontId;
+      ensureFontLoaded(fontId as FontId);
       notify.success({
         title: "Font style updated",
         description: `Font style set to ${fontId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}.`,
@@ -202,16 +207,16 @@ export function AppearanceTab() {
                     onClick={() => selectThemeMode(mode.id)}
                     className={`relative overflow-hidden p-4 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between h-[105px] active:scale-[0.98] group cursor-pointer ${
                       isSelected
-                        ? "border-accent bg-action/5 shadow-xs shadow-accent/5"
+                        ? "border-accent bg-accent/5 shadow-xs shadow-accent/5"
                         : "border-card-border bg-background/20 hover:border-accent/40 hover:bg-foreground/[0.01]"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className={`size-8 rounded-lg flex items-center justify-center transition-colors duration-300 ${isSelected ? "bg-action text-action-text shadow-sm" : "bg-foreground/[0.04] text-foreground/70 group-hover:bg-foreground/10"}`}>
+                      <span className={`size-8 rounded-lg flex items-center justify-center transition-colors duration-300 ${isSelected ? "bg-accent/15 text-accent shadow-sm" : "bg-foreground/[0.04] text-foreground/70 group-hover:bg-foreground/10"}`}>
                         <mode.icon className="size-4.5" />
                       </span>
                       {isSelected && (
-                        <span className="bg-action text-action-text text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shadow-xs animate-in zoom-in">Active</span>
+                        <span className="bg-accent text-action-text text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shadow-xs animate-in zoom-in">Active</span>
                       )}
                     </div>
                     
@@ -249,7 +254,7 @@ export function AppearanceTab() {
                     onClick={() => handleDensityChange(item.id)}
                     className={`relative p-4 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between h-[95px] active:scale-[0.98] group cursor-pointer ${
                       isSelected
-                        ? "border-accent bg-action/5"
+                        ? "border-accent bg-accent/5"
                         : "border-card-border bg-background/20 hover:border-accent/40 hover:bg-foreground/[0.01]"
                     }`}
                   >
@@ -280,7 +285,7 @@ export function AppearanceTab() {
                   className="flex items-start justify-between gap-3 w-full text-left focus:outline-none hover:opacity-85 transition-opacity group cursor-pointer"
                 >
                   <div className="pr-4">
-                    <h3 className="text-xs font-bold text-foreground tracking-wider uppercase flex items-center gap-2 transition-colors group-hover:text-action">
+                    <h3 className="text-xs font-bold text-foreground tracking-wider uppercase flex items-center gap-2 transition-colors group-hover:text-accent">
                       {setting.title}
                     </h3>
                     <p className="text-[11px] text-muted mt-0.5 leading-normal">{setting.description}</p>
@@ -289,7 +294,7 @@ export function AppearanceTab() {
                     <span className="rounded-md border border-card-border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted bg-foreground/[0.02] shadow-xs">
                       {setting.mode}
                     </span>
-                    <ChevronDown className="size-5 text-muted transition-transform duration-300 bg-foreground/5 rounded-full p-1 group-hover:bg-action/10 group-hover:text-action" style={{ transform: setting.isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }} />
+                    <ChevronDown className="size-5 text-muted transition-transform duration-300 bg-foreground/5 rounded-full p-1 group-hover:bg-accent/10 group-hover:text-accent" style={{ transform: setting.isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }} />
                   </div>
                 </button>
 
@@ -398,7 +403,7 @@ export function AppearanceTab() {
                     onClick={() => handleFontChange(font.id)}
                     className={`rounded-xl border p-4 text-left transition-all duration-300 flex flex-col justify-between h-auto gap-3.5 active:scale-[0.98] group cursor-pointer ${
                       isSelected
-                        ? "border-accent shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-accent/20 bg-action/5"
+                        ? "border-accent shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] ring-2 ring-accent/20 bg-accent/5"
                         : "border-card-border bg-background/20 hover:border-accent/50 hover:bg-foreground/[0.01]"
                     }`}
                   >
@@ -409,7 +414,7 @@ export function AppearanceTab() {
                       </div>
                       <span className={`size-5.5 rounded-full border flex shrink-0 items-center justify-center transition-all duration-300 ${
                         isSelected
-                          ? "border-action bg-action text-action-text scale-110 shadow-xs"
+                          ? "border-accent bg-accent text-action-text scale-110 shadow-xs"
                           : "border-card-border text-transparent group-hover:border-foreground/20"
                       }`}>
                         <Check className="size-3" />
@@ -417,7 +422,7 @@ export function AppearanceTab() {
                     </div>
                     
                     <div 
-                      className={`w-full py-3 px-3 rounded-lg text-center text-[12.5px] font-bold tracking-wide transition-colors ${isSelected ? 'bg-action/10 text-action border border-action/15' : 'bg-foreground/[0.02] border border-card-border text-foreground group-hover:bg-foreground/[0.04]'}`}
+                      className={`w-full py-3 px-3 rounded-lg text-center text-[12.5px] font-bold tracking-wide transition-colors ${isSelected ? 'bg-accent/10 text-accent border border-accent/15' : 'bg-foreground/[0.02] border border-card-border text-foreground group-hover:bg-foreground/[0.04]'}`}
                       style={{ fontFamily: font.family }}
                     >
                       {fontPreviewText || font.previewText}

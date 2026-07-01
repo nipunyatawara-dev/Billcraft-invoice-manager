@@ -1,7 +1,12 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import {
+  buildPreparedPaymentFields,
+  syncLinkedBillableRecords,
+  upsertRecordById,
+} from "@/lib/billable-invoice";
 import {
   createAvatar,
   getInvoiceItemsTotal,
@@ -36,7 +41,7 @@ type ProfileIndex = {
   profiles: UserProfile[];
 };
 
-type ProfileDraft = {
+export type ProfileDraft = {
   name: string;
   profession: string;
   email?: string;
@@ -58,7 +63,7 @@ type ProfileSecurity = {
   passwordChangedAt: string;
 };
 
-type ClientDraft = {
+export type ClientDraft = {
   id?: string;
   name: string;
   email?: string;
@@ -71,7 +76,7 @@ type ClientDraft = {
   notes?: string;
 };
 
-type VendorDraft = {
+export type VendorDraft = {
   id?: string;
   name: string;
   email?: string;
@@ -178,7 +183,17 @@ async function readJson<T>(filePath: string, fallback: T): Promise<T> {
 
 async function writeJson(filePath: string, value: unknown) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  const payload = `${JSON.stringify(value, null, 2)}\n`;
+
+  try {
+    await fs.writeFile(tempPath, payload, "utf8");
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.unlink(tempPath).catch(() => undefined);
+    throw error;
+  }
 }
 
 async function readProfileIndex(): Promise<ProfileIndex> {
@@ -698,6 +713,44 @@ export async function loadLocalDataSnapshot(requestedProfileId?: string | null):
   };
 }
 
+const PROFILE_DATA_FILES = [
+  "profile.json",
+  "clients.json",
+  "invoices.json",
+  "vendors.json",
+  "outsourcing-invoices.json",
+  "todo-tasks.json",
+  "expenses.json",
+  "catalog.json",
+  "trash.json",
+] as const;
+
+async function getFileRevision(filePath: string) {
+  try {
+    const stat = await fs.stat(filePath);
+    return `${filePath}:${stat.mtimeMs}:${stat.size}`;
+  } catch {
+    return `${filePath}:missing`;
+  }
+}
+
+export async function getSnapshotEtag(requestedProfileId?: string | null): Promise<string> {
+  const revisions = [await getFileRevision(PROFILE_INDEX_PATH)];
+  const { profiles } = await readProfileIndex();
+  const activeProfileId = resolveActiveProfile(profiles, requestedProfileId);
+
+  if (activeProfileId) {
+    revisions.push(await getFileRevision(getProfileSecurityPath(activeProfileId)));
+
+    for (const fileName of PROFILE_DATA_FILES) {
+      revisions.push(await getFileRevision(getProfileDataPath(activeProfileId, fileName)));
+    }
+  }
+
+  const digest = createHash("sha256").update(revisions.join("|")).digest("hex").slice(0, 16);
+  return `"${digest}"`;
+}
+
 export async function createProfile(draft: ProfileDraft) {
   if (!draft.name.trim() || !draft.profession.trim()) {
     throw new Error("Name and profession are required.");
@@ -930,13 +983,11 @@ export async function saveClient(profileId: string, originalClientId: string | n
   await writeClients(profileId, nextClients);
 
   const invoices = await readInvoices(profileId);
-  const nextInvoices = invoices.map((invoice) => {
-    if (invoice.clientId !== clientId) {
-      return invoice;
-    }
-
-    return hydrateInvoice({
-      ...invoice,
+  await syncLinkedBillableRecords(
+    invoices,
+    (invoice) => invoice.clientId,
+    clientId,
+    {
       client: client.name,
       email: client.email,
       phone: client.phone,
@@ -945,12 +996,10 @@ export async function saveClient(profileId: string, originalClientId: string | n
       address: client.address,
       deliveryLink: client.deliveryLink,
       avatar: client.avatar,
-    });
-  });
-
-  if (nextInvoices.some((invoice, index) => invoice !== invoices[index])) {
-    await writeInvoices(profileId, nextInvoices);
-  }
+    },
+    hydrateInvoice,
+    (nextInvoices) => writeInvoices(profileId, nextInvoices),
+  );
 
   return client;
 }
@@ -989,13 +1038,11 @@ export async function saveVendor(profileId: string, originalVendorId: string | n
   await writeVendors(profileId, nextVendors);
 
   const outsourcingInvoices = await readOutsourcingInvoices(profileId);
-  const nextOutsourcingInvoices = outsourcingInvoices.map((invoice) => {
-    if (invoice.vendorId !== vendorId) {
-      return invoice;
-    }
-
-    return hydrateOutsourcingInvoice({
-      ...invoice,
+  await syncLinkedBillableRecords(
+    outsourcingInvoices,
+    (invoice) => invoice.vendorId,
+    vendorId,
+    {
       vendor: vendor.name,
       email: vendor.email,
       phone: vendor.phone,
@@ -1004,12 +1051,10 @@ export async function saveVendor(profileId: string, originalVendorId: string | n
       avatar: vendor.avatar,
       paypal: vendor.paypal,
       stripe: vendor.stripe,
-    });
-  });
-
-  if (nextOutsourcingInvoices.some((invoice, index) => invoice !== outsourcingInvoices[index])) {
-    await writeOutsourcingInvoices(profileId, nextOutsourcingInvoices);
-  }
+    },
+    hydrateOutsourcingInvoice,
+    (nextInvoices) => writeOutsourcingInvoices(profileId, nextInvoices),
+  );
 
   return vendor;
 }
@@ -1029,14 +1074,10 @@ export async function saveInvoice({ profileId, invoice, clientSaveMode, client }
   const payments = await savePaymentRecordAssets(profileId, `invoice-${invoice.id}-payment`, invoice.payments || []);
   const receiptAttachments = await savePaymentAttachmentAssets(profileId, `invoice-${invoice.id}-receipt`, invoice.receiptAttachments || []);
   const amountPaid = typeof invoice.amountPaid === "number" ? invoice.amountPaid : getPaymentRecordsTotal(payments);
-  const latestPayment = getLatestPayment(payments);
+  const paymentFields = buildPreparedPaymentFields(payments, receiptAttachments, invoice, amountPaid);
   const hydratedInvoice = hydrateInvoice({
     ...invoice,
-    amountPaid,
-    paidAt: invoice.paidAt || latestPayment?.paidAt,
-    paymentMethod: invoice.paymentMethod || latestPayment?.method,
-    receiptAttachments,
-    payments,
+    ...paymentFields,
     clientId: invoice.clientId || regularClient?.id,
     avatar: invoice.avatar || regularClient?.avatar || createAvatar(invoice.client),
     statusColor: getStatusColor(invoice.status),
@@ -1045,11 +1086,7 @@ export async function saveInvoice({ profileId, invoice, clientSaveMode, client }
     updatedAt: now,
   });
 
-  const nextInvoices = existingInvoice
-    ? invoices.map((currentInvoice) => currentInvoice.id === hydratedInvoice.id ? hydratedInvoice : currentInvoice)
-    : [hydratedInvoice, ...invoices];
-
-  await writeInvoices(profileId, nextInvoices);
+  await writeInvoices(profileId, upsertRecordById(invoices, hydratedInvoice));
 
   return hydratedInvoice;
 }
@@ -1069,14 +1106,10 @@ export async function saveOutsourcingInvoice({ profileId, invoice, vendorSaveMod
   const payments = await savePaymentRecordAssets(profileId, `outsourcing-${invoice.id}-payment`, invoice.payments || []);
   const receiptAttachments = await savePaymentAttachmentAssets(profileId, `outsourcing-${invoice.id}-receipt`, invoice.receiptAttachments || []);
   const amountPaid = typeof invoice.amountPaid === "number" ? invoice.amountPaid : getPaymentRecordsTotal(payments);
-  const latestPayment = getLatestPayment(payments);
+  const paymentFields = buildPreparedPaymentFields(payments, receiptAttachments, invoice, amountPaid);
   const hydratedInvoice = hydrateOutsourcingInvoice({
     ...invoice,
-    amountPaid,
-    paidAt: invoice.paidAt || latestPayment?.paidAt,
-    paymentMethod: invoice.paymentMethod || latestPayment?.method,
-    receiptAttachments,
-    payments,
+    ...paymentFields,
     vendorId: invoice.vendorId || regularVendor?.id,
     avatar: invoice.avatar || regularVendor?.avatar || createAvatar(invoice.vendor),
     statusColor: getStatusColor(invoice.status),
@@ -1085,11 +1118,7 @@ export async function saveOutsourcingInvoice({ profileId, invoice, vendorSaveMod
     updatedAt: now,
   });
 
-  const nextInvoices = existingInvoice
-    ? invoices.map((currentInvoice) => currentInvoice.id === hydratedInvoice.id ? hydratedInvoice : currentInvoice)
-    : [hydratedInvoice, ...invoices];
-
-  await writeOutsourcingInvoices(profileId, nextInvoices);
+  await writeOutsourcingInvoices(profileId, upsertRecordById(invoices, hydratedInvoice));
 
   return hydratedInvoice;
 }

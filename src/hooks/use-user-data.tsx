@@ -35,66 +35,13 @@ export type {
 export type { TodoTask } from "@/data/todos";
 
 import { useCurrency } from "@/hooks/use-currency";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { ClientDraft, LocalDataSnapshot, ProfileDraft, VendorDraft } from "@/lib/user-data-store";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+
+export type { ProfileDraft, ClientDraft, VendorDraft } from "@/lib/user-data-store";
  
 const ACTIVE_PROFILE_KEY = "billcraft.active-profile.v1";
- 
-type LocalDataSnapshot = {
-  profiles: UserProfile[];
-  activeProfileId: string | null;
-  activeProfile: UserProfile | null;
-  clients: Client[];
-  invoices: Invoice[];
-  vendors: Vendor[];
-  outsourcingInvoices: OutsourcingInvoice[];
-  todoTasks: TodoTask[];
-  expenses: Expense[];
-  catalogItems: CatalogItem[];
-  trash: TrashItem[];
-  userDataPath: string;
-};
- 
-export type ProfileDraft = {
-  name: string;
-  profession: string;
-  email?: string;
-  phone?: string;
-  businessName?: string;
-  taxId?: string;
-  website?: string;
-  defaultDeliveryLink?: string;
-  profilePic?: string;
-  signature?: string;
-  password?: string;
-  passwordHint?: string;
-};
- 
-export type ClientDraft = {
-  id?: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  whatsapp?: string;
-  company?: string;
-  address?: string;
-  deliveryLink?: string;
-  avatar?: string;
-  notes?: string;
-};
- 
-export type VendorDraft = {
-  id?: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  address?: string;
-  avatar?: string;
-  notes?: string;
-  paypal?: string;
-  stripe?: string;
-};
- 
+
 export type InvoiceDraft = {
   id?: string;
   clientId?: string;
@@ -296,9 +243,14 @@ function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
 export function UserDataProvider({ children }: { children: React.ReactNode }) {
   const { currency } = useCurrency();
   const [snapshot, setSnapshot] = useState<LocalDataSnapshot>(EMPTY_SNAPSHOT);
+  const snapshotRef = useRef(snapshot);
+  const snapshotEtagRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unlockedProfileId, setUnlockedProfileId] = useState<string | null>(null);
+
+  snapshotRef.current = snapshot;
+
   const isProfileLocked = Boolean(
     snapshot.activeProfileId &&
     snapshot.activeProfile?.hasPassword &&
@@ -314,7 +266,17 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
   const fetchSnapshot = useCallback(async (profileId?: string | null) => {
     const searchParams = profileId ? `?profileId=${encodeURIComponent(profileId)}` : "";
-    const response = await fetch(`/api/user-data${searchParams}`, { cache: "no-store" });
+    const headers: HeadersInit = {};
+
+    if (snapshotEtagRef.current) {
+      headers["If-None-Match"] = snapshotEtagRef.current;
+    }
+
+    const response = await fetch(`/api/user-data${searchParams}`, { headers });
+
+    if (response.status === 304) {
+      return snapshotRef.current;
+    }
 
     if (!response.ok) {
       const isJson = response.headers.get("content-type")?.includes("application/json");
@@ -324,6 +286,11 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
         : "Unable to load local user data.";
 
       throw new Error(body?.error || fallback);
+    }
+
+    const etag = response.headers.get("ETag");
+    if (etag) {
+      snapshotEtagRef.current = etag;
     }
 
     return applySnapshot(await response.json() as LocalDataSnapshot);
@@ -344,6 +311,11 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
         : "Unable to save local user data.";
 
       throw new Error(result?.error || fallback);
+    }
+
+    const etag = response.headers.get("ETag");
+    if (etag) {
+      snapshotEtagRef.current = etag;
     }
 
     return applySnapshot(await response.json() as LocalDataSnapshot);

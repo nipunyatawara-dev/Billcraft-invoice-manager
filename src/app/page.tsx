@@ -16,12 +16,24 @@ import {
 import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { useExpectedCashflow } from "@/hooks/use-expected-cashflow";
+import { usePageEnterMotion } from "@/hooks/use-page-enter-motion";
 import { cn } from "@/lib/utils";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
 import WalletIcon from "@/components/icons/wallet-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import {
+  TrendingDown,
+  TrendingUp,
+  ChevronDown,
+  CheckCircle2,
+  History,
+  ArrowRight,
+  Receipt,
+} from "lucide-react";
+import { QuickActionsCard } from "@/components/quick-actions-card";
 import {
   Area,
   AreaChart,
@@ -224,6 +236,9 @@ export default function Home() {
   const [chartType, setChartType] = useState<"area" | "line" | "bar">("area");
   const [mounted, setMounted] = useState(false);
   const timeframeRef = useRef<HTMLDivElement>(null);
+  const headerMotion = usePageEnterMotion("header");
+  const cashflowMotion = usePageEnterMotion("section");
+  const recentInvoicesMotion = usePageEnterMotion("footer");
 
   useEffect(() => {
     setMounted(true);
@@ -349,7 +364,7 @@ export default function Home() {
       {/* Page Header Area */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
         <div>
-          <AnimatedText as="p" text="Overview" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+          <AnimatedText as="p" text={PAGE_EYEBROWS["/"]} effect="micro-scale-fade" className="section-eyebrow" />
           <AnimatedText
             as="h1"
             text={hasSyncedGreeting ? greetingText : "Good Morning"}
@@ -361,7 +376,7 @@ export default function Home() {
         </div>
         
         <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          {...headerMotion}
           className="flex items-center gap-3"
         >
           <Link 
@@ -377,9 +392,9 @@ export default function Home() {
             href="/invoices?action=new" 
             onMouseEnter={() => plusIconRef.current?.startAnimation()}
             onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
           >
-            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+            <PlusIcon ref={plusIconRef} size={20} />
             New Invoice
           </Link>
         </motion.div>
@@ -400,7 +415,7 @@ export default function Home() {
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
                 <AnimatedNumber value={formatCurrency(outstandingAmount, currency)} />
               </span>
 
@@ -428,7 +443,7 @@ export default function Home() {
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
                 <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
               </span>
 
@@ -456,7 +471,7 @@ export default function Home() {
 
           <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
                 <AnimatedNumber value={formatCurrency(currentMonthRevenue, currency)} />
               </span>
 
@@ -466,7 +481,7 @@ export default function Home() {
                   "text-xs font-bold flex items-center gap-1 leading-none select-none",
                   isPositive ? "text-positive" : isNegative ? "text-negative" : "text-muted"
                 )}>
-                  <i className={cn("text-xs", isNegative ? "ph ph-trend-down" : "ph ph-trend-up")}></i>
+                  {isNegative ? <TrendingDown className="size-3.5" /> : <TrendingUp className="size-3.5" />}
                   <span>{revenueGrowthPercent.toFixed(1)}%</span>
                 </div>
               </div>
@@ -480,13 +495,13 @@ export default function Home() {
         
         {/* Expected Cashflow Interactive Card */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+          {...cashflowMotion}
           className="bg-card text-card-foreground rounded-xl border border-card-border p-6 flex-1 flex flex-col justify-between relative overflow-hidden"
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-20">
             <div>
               <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <i className="ph-fill ph-chart-line-up text-accent text-lg"></i> Expected Cashflow
+                <ChartLineIcon size={18} className="text-accent" /> Expected Cashflow
               </h2>
               <p className="text-xs text-muted mt-0.5">Projected net cash after settling vendor payables.</p>
             </div>
@@ -519,7 +534,7 @@ export default function Home() {
                   className="flex items-center gap-1.5 bg-card hover:bg-foreground/5 border border-card-border rounded-lg px-2.5 py-1 text-xs font-semibold text-foreground transition-all outline-none cursor-pointer h-7"
                 >
                   <span>{timeframeOptions.find(o => o.value === expectedTimeframe)?.label}</span>
-                  <i className={`ph ph-caret-down text-muted transition-transform duration-300 ${isTimeframeOpen ? 'rotate-180' : ''}`}></i>
+                  <ChevronDown className={cn("size-3.5 text-muted transition-transform duration-300", isTimeframeOpen && "rotate-180")} />
                 </button>
 
                 <AnimatePresence>
@@ -547,7 +562,7 @@ export default function Home() {
                           )}
                         >
                           {option.label}
-                          {expectedTimeframe === option.value && <i className="ph-fill ph-check-circle"></i>}
+                          {expectedTimeframe === option.value && <CheckCircle2 className="size-3.5" />}
                         </button>
                       ))}
                     </motion.div>
@@ -638,51 +653,20 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Quick Actions Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-6 w-full lg:w-[360px] shrink-0 flex flex-col justify-between"
-        >
-          <div className="mb-6">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <i className="ph-fill ph-lightning text-accent text-lg"></i> Quick Actions
-            </h2>
-            <p className="text-xs text-muted mt-0.5">Access your most frequent tasks instantly.</p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 flex-1 items-center">
-            {[
-              { href: "/invoices?action=new", icon: "ph-file-plus", color: "text-accent", bg: "bg-accent/10", label: "Invoice" },
-              { href: "/expenses", icon: "ph-receipt", color: "text-blue-500", bg: "bg-blue-500/10", label: "Expense" },
-              { href: "/clients", icon: "ph-user-plus", color: "text-purple-500", bg: "bg-purple-500/10", label: "Client" },
-              { href: "/analytics", icon: "ph-squares-four", color: "text-amber-500", bg: "bg-amber-500/10", label: "Reports" },
-            ].map((action, idx) => (
-              <Link key={idx} href={action.href} className="flex flex-col items-center justify-center h-[105px] rounded-xl border border-transparent bg-foreground/[0.02] hover:bg-foreground/[0.04] hover:border-card-border transition-all group text-center border-card-border/30">
-                <div className={cn(
-                  "w-11 h-11 mb-2 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 border border-card-border/30",
-                  action.bg,
-                  action.color
-                )}>
-                  <i className={`ph ${action.icon} text-lg`}></i>
-                </div>
-                <div className="font-semibold text-foreground text-xs">{action.label}</div>
-              </Link>
-            ))}
-          </div>
-        </motion.div>
+        <QuickActionsCard />
       </div>
 
       {/* THIRD ROW: RECENT INVOICES (Dashboard-4 style full width) */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-        className="w-full bg-card rounded-xl border border-card-border shadow-xs flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300"
+        {...recentInvoicesMotion}
+        className="w-full bg-card rounded-xl border border-card-border shadow-xs flex flex-col overflow-hidden"
       >
         <div className="px-8 py-6 flex items-center justify-between border-b border-card-border bg-foreground/[0.01]">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <i className="ph-fill ph-clock-counter-clockwise text-muted"></i> Recent Invoices
+            <History className="size-5 text-muted" /> Recent Invoices
           </h2>
           <Link href="/invoices" className="text-accent font-semibold text-sm hover:text-accent/80 transition-colors flex items-center gap-1 group">
-            View All <i className="ph ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            View All <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
         
@@ -694,7 +678,6 @@ export default function Home() {
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Amount</th>
                 <th className="px-4 py-3">Due Date</th>
-                <th className="px-4 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody>
@@ -736,7 +719,7 @@ export default function Home() {
                       <AnimatedNumber value={formatCurrency(getAmountPaid(inv), currency)} /> collected
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-4 py-4 rounded-r-xl">
                     <div className="text-foreground font-semibold">
                       {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric'}) : "-"}
                     </div>
@@ -746,18 +729,13 @@ export default function Home() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-4 text-right rounded-r-xl">
-                    <button className="w-10 h-10 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer">
-                      <i className="ph ph-caret-right text-lg"></i>
-                    </button>
-                  </td>
                 </tr>
               ))}
               {recentInvoices.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center rounded-xl bg-foreground/[0.02]">
+                  <td colSpan={4} className="px-6 py-16 text-center rounded-xl bg-foreground/[0.02]">
                     <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center mx-auto mb-4">
-                      <i className="ph-fill ph-receipt text-3xl text-muted"></i>
+                      <Receipt className="size-8 text-muted" />
                     </div>
                     <h3 className="font-bold text-foreground mb-1">No invoices yet</h3>
                     <p className="text-sm text-muted font-medium">Create your first invoice to get started</p>

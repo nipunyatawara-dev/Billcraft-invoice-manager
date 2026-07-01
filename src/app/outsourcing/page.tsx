@@ -28,6 +28,7 @@ import { useUserData, type VendorDraft } from "@/hooks/use-user-data";
 import { exportVendorStatementPdf } from "@/lib/pdf-export";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState, useRef } from "react";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import WalletIcon from "@/components/icons/wallet-icon";
 import CheckedIcon from "@/components/icons/checked-icon";
@@ -280,12 +281,22 @@ export default function Outsourcing() {
 
   async function updateOutsourcingStatus(
     invoice: OutsourcingInvoice, 
-    updates: { workflowStatus?: InvoiceWorkflowStatus; status?: InvoiceStatus; amountPaid?: number; paidAt?: string }
+    updates: {
+      workflowStatus?: InvoiceWorkflowStatus;
+      status?: InvoiceStatus;
+      amountPaid?: number;
+      paidAt?: string;
+      payments?: PaymentRecord[];
+    }
   ) {
+    if (isSaving) {
+      return;
+    }
+
     const invoiceForm = getOutsourcingForm(invoice, vendors);
     setIsSaving(true);
     try {
-      await notifyPromise(saveOutsourcingInvoice({
+      const savedInvoice = await notifyPromise(saveOutsourcingInvoice({
         ...invoiceForm,
         id: invoice.id,
         vendorId: invoice.vendorId,
@@ -294,13 +305,14 @@ export default function Outsourcing() {
         workflowStatus: updates.workflowStatus ?? invoice.workflowStatus,
         amountPaid: updates.amountPaid !== undefined ? updates.amountPaid : invoice.amountPaid,
         paidAt: updates.paidAt !== undefined ? updates.paidAt : invoice.paidAt,
+        payments: updates.payments ?? invoiceForm.payments,
         saveVendorMode: "onetime",
         templateName: invoice.templateName || TEMPLATES.find(t => t.id === (invoice.templateId || invoiceForm.templateId))?.name || TEMPLATES[0].name,
-      }).then((savedInvoice) => {
-        if (!savedInvoice) {
+      }).then((result) => {
+        if (!result) {
           throw new Error("Create a profile before updating status.");
         }
-        return savedInvoice;
+        return result;
       }), {
         loading: {
           title: "Updating status...",
@@ -315,12 +327,26 @@ export default function Outsourcing() {
           description: getToastErrorMessage(error, "Unable to update status."),
         }),
       });
+
+      setShareInvoice((current) => (current?.id === savedInvoice.id ? savedInvoice : current));
+      setShowPaymentOptions(false);
     } catch (saveError) {
       console.error(saveError);
     } finally {
       setIsSaving(false);
     }
   }
+
+  useEffect(() => {
+    if (!shareInvoice) {
+      return;
+    }
+
+    const freshInvoice = outsourcingInvoices.find((entry) => entry.id === shareInvoice.id);
+    if (freshInvoice) {
+      setShareInvoice(freshInvoice);
+    }
+  }, [outsourcingInvoices, shareInvoice?.id]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -661,7 +687,7 @@ export default function Outsourcing() {
         {/* Page Heading */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Payables" effect="micro-scale-fade" className="section-eyebrow text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/outsourcing"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="Outsourcing"
@@ -732,7 +758,7 @@ export default function Outsourcing() {
           >
             <div className="flex items-center justify-between mb-3.5 select-none">
               <span className="text-sm font-semibold text-muted">Open Bills</span>
-              <ClockIcon ref={pendingIconRef} size={20} className="text-amber-500 transition-colors" />
+              <ClockIcon ref={pendingIconRef} size={20} className="text-chart-strong transition-colors" />
             </div>
             <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
               <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
@@ -812,7 +838,7 @@ export default function Outsourcing() {
                       }}
                       role="button"
                       tabIndex={0}
-                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover:shadow-xl hover:border-accent/30 transition-all duration-300 relative group overflow-hidden cursor-pointer"
+                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover-row relative group overflow-hidden cursor-pointer"
                     >
                       <div className="flex items-center gap-4 relative z-10">
                         {/* Avatar with Status Ring */}
@@ -1321,14 +1347,14 @@ export default function Outsourcing() {
       {/* Share / Outsourcing Delivery Link Modal */}
       {shareInvoice && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setShareInvoice(null)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => { setShareInvoice(null); setShowPaymentOptions(false); }} />
           <div className="modal-surface relative max-w-md w-full p-6 animate-in zoom-in-95 duration-200 rounded-xl">
             <div className="flex items-center justify-between mb-4 border-b border-card-border/60 pb-3">
               <h3 className="text-base font-bold text-foreground flex items-center gap-1.5 font-display select-none">
                 <i className="ph ph-paper-plane-tilt text-lg text-accent"></i>
                 Send Payable & Share
               </h3>
-              <button onClick={() => setShareInvoice(null)} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
+              <button onClick={() => { setShareInvoice(null); setShowPaymentOptions(false); }} className="size-8 flex items-center justify-center rounded-lg border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground transition-all duration-200 active:scale-95">
                 <i className="ph ph-x text-sm"></i>
               </button>
             </div>
@@ -1357,10 +1383,8 @@ export default function Outsourcing() {
                               amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
                               paidAt: todayInputValue() 
                             });
-                            setShareInvoice(null);
-                            setShowPaymentOptions(false);
                           }}
-                          className="btn-primary bg-[#0070ba] hover:bg-[#003087] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5"
+                          className="btn-primary bg-[#0070ba] hover:bg-[#003087] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50"
                         >
                           <i className="ph ph-paypal-logo text-sm"></i>
                           Pay via PayPal
@@ -1378,10 +1402,8 @@ export default function Outsourcing() {
                               amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
                               paidAt: todayInputValue() 
                             });
-                            setShareInvoice(null);
-                            setShowPaymentOptions(false);
                           }}
-                          className="btn-primary bg-[#635bff] hover:bg-[#0a2540] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5"
+                          className="btn-primary bg-[#635bff] hover:bg-[#0a2540] text-white text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50"
                         >
                           <i className="ph ph-credit-card text-sm"></i>
                           Pay via Stripe
@@ -1395,10 +1417,9 @@ export default function Outsourcing() {
                             amountPaid: getOutsourcingInvoiceTotal(shareInvoice), 
                             paidAt: todayInputValue() 
                           });
-                          setShareInvoice(null);
-                          setShowPaymentOptions(false);
                         }}
-                        className="btn-secondary text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-foreground/[0.04] border border-card-border"
+                        disabled={isSaving}
+                        className="btn-secondary text-[11px] py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-foreground/[0.04] border border-card-border disabled:opacity-50"
                       >
                         <i className="ph ph-check text-sm"></i>
                         Mark Paid Manually
@@ -1417,6 +1438,17 @@ export default function Outsourcing() {
                   <div className="grid grid-cols-2 gap-2">
                     <button 
                       onClick={() => {
+                        const isPaid = getOutsourcingPaymentState(shareInvoice) === "Paid";
+                        if (isPaid) {
+                          void updateOutsourcingStatus(shareInvoice, {
+                            status: "Unpaid",
+                            amountPaid: 0,
+                            paidAt: undefined,
+                            payments: [],
+                          });
+                          return;
+                        }
+
                         const total = getOutsourcingInvoiceTotal(shareInvoice);
                         const hasLinks = Boolean(shareInvoice.paypal || shareInvoice.stripe);
                         if (hasLinks) {
@@ -1427,25 +1459,25 @@ export default function Outsourcing() {
                             amountPaid: total, 
                             paidAt: todayInputValue() 
                           });
-                          setShareInvoice(null);
                         }
                       }}
-                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border ${
+                      disabled={isSaving}
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border disabled:opacity-50 ${
                         getOutsourcingPaymentState(shareInvoice) === "Paid" 
                           ? "bg-positive/15 text-positive border-positive/20 font-bold shadow-2xs" 
                           : ""
                       }`}
                     >
                       <i className="ph ph-credit-card text-sm"></i>
-                      {getOutsourcingPaymentState(shareInvoice) === "Paid" ? "Paid" : "Pay"}
+                      {getOutsourcingPaymentState(shareInvoice) === "Paid" ? "Mark Unpaid" : "Mark Paid"}
                     </button>
                     
                     <button 
                       onClick={() => { 
                         void updateOutsourcingStatus(shareInvoice, { workflowStatus: "Delivered" }); 
-                        setShareInvoice(null); 
                       }}
-                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border ${
+                      disabled={isSaving}
+                      className={`btn-secondary text-[11px] py-2 transition-all duration-200 rounded-lg flex items-center justify-center gap-1 border border-card-border disabled:opacity-50 ${
                         shareInvoice.workflowStatus === "Delivered" 
                           ? "bg-accent/15 text-accent border-accent/20 font-bold shadow-2xs" 
                           : ""
@@ -1465,7 +1497,7 @@ export default function Outsourcing() {
                   {shareInvoice.phone ? (
                     <a
                       href={`sms:${shareInvoice.phone}?body=${encodeURIComponent(getOutsourcingContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 text-blue-500 hover:bg-blue-500/5 transition-colors border border-card-border shadow-3xs"
+                      className="btn-secondary text-[11px] py-2.5 rounded-lg text-center flex flex-col items-center justify-center gap-1.5 text-chart-soft hover:bg-chart-soft/10 transition-colors border border-card-border shadow-3xs"
                     >
                       <i className="ph ph-chats text-lg"></i>
                       <span>Message</span>
@@ -1552,7 +1584,7 @@ export default function Outsourcing() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Outstanding</p>
-                  <p className={`mt-1 font-display text-lg font-bold ${vendorOutstanding > 0 ? "text-amber-500" : "text-foreground"}`}>
+                  <p className={`mt-1 font-display text-lg font-bold currency-value ${vendorOutstanding > 0 ? "text-chart-strong" : "text-foreground"}`}>
                     <AnimatedNumber value={formatCurrency(vendorOutstanding, currency)} />
                   </p>
                 </div>

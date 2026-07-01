@@ -8,6 +8,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
 import ShieldCheckIcon from "@/components/icons/shield-check";
@@ -16,6 +17,7 @@ import UnorderedListIcon from "@/components/icons/unordered-list-icon";
 import PenIcon from "@/components/icons/pen-icon";
 import TrashIcon from "@/components/icons/trash-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import { PageStatsRow } from "@/components/page-stats-row";
 
 type ExpenseForm = {
   merchant: string;
@@ -245,7 +247,7 @@ export default function Expenses() {
         {/* Page Header Area */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Tax & Write-offs" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/expenses"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="Expenses"
@@ -260,115 +262,46 @@ export default function Expenses() {
             onClick={openAddExpense} 
             onMouseEnter={() => plusIconRef.current?.startAnimation()}
             onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
           >
-            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+            <PlusIcon ref={plusIconRef} size={20} />
             Add Expense
           </button>
         </header>
 
-        {/* Overview Stats Bento Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {/* Total Expenses */}
-          <div 
-            onMouseEnter={() => totalBilledRef.current?.startAnimation()}
-            onMouseLeave={() => totalBilledRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Total Expenses</span>
-              <FileDescriptionIcon ref={totalBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(stats.total, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>all-time</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tax Deductible */}
-          <div 
-            onMouseEnter={() => taxDeductibleRef.current?.startAnimation()}
-            onMouseLeave={() => taxDeductibleRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Tax Deductible</span>
-              <ShieldCheckIcon ref={taxDeductibleRef} size={20} className="text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(stats.taxDeductible, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-accent leading-tight select-none">
-                    <div>{stats.deductibleCount} items</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Average Spend */}
-          <div 
-            onMouseEnter={() => avgSpendRef.current?.startAnimation()}
-            onMouseLeave={() => avgSpendRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Average Spend</span>
-              <ChartBarIcon ref={avgSpendRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(stats.avg, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>per item</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Records */}
-          <div 
-            onMouseEnter={() => totalRecordsRef.current?.startAnimation()}
-            onMouseLeave={() => totalRecordsRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Total Records</span>
-              <UnorderedListIcon ref={totalRecordsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={expenses.length} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>logged</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageStatsRow
+          stats={[
+            {
+              label: "Total Expenses",
+              hint: "all-time",
+              icon: FileDescriptionIcon,
+              iconRef: totalBilledRef,
+              value: <AnimatedNumber value={formatCurrency(stats.total, currency)} />,
+            },
+            {
+              label: "Tax Deductible",
+              hint: `${stats.deductibleCount} items`,
+              tone: "accent",
+              icon: ShieldCheckIcon,
+              iconRef: taxDeductibleRef,
+              value: <AnimatedNumber value={formatCurrency(stats.taxDeductible, currency)} />,
+            },
+            {
+              label: "Average Spend",
+              hint: "per item",
+              icon: ChartBarIcon,
+              iconRef: avgSpendRef,
+              value: <AnimatedNumber value={formatCurrency(stats.avg, currency)} />,
+            },
+            {
+              label: "Total Records",
+              hint: "logged",
+              icon: UnorderedListIcon,
+              iconRef: totalRecordsRef,
+              value: <AnimatedNumber value={expenses.length} />,
+            },
+          ]}
+        />
 
         {/* Filters and Search */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
@@ -401,7 +334,7 @@ export default function Expenses() {
             {filteredExpenses.map((expense) => (
               <div
                 key={expense.id}
-                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover:shadow-xl hover:border-accent/30 transition-all duration-300"
+                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover-row"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2.5">

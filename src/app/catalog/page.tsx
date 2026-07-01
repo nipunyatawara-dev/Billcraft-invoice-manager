@@ -8,6 +8,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import StackIcon from "@/components/icons/stack-icon";
 import WalletIcon from "@/components/icons/wallet-icon";
@@ -238,7 +239,7 @@ export default function Catalog() {
         {/* Page Header Area */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Reusable Items & Rates" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/catalog"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="Service Catalog"
@@ -258,9 +259,9 @@ export default function Catalog() {
             onClick={openAddItem} 
             onMouseEnter={() => plusIconRef.current?.startAnimation()}
             onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
           >
-            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+            <PlusIcon ref={plusIconRef} size={20} />
             Add Item
           </button>
         </header>
@@ -375,7 +376,7 @@ export default function Catalog() {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover:shadow-xl hover:border-accent/30 transition-all duration-300"
+                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover-row"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">

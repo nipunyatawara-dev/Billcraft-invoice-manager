@@ -107,21 +107,24 @@ function DashboardSkeleton() {
         </div>
 
         {/* Quick Actions Card */}
-        <div className="w-full lg:w-96 shrink-0 bg-card rounded-xl border border-card-border p-6 flex flex-col justify-between min-h-[380px]">
-          <div>
+        <div className="w-full lg:w-[360px] shrink-0 bg-card rounded-xl border border-card-border flex flex-col overflow-hidden min-h-[380px]">
+          <div className="p-6 pb-4">
             <SkeletonBlock className="h-4 w-28 mb-1.5" />
-            <SkeletonBlock className="h-3 w-40 mb-6" />
+            <SkeletonBlock className="h-3 w-48" />
           </div>
-          <div className="grid grid-cols-2 gap-3 flex-1">
+          <div className="flex flex-col gap-1.5 px-4 pb-4 flex-1">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="rounded-lg border border-card-border/60 bg-foreground/[0.015] p-4 flex flex-col justify-between">
-                <SkeletonBlock className="size-6 rounded-md mb-3" />
-                <div>
-                  <SkeletonBlock className="h-3 w-16 mb-1.5" />
-                  <SkeletonBlock className="h-2.5 w-12" />
+              <div key={index} className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+                <SkeletonBlock className="size-9 rounded-lg shrink-0" />
+                <div className="flex-1">
+                  <SkeletonBlock className="h-3.5 w-24 mb-1.5" />
+                  <SkeletonBlock className="h-2.5 w-32" />
                 </div>
               </div>
             ))}
+          </div>
+          <div className="border-t border-card-border px-6 py-3">
+            <SkeletonBlock className="h-3 w-40 mx-auto" />
           </div>
         </div>
       </div>
@@ -154,15 +157,34 @@ function DashboardSkeleton() {
   );
 }
 
+function RecordsStatSkeleton() {
+  return (
+    <div className="rounded-xl border border-card-border bg-card p-4 select-none shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)]">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <SkeletonBlock className="h-3 w-20" />
+        <SkeletonBlock className="size-9 rounded-lg shrink-0" />
+      </div>
+      <div className="rounded-lg border border-card-border/55 bg-foreground/[0.015] px-3.5 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <SkeletonBlock className="h-7 w-24" />
+          <div className="flex items-center gap-3 shrink-0">
+            <SkeletonBlock className="h-8 w-px" />
+            <SkeletonBlock className="h-3 w-12" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RecordsSkeleton() {
   return (
     <>
-      {/* 4 Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
+        <RecordsStatSkeleton />
       </div>
 
       {/* Search and Filters Bar */}
@@ -251,15 +273,25 @@ function AnalyticsSkeleton() {
   );
 }
 
+function CompactStatSkeleton() {
+  return (
+    <div className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 select-none">
+      <SkeletonBlock className="size-4 rounded-md shrink-0" />
+      <SkeletonBlock className="h-3 w-16 flex-1" />
+      <SkeletonBlock className="h-4 w-6 shrink-0" />
+    </div>
+  );
+}
+
 function KanbanSkeleton() {
   return (
     <>
-      {/* 4 Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
-        <StatSkeleton />
+      {/* Compact stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        <CompactStatSkeleton />
+        <CompactStatSkeleton />
+        <CompactStatSkeleton />
+        <CompactStatSkeleton />
       </div>
 
       {/* Board Scroll Wrapper */}

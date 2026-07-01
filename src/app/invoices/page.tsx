@@ -7,6 +7,7 @@ import {
   getInvoiceItemsTotal,
   getInvoiceTotal,
   getInvoiceTotals,
+  getStatusColor,
   type Client,
   type Invoice,
   type InvoiceItem,
@@ -30,6 +31,9 @@ import RosetteDiscountCheckIcon from "@/components/icons/rosette-discount-check-
 import WalletIcon from "@/components/icons/wallet-icon";
 import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import { PageStatsRow } from "@/components/page-stats-row";
+import { SHARE_CHANNEL_ICONS, ShareChannelIcon } from "@/components/brand-icons/share-channel-icons";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 
 const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
 const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
@@ -965,6 +969,39 @@ export default function Invoices() {
     }
   }
 
+  async function updateInvoicePaymentStatus(invoice: Invoice, status: InvoiceStatus) {
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      await notifyPromise(updateInvoicesStatus([invoice.id], status), {
+        loading: {
+          title: "Updating payment status...",
+          description: `${invoice.id} is being updated.`,
+        },
+        success: {
+          title: "Payment status updated",
+          description: `${invoice.id} is now ${status.toLowerCase()}.`,
+        },
+        error: (error) => ({
+          title: "Payment status update failed",
+          description: getToastErrorMessage(error, "Unable to update payment status."),
+        }),
+      });
+
+      setShareInvoice((current) =>
+        current?.id === invoice.id
+          ? { ...current, status, statusColor: getStatusColor(status) }
+          : current
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   async function handleExportInvoice(invoice: Invoice) {
     try {
       await exportInvoice(invoice);
@@ -1061,7 +1098,7 @@ export default function Invoices() {
         {/* Page Header Area */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Billing" effect="micro-scale-fade" className="text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/invoices"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="Invoices"
@@ -1076,115 +1113,47 @@ export default function Invoices() {
             onClick={() => openCreateModal()} 
             onMouseEnter={() => plusIconRef.current?.startAnimation()}
             onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
           >
-            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+            <PlusIcon ref={plusIconRef} size={20} />
             New Invoice
           </button>
         </header>
 
-        {/* Overview Stats Bento Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {/* Total Billed */}
-          <div 
-            onMouseEnter={() => billedIconRef.current?.startAnimation()}
-            onMouseLeave={() => billedIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Total Billed</span>
-              <FileDescriptionIcon ref={billedIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>all-time</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Invoices */}
-          <div 
-            onMouseEnter={() => invoicesIconRef.current?.startAnimation()}
-            onMouseLeave={() => invoicesIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Invoices</span>
-              <RosetteDiscountCheckIcon ref={invoicesIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={invoices.length} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
-                    <div>issued</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Collected */}
-          <div 
-            onMouseEnter={() => collectedIconRef.current?.startAnimation()}
-            onMouseLeave={() => collectedIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Collected</span>
-              <WalletIcon ref={collectedIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-accent leading-tight select-none">
-                    <div>{totals.paidCount} paid</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Attention */}
-          <div 
-            onMouseEnter={() => attentionIconRef.current?.startAnimation()}
-            onMouseLeave={() => attentionIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
-          >
-            <div className="flex items-center justify-between mb-3.5">
-              <span className="text-sm font-semibold text-muted">Attention</span>
-              <TriangleAlertIcon ref={attentionIconRef} size={20} className="text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                  <AnimatedNumber value={totals.unpaidCount + totals.overdueCount} />
-                </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-accent leading-tight select-none">
-                    <div>pending</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageStatsRow
+          stats={[
+            {
+              label: "Total Billed",
+              hint: "all-time",
+              icon: FileDescriptionIcon,
+              iconRef: billedIconRef,
+              value: <AnimatedNumber value={formatCurrency(totals.totalAmount, currency)} />,
+            },
+            {
+              label: "Invoices",
+              hint: "issued",
+              icon: RosetteDiscountCheckIcon,
+              iconRef: invoicesIconRef,
+              value: <AnimatedNumber value={invoices.length} />,
+            },
+            {
+              label: "Collected",
+              hint: `${totals.paidCount} paid`,
+              tone: "positive",
+              icon: WalletIcon,
+              iconRef: collectedIconRef,
+              value: <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />,
+            },
+            {
+              label: "Attention",
+              hint: "pending",
+              tone: "warning",
+              icon: TriangleAlertIcon,
+              iconRef: attentionIconRef,
+              value: <AnimatedNumber value={totals.unpaidCount + totals.overdueCount} />,
+            },
+          ]}
+        />
 
         {/* Bulk Action Controls */}
         {selectedInvoiceIds.length > 0 && (
@@ -1359,7 +1328,7 @@ export default function Invoices() {
             </div>
             
             <p className="text-[12px] text-muted mb-5 leading-normal">
-              Update the invoice workflow status and share the billing details with {shareInvoice.client}.
+              Update workflow and payment status, then share billing details with {shareInvoice.client}.
             </p>
 
             <div className="space-y-4">
@@ -1369,22 +1338,51 @@ export default function Invoices() {
                 <div className="grid grid-cols-3 gap-2">
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Sent"); setShareInvoice(null); }}
+                    disabled={isSaving}
                     className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Sent" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark as Sent
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Work Confirmed"); setShareInvoice(null); }}
+                    disabled={isSaving}
                     className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Work Confirmed" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Confirm Work
                   </button>
                   <button 
                     onClick={() => { void updateInvoiceWorkflowStatus(shareInvoice, "Delivered"); setShareInvoice(null); }}
+                    disabled={isSaving}
                     className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${shareInvoice.workflowStatus === "Delivered" ? "bg-accent/15 text-accent border-accent/20 font-bold" : ""}`}
                   >
                     Mark Delivered
                   </button>
+                </div>
+              </div>
+
+              {/* Payment status */}
+              <div className="surface-card p-4 border border-card-border rounded-xl space-y-3">
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Payment Status</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {STATUSES.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => void updateInvoicePaymentStatus(shareInvoice, status)}
+                      disabled={isSaving}
+                      className={`btn-secondary text-[11px] py-1.5 transition-all duration-200 ${
+                        shareInvoice.status === status
+                          ? status === "Paid"
+                            ? "bg-positive/15 text-positive border-positive/25 font-bold"
+                            : status === "Overdue"
+                              ? "bg-negative/15 text-negative border-negative/25 font-bold"
+                              : "bg-accent/15 text-accent border-accent/20 font-bold"
+                          : ""
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -1395,9 +1393,9 @@ export default function Invoices() {
                   {shareInvoice.phone ? (
                     <a
                       href={`sms:${shareInvoice.phone}?body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-blue-500 hover:bg-blue-500/5 transition-colors border-card-border"
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
                     >
-                      <span className="material-symbols-outlined text-[20px]">sms</span>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.messages} alt="Google Messages" />
                       <span>Message</span>
                     </a>
                   ) : (
@@ -1409,7 +1407,7 @@ export default function Invoices() {
                       }}
                       className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
                     >
-                      <span className="material-symbols-outlined text-[20px]">content_copy</span>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.messages} alt="Google Messages" />
                       <span>Copy Message</span>
                     </button>
                   )}
@@ -1419,9 +1417,9 @@ export default function Invoices() {
                       href={getWhatsAppUrl(shareInvoice.phone, getInvoiceContactMessage(shareInvoice))}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-emerald-500 hover:bg-emerald-500/5 transition-colors border-card-border"
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
                     >
-                      <i className="ph ph-whatsapp text-lg"></i>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.whatsapp} alt="WhatsApp" />
                       <span>WhatsApp</span>
                     </a>
                   ) : (
@@ -1429,7 +1427,7 @@ export default function Invoices() {
                       disabled
                       className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border"
                     >
-                      <i className="ph ph-whatsapp text-lg"></i>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.whatsapp} alt="WhatsApp" />
                       <span>WhatsApp</span>
                     </button>
                   )}
@@ -1437,18 +1435,18 @@ export default function Invoices() {
                   {shareInvoice.email ? (
                     <a
                       href={`mailto:${shareInvoice.email}?subject=${encodeURIComponent("Invoice " + shareInvoice.id)}&body=${encodeURIComponent(getInvoiceContactMessage(shareInvoice))}`}
-                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 text-sky-500 hover:bg-sky-500/5 transition-colors border-card-border"
+                      className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 hover:bg-foreground/[0.02] transition-colors border-card-border"
                     >
-                      <span className="material-symbols-outlined text-[20px]">mail</span>
-                      <span>Email</span>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.gmail} alt="Gmail" />
+                      <span>Gmail</span>
                     </a>
                   ) : (
                     <button 
                       disabled
                       className="btn-secondary text-[11px] py-2 text-center flex flex-col items-center justify-center gap-1.5 opacity-40 cursor-not-allowed border-card-border"
                     >
-                      <span className="material-symbols-outlined text-[20px]">mail</span>
-                      <span>Email</span>
+                      <ShareChannelIcon src={SHARE_CHANNEL_ICONS.gmail} alt="Gmail" />
+                      <span>Gmail</span>
                     </button>
                   )}
                 </div>

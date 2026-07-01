@@ -2,7 +2,7 @@
 
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
+import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, sortTasksByPriorityThenOrder, assignOrdersFromColumnSequence, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -47,6 +47,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Separator } from "@/components/ui/separator";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import LayersIcon from "@/components/icons/layers-icon";
 import ClockIcon from "@/components/icons/clock-icon";
@@ -101,7 +102,7 @@ function todayInputValue() {
 }
 
 function sortByOrder(tasks: TodoTask[]) {
-  return [...tasks].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+  return sortTasksByPriorityThenOrder(tasks);
 }
 
 function getStageTasks(tasks: TodoTask[], stage: TodoStageId) {
@@ -109,9 +110,10 @@ function getStageTasks(tasks: TodoTask[], stage: TodoStageId) {
 }
 
 function normalizeStageOrder(tasks: TodoTask[]) {
-  return TODO_STAGES.flatMap((stage) => (
-    getStageTasks(tasks, stage.id).map((task, index) => ({ ...task, order: index }))
-  ));
+  return TODO_STAGES.flatMap((stage) => {
+    const stageTasks = getStageTasks(tasks, stage.id);
+    return stageTasks.map((task, index) => ({ ...task, order: index }));
+  });
 }
 
 function formatDueDate(dueDate?: string) {
@@ -206,22 +208,22 @@ const BacklogStatusIcon = () => (
 
 const InProgressStatusIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
-    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-amber-500/30" />
-    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="18 40" strokeDashoffset="0" className="text-amber-500" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-chart-strong/30" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="18 40" strokeDashoffset="0" className="text-chart-strong" />
   </svg>
 );
 
 const ReviewStatusIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
-    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-emerald-500/30" />
-    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="30 40" strokeDashoffset="0" className="text-emerald-500" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-positive/30" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="30 40" strokeDashoffset="0" className="text-positive" />
   </svg>
 );
 
 const DoneStatusIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
-    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-purple-500" />
-    <path d="M4.5 7L6 8.5L9.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500" />
+    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="2" className="text-category-2" />
+    <path d="M4.5 7L6 8.5L9.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-category-2" />
   </svg>
 );
 
@@ -336,8 +338,7 @@ export default function TodoPage() {
         });
       }
       if (sortBy === "priority") {
-        const priorityWeight = { High: 3, Medium: 2, Low: 1 };
-        return [...stageTasks].sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);
+        return sortByOrder(stageTasks);
       }
       if (sortBy === "alphabetical") {
         return [...stageTasks].sort((a, b) => a.title.localeCompare(b.title));
@@ -503,11 +504,11 @@ export default function TodoPage() {
     const remainingTasks = tasks.filter((task) => task.id !== taskId);
     const targetColumn = getStageTasks(remainingTasks, targetStage);
     const insertIndex = beforeTaskId ? Math.max(targetColumn.findIndex((task) => task.id === beforeTaskId), 0) : targetColumn.length;
-    const nextColumn = [
+    const nextColumn = assignOrdersFromColumnSequence([
       ...targetColumn.slice(0, insertIndex),
       { ...movingTask, stage: targetStage, updatedAt: new Date().toISOString() },
       ...targetColumn.slice(insertIndex),
-    ];
+    ]);
     const nextTasks = normalizeStageOrder([
       ...remainingTasks.filter((task) => task.stage !== targetStage),
       ...nextColumn,
@@ -865,7 +866,7 @@ export default function TodoPage() {
         {/* Page Heading */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
-            <AnimatedText as="p" text="Workspace" effect="micro-scale-fade" className="section-eyebrow text-xs font-bold uppercase tracking-widest text-accent mb-2" />
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/todo"]} effect="micro-scale-fade" className="section-eyebrow" />
             <AnimatedText
               as="h1"
               text="To-Do"
@@ -935,91 +936,59 @@ export default function TodoPage() {
           </div>
         </header>
 
-        {/* Overview Stats Bento Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Active Tasks */}
-          <div 
+        {/* Overview Stats — compact row so the board stays primary */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+          <div
             onMouseEnter={() => activeTasksIconRef.current?.startAnimation()}
             onMouseLeave={() => activeTasksIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Active Tasks</span>
-              <LayersIcon ref={activeTasksIconRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
-                  <AnimatedNumber value={stats.active} />
-                </span>
-                <span className="text-[11px] font-normal text-muted select-none">open</span>
-              </div>
-            </div>
+            <LayersIcon ref={activeTasksIconRef} size={16} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Active Tasks</span>
+            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+              <AnimatedNumber value={stats.active} />
+            </span>
           </div>
 
-          {/* In Progress */}
-          <div 
+          <div
             onMouseEnter={() => inProgressIconRef.current?.startAnimation()}
             onMouseLeave={() => inProgressIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">In Progress</span>
-              <ClockIcon ref={inProgressIconRef} size={20} className="text-amber-500 transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
-                  <AnimatedNumber value={stats.inProgress} />
-                </span>
-                <span className="text-[11px] font-normal text-muted select-none">moving</span>
-              </div>
-            </div>
+            <ClockIcon ref={inProgressIconRef} size={16} className="text-chart-strong shrink-0" />
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">In Progress</span>
+            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+              <AnimatedNumber value={stats.inProgress} />
+            </span>
           </div>
 
-          {/* Due Soon */}
-          <div 
+          <div
             onMouseEnter={() => dueSoonIconRef.current?.startAnimation()}
             onMouseLeave={() => dueSoonIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Due Soon</span>
-              <TriangleAlertIcon ref={dueSoonIconRef} size={20} className="text-accent transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
-                  <AnimatedNumber value={stats.dueSoon} />
-                </span>
-                <span className="text-[11px] font-normal text-accent select-none">watch</span>
-              </div>
-            </div>
+            <TriangleAlertIcon ref={dueSoonIconRef} size={16} className="text-accent shrink-0" />
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Due Soon</span>
+            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+              <AnimatedNumber value={stats.dueSoon} />
+            </span>
           </div>
 
-          {/* Completed */}
-          <div 
+          <div
             onMouseEnter={() => completedIconRef.current?.startAnimation()}
             onMouseLeave={() => completedIconRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Completed</span>
-              <CheckedIcon ref={completedIconRef} size={20} className="text-positive transition-colors" />
-            </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
-                  <AnimatedNumber value={stats.completed} />
-                </span>
-                <span className="text-[11px] font-normal text-positive select-none">done</span>
-              </div>
-            </div>
+            <CheckedIcon ref={completedIconRef} size={16} className="text-positive shrink-0" />
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Completed</span>
+            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+              <AnimatedNumber value={stats.completed} />
+            </span>
           </div>
         </div>
 
         {/* Search, Filters, and Sorting Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
           <AnimatedSearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -1236,7 +1205,7 @@ export default function TodoPage() {
                   }
                 }}
                 onDrop={(event) => handleColumnDrop(event, stage.id)}
-                className={`w-[300px] sm:w-[340px] shrink-0 bg-card/60 border border-card-border rounded-xl p-3.5 flex flex-col max-h-[75vh] transition-smooth ${
+                className={`w-[300px] sm:w-[340px] shrink-0 bg-card/60 border border-card-border rounded-xl p-3.5 flex flex-col max-h-[calc(100vh-14rem)] transition-smooth ${
                   isColumnTarget ? "border-accent/50 bg-foreground/[0.03]" : ""
                 }`}
               >

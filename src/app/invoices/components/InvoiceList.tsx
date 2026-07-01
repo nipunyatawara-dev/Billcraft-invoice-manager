@@ -6,17 +6,11 @@ import * as React from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
-import {
-  formatCurrency,
-  getAmountPaid,
-  getBalanceDue,
-  getInvoiceTotal,
-  getPaymentState,
-  type Invoice,
-} from "@/data/invoices";
+import { formatCurrency, formatDisplayDate, getAmountPaid, getBalanceDue, getInvoiceTotal, getPaymentState, type Invoice } from "@/data/invoices";
 import PenIcon from "@/components/icons/pen-icon";
 import LinkIcon from "@/components/icons/link-icon";
 import DownloadIcon from "@/components/icons/download-icon";
+import { Check, Receipt } from "lucide-react";
 
 const STATUS_FILTERS = ["All", "Paid", "Unpaid", "Overdue"] as const;
 
@@ -114,7 +108,7 @@ export function InvoiceList({
             <div
               key={invoice.id}
               onClick={() => openShareModal(invoice)}
-              className="bg-card text-card-foreground border border-card-border rounded-xl w-full cursor-pointer p-4 lg:p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 group"
+              className="bg-card text-card-foreground border border-card-border rounded-xl w-full cursor-pointer p-4 lg:p-5 hover-row group"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
@@ -141,7 +135,7 @@ export function InvoiceList({
                   >
                     {isChecked && (
                       <span className="absolute inset-0 flex items-center justify-center rounded-md bg-accent transition-all duration-200">
-                        <span className="material-symbols-outlined text-[12px] text-white font-extrabold select-none">check</span>
+                        <Check className="size-3 text-action-text stroke-[3]" />
                       </span>
                     )}
                   </button>
@@ -154,7 +148,7 @@ export function InvoiceList({
                     <p className="text-[11px] text-muted mt-0.5 flex items-center gap-1.5">
                       <span className="font-medium">{invoice.id}</span>
                       <span className="w-0.5 h-0.5 rounded-full bg-foreground/15" />
-                      {invoice.date}
+                      {formatDisplayDate(invoice.date)}
                       <span className="hidden sm:inline w-0.5 h-0.5 rounded-full bg-foreground/15" />
                       <span className="hidden sm:inline text-xs font-semibold">{invoice.templateName || "Classic Invoice"}</span>
                     </p>
@@ -163,7 +157,7 @@ export function InvoiceList({
 
                 <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
                   <div className="text-right hidden sm:block">
-                    <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
+                    <p className="text-base font-semibold text-foreground font-display currency-value"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
                     <p className="text-[10px] text-foreground/25 tracking-wide uppercase mt-0.5">
                       <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected
                     </p>
@@ -221,7 +215,7 @@ export function InvoiceList({
 
         {filteredInvoices.length === 0 && (
           <div className="bg-card border border-card-border rounded-xl text-center py-16">
-            <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">receipt_long</span>
+            <span className="mb-3 block text-foreground/10"><Receipt className="mx-auto size-10" /></span>
             <AnimatedText as="p" text="No invoices yet" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}

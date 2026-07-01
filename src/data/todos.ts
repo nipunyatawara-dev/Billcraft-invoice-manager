@@ -26,6 +26,36 @@ export const TODO_PRIORITIES = ["Low", "Medium", "High"] as const;
 export type TodoStageId = (typeof TODO_STAGES)[number]["id"];
 export type TodoPriority = (typeof TODO_PRIORITIES)[number];
 
+export const TODO_PRIORITY_WEIGHT: Record<TodoPriority, number> = {
+  High: 3,
+  Medium: 2,
+  Low: 1,
+};
+
+export function compareTasksByPriorityThenOrder(a: TodoTask, b: TodoTask) {
+  const priorityDiff = TODO_PRIORITY_WEIGHT[b.priority] - TODO_PRIORITY_WEIGHT[a.priority];
+  if (priorityDiff !== 0) {
+    return priorityDiff;
+  }
+
+  return a.order - b.order || a.title.localeCompare(b.title);
+}
+
+export function sortTasksByPriorityThenOrder(tasks: TodoTask[]) {
+  return [...tasks].sort(compareTasksByPriorityThenOrder);
+}
+
+/** Preserve drop order within each priority band before normalizing. */
+export function assignOrdersFromColumnSequence(columnTasks: TodoTask[]) {
+  const counters: Record<TodoPriority, number> = { High: 0, Medium: 0, Low: 0 };
+
+  return columnTasks.map((task) => {
+    const order = counters[task.priority];
+    counters[task.priority] += 1;
+    return { ...task, order };
+  });
+}
+
 export interface TodoTask {
   id: string;
   title: string;

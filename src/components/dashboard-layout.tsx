@@ -6,7 +6,9 @@ import { AnimatePresence } from "motion/react";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
 import { ProfileOnboarding } from "@/components/profile-onboarding";
 import { ProfileManagerModal } from "@/components/profile-manager-modal";
+import { NotificationsPanel } from "@/components/notifications-panel";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
+import { useFontLoader } from "@/hooks/use-font-loader";
 import { useUserData } from "@/hooks/use-user-data";
 import { useBillingAlerts } from "@/hooks/use-billing-alerts";
 import { notify } from "@/lib/toast";
@@ -16,7 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, WORK_NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Check, Plus, Search, Bell, User } from "lucide-react";
+import { ChevronDown, Search, Bell } from "lucide-react";
 
 import HomeIcon from "@/components/icons/home-icon";
 import FileDescriptionIcon from "@/components/icons/file-description-icon";
@@ -92,7 +94,7 @@ function SidebarLink({ item, isActive, tooltip }: SidebarLinkProps) {
       className={cn(
         "w-full px-3.5 py-3 h-[46px] rounded-xl font-medium transition-all text-[16px] group/btn",
         isActive
-          ? "bg-accent/10 text-accent font-semibold"
+          ? "nav-item-active"
           : "text-muted hover:bg-foreground/[0.04] hover:text-foreground"
       )}
     >
@@ -147,25 +149,15 @@ const NOTIFICATION_TOAST_OPTIONS = {
   autopilot: false,
 } as const;
 
-const PAGE_TITLES: Record<string, string> = {
-  "/": "Dashboard",
-  "/invoices": "Invoices",
-  "/expenses": "Expenses",
-  "/clients": "Clients",
-  "/analytics": "Analytics",
-  "/outsourcing": "Outsourcing",
-  "/todo": "To-Do",
-  "/catalog": "Catalog",
-  "/settings": "Settings",
-};
-
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   useModePalettes();
+  useFontLoader();
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [onboardingProfileId, setOnboardingProfileId] = useState<string | null>(null);
   const [osKey, setOsKey] = useState("⌘");
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const pathname = usePathname();
   
   const {
@@ -182,7 +174,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     switchProfile,
   } = useUserData();
 
-  const { activeAlerts, alertCount } = useBillingAlerts({
+  const { notificationItems, alertCount } = useBillingAlerts({
     activeProfile,
     clients,
     invoices,
@@ -231,43 +223,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
-  const handleNotificationsClick = useCallback(() => {
-    if (error) {
-      notify.error({
-        title: "Data sync issue",
-        description: error,
-        ...NOTIFICATION_TOAST_OPTIONS,
-      });
+  const handleNotificationsOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setIsNotificationsOpen(false);
       return;
     }
 
-    if (!activeProfile) {
-      notify.info({
-        title: "Profile setup needed",
-        description: "Create a profile to start saving invoices and clients.",
-        ...NOTIFICATION_TOAST_OPTIONS,
-      });
-      return;
-    }
-
-    if (activeAlerts.length > 0) {
-      notify.warning({
-        title: `${alertCount} billing alert${alertCount === 1 ? "" : "s"}`,
-        ...NOTIFICATION_TOAST_OPTIONS,
-        description: (
-          <div className="space-y-2">
-            {activeAlerts.map((alert) => (
-              <div key={alert.label} className="flex items-start gap-2">
-                <span className="material-symbols-outlined mt-0.5 text-[15px]">{alert.icon}</span>
-                <span>
-                  <span className="block text-[12px] font-semibold">{alert.count} {alert.label}</span>
-                  <span className="block text-[11px] opacity-75">{alert.detail}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        ),
-      });
+    if (error || !activeProfile || notificationItems.length > 0) {
+      setIsNotificationsOpen(true);
       return;
     }
 
@@ -276,7 +239,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       description: "No overdue invoices, due tasks, backup reminders, or unpaid vendor bills right now.",
       ...NOTIFICATION_TOAST_OPTIONS,
     });
-  }, [activeAlerts, activeProfile, alertCount, error]);
+  }, [activeProfile, error, notificationItems.length]);
+
+  const handleBellClick = useCallback(() => {
+    if (isNotificationsOpen) {
+      setIsNotificationsOpen(false);
+      return;
+    }
+
+    handleNotificationsOpenChange(true);
+  }, [handleNotificationsOpenChange, isNotificationsOpen]);
 
   return (
     <SidebarProvider>
@@ -355,13 +327,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 bg-transparent h-screen overflow-hidden relative">
           
           {/* Header Bar */}
-          <header className="flex items-center justify-between px-6 py-4 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-card-border shrink-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold text-foreground tracking-tight select-none">
-                {PAGE_TITLES[pathname] || "Dashboard"}
-              </h1>
-            </div>
-            
+          <header className="flex items-center justify-end px-6 py-4 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-card-border shrink-0">
             <div className="flex items-center gap-3 sm:gap-4">
               {/* Global Command Palette search trigger */}
               <button 
@@ -387,19 +353,34 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
 
               {/* Notifications */}
-              <button 
-                onClick={handleNotificationsClick} 
-                className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
-              >
-                <Bell className="size-5" />
-                {alertCount > 0 && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card animate-pulse" />
-                )}
-              </button>
+              <NotificationsPanel
+                open={isNotificationsOpen}
+                onOpenChange={handleNotificationsOpenChange}
+                items={notificationItems}
+                error={error}
+                hasProfile={Boolean(activeProfile)}
+                trigger={
+                  <button
+                    type="button"
+                    onClick={handleBellClick}
+                    aria-label="Notifications"
+                    aria-expanded={isNotificationsOpen}
+                    className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
+                  >
+                    <Bell className="size-5" />
+                    {alertCount > 0 && (
+                      <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card animate-pulse" />
+                    )}
+                  </button>
+                }
+              />
 
               {/* Profile */}
-              <button 
+              <button
+                type="button"
                 onClick={() => setIsProfileModalOpen(true)}
+                aria-label="Switch profile"
+                aria-expanded={isProfileModalOpen}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-3 sm:pl-4 border-l border-card-border h-10"
               >
                 <div className="w-8 h-8 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden select-none border border-card-border/50 shadow-sm shrink-0">
@@ -414,7 +395,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <div className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">{activeProfile?.name || "Guest"}</div>
                   <div className="text-[10px] text-muted font-medium truncate max-w-[120px]">{activeProfile?.profession || "Setup required"}</div>
                 </div>
-                <ChevronDown className="size-4 text-muted hidden sm:block transition-transform duration-300" />
+                <ChevronDown
+                  className={cn(
+                    "size-4 text-muted hidden sm:block transition-transform duration-300",
+                    isProfileModalOpen && "rotate-180",
+                  )}
+                />
               </button>
             </div>
           </header>

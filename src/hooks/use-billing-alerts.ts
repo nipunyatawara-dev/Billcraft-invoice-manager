@@ -15,6 +15,14 @@ function getTimeValue(value?: string) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
+export type BillingNotificationItem = {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  tone: "warning" | "info";
+};
+
 interface UseBillingAlertsProps {
   activeProfile: Profile | null;
   clients: Client[];
@@ -32,10 +40,29 @@ export function useBillingAlerts({
   todoTasks,
   vendors,
 }: UseBillingAlertsProps) {
-  const activeAlerts = useMemo(() => {
-    const overdueInvoices = invoices.filter(isRecordOverdue);
-    const tasksDueToday = todoTasks.filter((task) => task.stage !== "done" && task.dueDate === todayKey());
-    const unpaidVendorInvoices = outsourcingInvoices.filter((invoice) => getBalanceDue(invoice) > 0);
+  const notificationItems = useMemo(() => {
+    const items: BillingNotificationItem[] = [];
+
+    for (const invoice of invoices.filter(isRecordOverdue)) {
+      items.push({
+        id: `overdue-${invoice.id}`,
+        title: `${invoice.client} · ${invoice.id}`,
+        description: "Overdue client invoice — follow up on payment",
+        href: `/invoices?id=${encodeURIComponent(invoice.id)}`,
+        tone: "warning",
+      });
+    }
+
+    for (const task of todoTasks.filter((entry) => entry.stage !== "done" && entry.dueDate === todayKey())) {
+      items.push({
+        id: `task-${task.id}`,
+        title: task.title,
+        description: task.client ? `Due today · ${task.client}` : "Due today",
+        href: `/todo?id=${encodeURIComponent(task.id)}`,
+        tone: "info",
+      });
+    }
+
     const latestProfileDataTime = Math.max(
       getTimeValue(activeProfile?.updatedAt),
       ...clients.map((client) => getTimeValue(client.updatedAt || client.createdAt)),
@@ -44,30 +71,38 @@ export function useBillingAlerts({
       ...outsourcingInvoices.map((invoice) => getTimeValue(invoice.updatedAt || invoice.createdAt)),
       ...todoTasks.map((task) => getTimeValue(task.updatedAt || task.createdAt)),
     );
-    const hasProfileData = clients.length + invoices.length + vendors.length + outsourcingInvoices.length + todoTasks.length > 0;
+    const hasProfileData =
+      clients.length + invoices.length + vendors.length + outsourcingInvoices.length + todoTasks.length > 0;
     const profileNeedsBackup = Boolean(
       activeProfile &&
       hasProfileData &&
       (!activeProfile.lastBackupAt || getTimeValue(activeProfile.lastBackupAt) < latestProfileDataTime),
     );
 
-    return [
-      overdueInvoices.length > 0
-        ? { icon: "warning", label: "Overdue invoices", count: overdueInvoices.length, detail: "Client invoices need follow-up." }
-        : null,
-      tasksDueToday.length > 0
-        ? { icon: "event", label: "Tasks due today", count: tasksDueToday.length, detail: "To-do items are due today." }
-        : null,
-      profileNeedsBackup
-        ? { icon: "backup", label: "Profile backup due", count: 1, detail: "Export the latest local data from Settings." }
-        : null,
-      unpaidVendorInvoices.length > 0
-        ? { icon: "engineering", label: "Unpaid vendor invoices", count: unpaidVendorInvoices.length, detail: "Outsourcing payables still have a balance." }
-        : null,
-    ].filter(Boolean) as Array<{ icon: string; label: string; count: number; detail: string }>;
+    if (profileNeedsBackup) {
+      items.push({
+        id: "backup-due",
+        title: "Profile backup due",
+        description: "Export the latest local data from Settings",
+        href: "/settings?tab=data",
+        tone: "info",
+      });
+    }
+
+    for (const invoice of outsourcingInvoices.filter((entry) => getBalanceDue(entry) > 0)) {
+      items.push({
+        id: `payable-${invoice.id}`,
+        title: `${invoice.vendor} · ${invoice.id}`,
+        description: "Unpaid vendor payable",
+        href: `/outsourcing?id=${encodeURIComponent(invoice.id)}`,
+        tone: "warning",
+      });
+    }
+
+    return items;
   }, [activeProfile, clients, invoices, outsourcingInvoices, todoTasks, vendors]);
 
-  const alertCount = activeAlerts.reduce((sum, alert) => sum + alert.count, 0);
+  const alertCount = notificationItems.length;
 
-  return { activeAlerts, alertCount };
+  return { notificationItems, alertCount };
 }

@@ -26,6 +26,7 @@ import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import PlusIcon from "@/components/icons/plus-icon";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
 import CheckedIcon from "@/components/icons/checked-icon";
@@ -363,7 +364,7 @@ function ChartWidgetShell({
   title: string;
 }) {
   return (
-    <div className={`bg-card text-card-foreground border border-card-border rounded-xl flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 hover:shadow-xl hover:border-accent/30 transition-all duration-300 ${className}`}>
+    <div className={`bg-card text-card-foreground border border-card-border rounded-xl flex min-h-[320px] flex-col overflow-hidden p-5 lg:p-6 hover-panel ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>
@@ -393,7 +394,7 @@ function RevenueFlowWidget({
   const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
 
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7 hover:shadow-xl hover:border-accent/30 transition-all duration-300">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7 hover-panel">
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h3 className="mb-0.5 text-lg font-semibold text-foreground">Client Billing Flow</h3>
@@ -529,7 +530,7 @@ function MetricWidget({
   value: React.ReactNode;
 }) {
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 group flex flex-col justify-between min-h-[150px]">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px]">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">{title}</span>
         <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
@@ -611,7 +612,7 @@ function TopClientWidget({
   topClient?: ReturnType<typeof getClientsFromInvoices>[number];
 }) {
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover:shadow-xl hover:border-accent/30 transition-all duration-300 group flex flex-col justify-between min-h-[150px] md:col-span-2 lg:col-span-2">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px] md:col-span-2 lg:col-span-2">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">Top Client</span>
         <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
@@ -1192,7 +1193,7 @@ export default function Analytics() {
     <main className="app-main flex-1">
       <div className="page-heading">
         <div>
-          <AnimatedText as="p" text="Overview" effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText as="p" text={PAGE_EYEBROWS["/analytics"]} effect="micro-scale-fade" className="section-eyebrow" />
           <AnimatedText
             as="h1"
             text="Analytics"
