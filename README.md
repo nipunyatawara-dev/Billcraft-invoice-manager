@@ -21,7 +21,6 @@
 ### Get started:
 
 * [Run locally](#run-locally) — clone, install, and open in your browser
-* [Seed demo data](#seed-demo-data) — populate a sample profile for screenshots or testing
 * [Local data & profiles](#local-data--profiles) — where your invoices live on disk
 * [Contributing](#contributing) — pull requests welcome
 
@@ -51,7 +50,6 @@
 - [Appearance & customization](#appearance--customization)
 - [Local data & profiles](#local-data--profiles)
 - [Run locally](#run-locally)
-- [Seed demo data](#seed-demo-data)
 - [Tech stack](#tech-stack)
 - [Contributing](#contributing)
 
@@ -206,25 +204,6 @@ Profile folders are created automatically on first run. Keep `User data/` out of
 npm run build
 npm start
 ```
-
-<a name="seed"></a>
-
-# Seed demo data
-
-With the dev server running, you can populate a sample **John Doe** profile (password: `111111`) with clients, invoices, expenses, tasks, vendors, and catalog items:
-
-```bash
-node scripts/seed-john-doe.mjs
-```
-
-To refresh README screenshots after seeding:
-
-```bash
-npx playwright install chromium
-node scripts/capture-readme-screenshots.mjs
-```
-
-<a name="stack"></a>
 
 # Tech stack
 
