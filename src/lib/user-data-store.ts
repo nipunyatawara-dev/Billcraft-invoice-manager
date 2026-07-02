@@ -29,6 +29,15 @@ import {
   type TrashItem,
 } from "@/data/invoices";
 import { createDefaultTodoTasks, TODO_PRIORITIES, TODO_STAGES, type TodoTask } from "@/data/todos";
+import {
+  BACKUP_SCHEMA_VERSION,
+  collectAssetFileNames,
+  mergeById,
+  mimeTypeForFileName,
+  rewriteBackupForProfile,
+  type BillCraftBackup,
+  type ImportMode,
+} from "@/lib/backup-restore";
 
 const USER_DATA_DIR = path.join(process.cwd(), "User data");
 const PROFILE_INDEX_PATH = path.join(USER_DATA_DIR, "profiles.json");
@@ -1261,4 +1270,160 @@ export async function updateInvoicesStatus(
 
   await writeInvoices(profileId, nextInvoices);
   return nextInvoices;
+}
+
+async function readAssetAsDataUrl(profileId: string, fileName: string) {
+  try {
+    const assetPath = getAssetFilePath(profileId, fileName);
+    const buffer = await fs.readFile(assetPath);
+    const mimeType = mimeTypeForFileName(fileName);
+    return `data:${mimeType};base64,${buffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
+async function writeAssetFromDataUrl(profileId: string, fileName: string, dataUrl: string) {
+  const match = dataUrl.match(/^data:([a-zA-Z0-9+.-]+\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+  if (!match) {
+    return dataUrl;
+  }
+
+  const safeFileName = path.basename(fileName);
+  const assetPath = getAssetFilePath(profileId, safeFileName);
+  await ensureProfileDir(profileId);
+  await fs.writeFile(assetPath, Buffer.from(match[2], "base64"));
+  return `/api/user-data/asset?profileId=${encodeURIComponent(profileId)}&file=${encodeURIComponent(safeFileName)}`;
+}
+
+async function collectProfileAssets(profileId: string, data: {
+  profile: UserProfile;
+  clients: Client[];
+  vendors: Vendor[];
+  invoices: Invoice[];
+  outsourcingInvoices: OutsourcingInvoice[];
+  trash: TrashItem[];
+}) {
+  const fileNames = collectAssetFileNames(data);
+  const assets: Record<string, string> = {};
+
+  await Promise.all(fileNames.map(async (fileName) => {
+    const dataUrl = await readAssetAsDataUrl(profileId, fileName);
+    if (dataUrl) {
+      assets[fileName] = dataUrl;
+    }
+  }));
+
+  return assets;
+}
+
+async function restoreProfileAssets(profileId: string, assets: Record<string, string>) {
+  await ensureProfileDir(profileId);
+
+  await Promise.all(Object.entries(assets).map(async ([fileName, dataUrl]) => {
+    await writeAssetFromDataUrl(profileId, fileName, dataUrl);
+  }));
+}
+
+export async function exportProfileBackup(profileId: string): Promise<BillCraftBackup> {
+  const index = await readProfileIndex();
+  const profile = index.profiles.find((entry) => entry.id === profileId);
+
+  if (!profile) {
+    throw new Error("Profile not found.");
+  }
+
+  await ensureProfileDir(profileId);
+
+  const clients = await readClients(profileId);
+  const invoices = await readInvoices(profileId);
+  const vendors = await readVendors(profileId);
+  const outsourcingInvoices = await readOutsourcingInvoices(profileId);
+  const todoTasks = await readTodoTasks(profileId);
+  const expenses = await readExpenses(profileId);
+  const catalogItems = await readCatalog(profileId);
+  const trash = await readTrash(profileId);
+  const assets = await collectProfileAssets(profileId, {
+    profile,
+    clients,
+    vendors,
+    invoices,
+    outsourcingInvoices,
+    trash,
+  });
+
+  return {
+    schemaVersion: BACKUP_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    profileId,
+    profile,
+    clients,
+    invoices,
+    vendors,
+    outsourcingInvoices,
+    todoTasks,
+    expenses,
+    catalogItems,
+    trash,
+    assets,
+  };
+}
+
+export async function importProfileBackup(profileId: string, backup: BillCraftBackup, mode: ImportMode = "replace") {
+  const index = await readProfileIndex();
+  const existingProfile = index.profiles.find((entry) => entry.id === profileId);
+
+  if (!existingProfile) {
+    throw new Error("Profile not found.");
+  }
+
+  await ensureProfileDir(profileId);
+
+  const normalizedBackup = rewriteBackupForProfile(backup, profileId);
+  await restoreProfileAssets(profileId, normalizedBackup.assets || {});
+
+  const profile: UserProfile = {
+    ...normalizedBackup.profile,
+    id: profileId,
+    createdAt: existingProfile.createdAt,
+    updatedAt: new Date().toISOString(),
+    lastBackupAt: new Date().toISOString(),
+  };
+
+  if (mode === "replace") {
+    await writeClients(profileId, normalizedBackup.clients.map(hydrateClient));
+    await writeInvoices(profileId, normalizedBackup.invoices.map(hydrateInvoice));
+    await writeVendors(profileId, normalizedBackup.vendors.map(hydrateVendor));
+    await writeOutsourcingInvoices(profileId, normalizedBackup.outsourcingInvoices.map(hydrateOutsourcingInvoice));
+    await writeTodoTasks(profileId, normalizedBackup.todoTasks.map(hydrateTodoTask));
+    await writeExpenses(profileId, normalizedBackup.expenses);
+    await writeCatalog(profileId, normalizedBackup.catalogItems);
+    await writeTrash(profileId, normalizedBackup.trash);
+  } else {
+    const [clients, invoices, vendors, outsourcingInvoices, todoTasks, expenses, catalogItems, trash] = await Promise.all([
+      readClients(profileId),
+      readInvoices(profileId),
+      readVendors(profileId),
+      readOutsourcingInvoices(profileId),
+      readTodoTasks(profileId),
+      readExpenses(profileId),
+      readCatalog(profileId),
+      readTrash(profileId),
+    ]);
+
+    await writeClients(profileId, mergeById(clients, normalizedBackup.clients.map(hydrateClient)));
+    await writeInvoices(profileId, mergeById(invoices, normalizedBackup.invoices.map(hydrateInvoice)));
+    await writeVendors(profileId, mergeById(vendors, normalizedBackup.vendors.map(hydrateVendor)));
+    await writeOutsourcingInvoices(profileId, mergeById(outsourcingInvoices, normalizedBackup.outsourcingInvoices.map(hydrateOutsourcingInvoice)));
+    await writeTodoTasks(profileId, mergeById(todoTasks, normalizedBackup.todoTasks.map(hydrateTodoTask)));
+    await writeExpenses(profileId, mergeById(expenses, normalizedBackup.expenses));
+    await writeCatalog(profileId, mergeById(catalogItems, normalizedBackup.catalogItems));
+    await writeTrash(profileId, mergeById(trash, normalizedBackup.trash));
+  }
+
+  const nextProfiles = index.profiles.map((entry) => entry.id === profileId ? profile : entry);
+  await writeProfileIndex({ profiles: nextProfiles });
+  await saveProfileFile(profile);
+
+  return profile;
 }

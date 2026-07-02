@@ -135,6 +135,8 @@ type UserDataContextValue = LocalDataSnapshot & {
   saveOutsourcingInvoice: (invoice: OutsourcingInvoiceDraft) => Promise<OutsourcingInvoice | null>;
   saveAnalyticsPreferences: (preferences: AnalyticsPreferences) => Promise<AnalyticsPreferences | null>;
   markProfileBackedUp: () => Promise<UserProfile | null>;
+  exportProfileBackup: () => Promise<import("@/lib/backup-restore").BillCraftBackup>;
+  importProfileBackup: (backup: import("@/lib/backup-restore").BillCraftBackup, mode?: import("@/lib/backup-restore").ImportMode) => Promise<void>;
   saveTodoTasks: (tasks: TodoTask[]) => Promise<TodoTask[]>;
   saveExpense: (expense: Expense) => Promise<Expense | null>;
   deleteExpense: (expenseId: string) => Promise<void>;
@@ -722,6 +724,55 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     return nextSnapshot.activeProfile;
   }, [postAction, snapshot.activeProfileId]);
 
+  const exportProfileBackup = useCallback(async () => {
+    if (!snapshot.activeProfileId) {
+      throw new Error("Select a profile before exporting a backup.");
+    }
+
+    setError(null);
+    const response = await fetch(`/api/user-data/backup?profileId=${encodeURIComponent(snapshot.activeProfileId)}`);
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: string } | null;
+      throw new Error(body?.error || "Unable to export backup.");
+    }
+
+    return await response.json() as import("@/lib/backup-restore").BillCraftBackup;
+  }, [snapshot.activeProfileId]);
+
+  const importProfileBackup = useCallback(async (
+    backup: import("@/lib/backup-restore").BillCraftBackup,
+    mode: import("@/lib/backup-restore").ImportMode = "replace",
+  ) => {
+    if (!snapshot.activeProfileId) {
+      throw new Error("Select a profile before restoring a backup.");
+    }
+
+    setError(null);
+
+    const response = await fetch("/api/user-data/backup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: snapshot.activeProfileId,
+        backup,
+        mode,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: string } | null;
+      throw new Error(body?.error || "Unable to restore backup.");
+    }
+
+    const etag = response.headers.get("ETag");
+    if (etag) {
+      snapshotEtagRef.current = etag;
+    }
+
+    applySnapshot(await response.json() as LocalDataSnapshot);
+  }, [applySnapshot, snapshot.activeProfileId]);
+
   const exportInvoice = useCallback(async (invoice: Invoice) => {
     const { exportInvoicePdf } = await import("@/lib/pdf-export");
     await exportInvoicePdf(invoice, snapshot.activeProfile, currency);
@@ -918,6 +969,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     saveOutsourcingInvoice,
     saveAnalyticsPreferences,
     markProfileBackedUp,
+    exportProfileBackup,
+    importProfileBackup,
     saveTodoTasks,
     saveExpense,
     deleteExpense,
@@ -936,6 +989,8 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     loading,
     logoutProfile,
     markProfileBackedUp,
+    exportProfileBackup,
+    importProfileBackup,
     refresh,
     saveClient,
     saveInvoice,
