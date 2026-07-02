@@ -21,6 +21,7 @@
 ### Get started:
 
 * [Run locally](#run-locally) — clone, install, and open in your browser
+* [Seed demo data](#seed-demo-data) — populate a sample profile for screenshots or testing
 * [Local data & profiles](#local-data--profiles) — where your invoices live on disk
 * [Contributing](#contributing) — pull requests welcome
 
@@ -50,6 +51,7 @@
 - [Appearance & customization](#appearance--customization)
 - [Local data & profiles](#local-data--profiles)
 - [Run locally](#run-locally)
+- [Seed demo data](#seed-demo-data)
 - [Tech stack](#tech-stack)
 - [Contributing](#contributing)
 
@@ -67,10 +69,11 @@
 
 ![](assets/01-dashboard.png)
 
-* Revenue collected, pending invoices, and overdue totals at a glance
-* Paid ratio and recent billing activity
+* Outstanding revenue, total collected, and month-over-month growth at a glance
+* Recent invoices with paid, partially paid, and overdue states
+* Expected cashflow chart with receivable vs payable breakdown
 * Quick actions to create invoices, log expenses, and add clients
-* Command palette for fast navigation across the app
+* Command palette (`⌘K`) for fast navigation across the app
 
 <a name="invoices"></a>
 
@@ -84,13 +87,17 @@
 * Search, filter, and bulk-update invoice statuses
 * Export single or multiple invoices as PDF
 * Track partial payments and installments with attachments
-* Import completed Kanban tasks as line items, priced from your profile rate
+* Import completed Kanban tasks as line items from the service catalog
 * Simulated Stripe checkout flows for testing payment collection
 * Share invoices via WhatsApp and other channels
 
 <a name="clients"></a>
 
 # Clients & catalog
+
+![](assets/04-clients.png)
+
+![](assets/09-catalog.png)
 
 * Manage client profiles with contact details, avatars, and notes
 * Reusable or one-time client entries on invoices
@@ -101,8 +108,12 @@
 
 # Expenses & outsourcing
 
+![](assets/05-expenses.png)
+
+![](assets/08-outsourcing.png)
+
 * Log business expenses by category (travel, software, office supplies, and more)
-* Mark expenses as tax-deductible
+* Mark expenses as tax-deductible and filter by category
 * Track subcontractor vendors and payable invoices
 * Export vendor payables as PDF
 
@@ -110,16 +121,23 @@
 
 # Task board
 
+![](assets/07-todo.png)
+
 * Drag-and-drop Kanban board with stages, priorities, and tags
 * Time estimates on tasks for billing accuracy
 * One-click import of completed tasks into invoice line items
+* Outsource tasks and create invoices directly from cards
 * Notification hooks for email, SMS, and WhatsApp reminders (simulated)
 
 <a name="analytics"></a>
 
 # Analytics & notifications
 
-* Revenue charts and cashflow projections
+![](assets/06-analytics.png)
+
+* Revenue, receivables, payables, and net profit widgets
+* Client billing flow, paid ratio, and revenue trend charts
+* Customisable analytics layout with month, quarter, and year ranges
 * Billing alerts for overdue and upcoming invoices
 * Configurable reminder schedules in Settings
 * SMTP email reminder simulator for testing follow-ups
@@ -128,13 +146,13 @@
 
 # Appearance & customization
 
-![](assets/04-settings-appearance.png)
+![](assets/10-settings-appearance.png)
 
 * Light, dark, and system theme modes
 * Separate color palettes for light and dark mode
 * System-wide typeface selection (Inter, Open Sans, Google Sans Flex, Outfit, Plus Jakarta Sans)
 * Corner style toggle: Rounded or Squircle (macOS-like)
-* Layout density controls
+* Layout density controls (compact, standard, spacious)
 
 <a name="local"></a>
 
@@ -187,6 +205,23 @@ Profile folders are created automatically on first run. Keep `User data/` out of
 ```bash
 npm run build
 npm start
+```
+
+<a name="seed"></a>
+
+# Seed demo data
+
+With the dev server running, you can populate a sample **John Doe** profile (password: `111111`) with clients, invoices, expenses, tasks, vendors, and catalog items:
+
+```bash
+node scripts/seed-john-doe.mjs
+```
+
+To refresh README screenshots after seeding:
+
+```bash
+npx playwright install chromium
+node scripts/capture-readme-screenshots.mjs
 ```
 
 <a name="stack"></a>
