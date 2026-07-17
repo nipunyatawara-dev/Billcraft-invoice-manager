@@ -11,11 +11,7 @@ import {
   type Client,
   type Invoice,
   type InvoiceItem,
-  type InvoiceStatus,
   type InvoiceWorkflowStatus,
-  type PaymentAttachment,
-  type PaymentRecord,
-  type UserProfile,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 import { useCurrency } from "@/hooks/use-currency";
@@ -32,6 +28,7 @@ import WalletIcon from "@/components/icons/wallet-icon";
 import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
+import { Reveal } from "@/components/reveal";
 import { ShareWhatsAppButton } from "@/components/share-whatsapp-button";
 import { SHARE_CHANNEL_ICONS, ShareChannelIcon } from "@/components/brand-icons/share-channel-icons";
 import type { WhatsAppTarget } from "@/lib/whatsapp-phone";
@@ -42,189 +39,23 @@ import {
   shareInvoicePdf,
   type ShareChannel,
 } from "@/lib/share-billable-pdf";
-
-const STATUSES: InvoiceStatus[] = ["Paid", "Unpaid", "Overdue"];
-const JOB_COLORS = ["#2563eb", "#16a34a", "#f97316", "#a855f7", "#e11d48", "#0891b2", "#ca8a04", "#4f46e5"];
-const TEMPLATES = [
-  { id: "classic", name: "Classic Invoice", description: "A clean one-page invoice with profile, client, work, and total." },
-  { id: "minimal", name: "Minimalist Style", description: "A simple, light layout with high whitespace, clean typography, and subtle borders." },
-  { id: "bold", name: "Bold Modern", description: "Strong high-contrast header blocks, solid borders, and striking emphasis." },
-  { id: "branded", name: "Palette Accent", description: "Dynamic branded accent colors and borders matched to your profile theme." },
-  { id: "detailed", name: "Detailed Grid", description: "A double-bordered grid structure perfect for itemized work and tax breakdowns." },
-] as const;
-
-type ModalMode = "create" | "edit" | "view" | null;
-type ClientMode = "saved" | "new";
-type SaveClientMode = "regular" | "onetime";
-
-interface InvoiceForm {
-  templateId: string;
-  clientMode: ClientMode;
-  clientId: string;
-  client: string;
-  email: string;
-  phone: string;
-  whatsapp: string;
-  company: string;
-  address: string;
-  deliveryLink: string;
-  paymentLink?: string;
-  avatar: string;
-  date: string;
-  dueDate: string;
-  status: InvoiceStatus;
-  workflowStatus: InvoiceWorkflowStatus;
-  items: InvoiceItem[];
-  paymentNotes: string;
-  payments: PaymentRecord[];
-  receiptAttachments: PaymentAttachment[];
-  saveClientMode: SaveClientMode | null;
-  currency?: string;
-  discount?: number;
-  discountType?: "flat" | "percent";
-}
-
-function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
-  return {
-    id: `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-    description,
-    quantity,
-    price,
-  };
-}
-
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function createEmptyForm(): InvoiceForm {
-  return {
-    templateId: TEMPLATES[0].id,
-    clientMode: "saved",
-    clientId: "",
-    client: "",
-    email: "",
-    phone: "",
-    whatsapp: "",
-    company: "",
-    address: "",
-    deliveryLink: "",
-    paymentLink: "",
-    avatar: "",
-    date: todayInputValue(),
-    dueDate: "",
-    status: "Unpaid",
-    workflowStatus: "Draft",
-    items: [createItem()],
-    paymentNotes: "",
-    payments: [],
-    receiptAttachments: [],
-    saveClientMode: null,
-    currency: "",
-    discount: 0,
-    discountType: "flat",
-  };
-}
-
-function toDateInputValue(date?: string) {
-  if (!date) {
-    return "";
-  }
-
-  const parsed = new Date(date);
-  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
-}
-
-function getJobColor(invoiceId: string) {
-  const colorIndex = [...invoiceId].reduce((sum, char) => sum + char.charCodeAt(0), 0) % JOB_COLORS.length;
-  return JOB_COLORS[colorIndex];
-}
-
-function getInvoiceContactMessage(invoice: Invoice) {
-  return `Hi ${invoice.client}, ${invoice.id} is ready for review.`;
-}
-
-function getProfileHourlyRate(profile: UserProfile | null | undefined) {
-  const profileWithBilling = profile as (UserProfile & { hourlyRate?: unknown }) | null | undefined;
-
-  return typeof profileWithBilling?.hourlyRate === "number" ? profileWithBilling.hourlyRate : 50;
-}
-
-function parseEstimateToHours(estimate?: string): number {
-  if (!estimate) return 0;
-  const cleaned = estimate.trim().toLowerCase();
-
-  const hourMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*h/);
-  const minMatch = cleaned.match(/(\d+)\s*m/);
-
-  let hours = 0;
-  if (hourMatch) {
-    hours += parseFloat(hourMatch[1]);
-  }
-  if (minMatch) {
-    hours += parseInt(minMatch[1], 10) / 60;
-  }
-
-  if (!hourMatch && !minMatch) {
-    const rawNumber = parseFloat(cleaned);
-    if (!isNaN(rawNumber)) {
-      hours = rawNumber;
-    }
-  }
-
-  return Math.round(hours * 100) / 100;
-}
-
-function getFormFromClient(client: Client, currentForm: InvoiceForm): InvoiceForm {
-  return {
-    ...currentForm,
-    clientMode: "saved",
-    clientId: client.id,
-    client: client.name,
-    email: client.email,
-    phone: client.phone,
-    whatsapp: client.whatsapp || "",
-    company: client.company || "",
-    address: client.address || "",
-    deliveryLink: client.deliveryLink || "",
-    avatar: client.avatar,
-    saveClientMode: null,
-  };
-}
-
-function getInvoiceForm(invoice: Invoice, clients: Client[]): InvoiceForm {
-  const matchingClient = clients.find((client) => client.id === invoice.clientId || client.name === invoice.client);
-  const fallbackItems = invoice.items && invoice.items.length > 0
-    ? invoice.items
-    : [createItem("Invoice total", 1, getInvoiceTotal(invoice))];
-
-  return {
-    templateId: invoice.templateId || TEMPLATES[0].id,
-    clientMode: matchingClient ? "saved" : "new",
-    clientId: matchingClient?.id || "",
-    client: invoice.client,
-    email: invoice.email,
-    phone: invoice.phone,
-    whatsapp: invoice.whatsapp || matchingClient?.whatsapp || "",
-    company: invoice.company || matchingClient?.company || "",
-    address: invoice.address || matchingClient?.address || "",
-    deliveryLink: invoice.deliveryLink || matchingClient?.deliveryLink || "",
-    paymentLink: invoice.paymentLink || "",
-    avatar: invoice.avatar,
-    date: toDateInputValue(invoice.date) || todayInputValue(),
-    dueDate: toDateInputValue(invoice.dueDate),
-    status: invoice.status,
-    workflowStatus: invoice.workflowStatus || "Draft",
-    items: fallbackItems,
-    paymentNotes: invoice.paymentNotes || "",
-    payments: invoice.payments || [],
-    receiptAttachments: invoice.receiptAttachments || [],
-    saveClientMode: null,
-    currency: invoice.currency || "",
-    discount: invoice.discount || 0,
-    discountType: invoice.discountType || "flat",
-  };
-}
+import {
+  STATUSES,
+  TEMPLATES,
+  createEmptyForm,
+  createItem,
+  getFormFromClient,
+  getInvoiceContactMessage,
+  getInvoiceForm,
+  getJobColor,
+  getProfileHourlyRate,
+  parseEstimateToHours,
+  toDateInputValue,
+  type ClientMode,
+  type InvoiceForm,
+  type ModalMode,
+  type SaveClientMode,
+} from "./invoice-helpers";
 
 export default function Invoices() {
   const plusIconRef = useRef<AnimatedIconHandle>(null);
@@ -1025,7 +856,7 @@ export default function Invoices() {
     }
   }
 
-  async function updateInvoicePaymentStatus(invoice: Invoice, status: InvoiceStatus) {
+  async function updateInvoicePaymentStatus(invoice: Invoice, status: (typeof STATUSES)[number]) {
     if (isSaving) {
       return;
     }
@@ -1126,7 +957,7 @@ export default function Invoices() {
     }
   }
 
-  async function handleBulkStatusChange(status: InvoiceStatus) {
+  async function handleBulkStatusChange(status: (typeof STATUSES)[number]) {
     const count = selectedInvoiceIds.length;
     if (count === 0) return;
 
@@ -1152,29 +983,31 @@ export default function Invoices() {
     <>
       <main className="app-main flex-1">
         {/* Page Header Area */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/invoices"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="Invoices"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText as="p" text="Manage your client invoices, payments, and workflow history." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
-          </div>
-          
-          <button 
-            onClick={() => openCreateModal()} 
-            onMouseEnter={() => plusIconRef.current?.startAnimation()}
-            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
-          >
-            <PlusIcon ref={plusIconRef} size={20} />
-            New Invoice
-          </button>
-        </header>
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/invoices"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="Invoices"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText as="p" text="Manage your client invoices, payments, and workflow history." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
+            </div>
+            
+            <button 
+              onClick={() => openCreateModal()} 
+              onMouseEnter={() => plusIconRef.current?.startAnimation()}
+              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
+            >
+              <PlusIcon ref={plusIconRef} size={20} />
+              New Invoice
+            </button>
+          </header>
+        </Reveal>
 
         <PageStatsRow
           stats={[
@@ -1269,19 +1102,21 @@ export default function Invoices() {
           </div>
         )}
 
-        <InvoiceList
-          filteredInvoices={filteredInvoices}
-          selectedInvoiceIds={selectedInvoiceIds}
-          setSelectedInvoiceIds={setSelectedInvoiceIds}
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          openEditModal={openEditModal}
-          openShareModal={openShareModal}
-          handleExportInvoice={handleExportInvoice}
-          currency={currency}
-        />
+        <Reveal phase="section">
+          <InvoiceList
+            filteredInvoices={filteredInvoices}
+            selectedInvoiceIds={selectedInvoiceIds}
+            setSelectedInvoiceIds={setSelectedInvoiceIds}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            openEditModal={openEditModal}
+            openShareModal={openShareModal}
+            handleExportInvoice={handleExportInvoice}
+            currency={currency}
+          />
+        </Reveal>
 
       </main>
 

@@ -5,7 +5,7 @@ import { ModalOverlay } from "@/components/workspace-form-modal";
 import { motion } from "motion/react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
-import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, sortTasksByPriorityThenOrder, assignOrdersFromColumnSequence, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
+import { TODO_PRIORITIES, TODO_STAGES, getTodoPriorityStyles, assignOrdersFromColumnSequence, type TodoPriority, type TodoStageId, type TodoTask } from "@/data/todos";
 import { useUserData } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -60,6 +60,21 @@ import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import CheckedIcon from "@/components/icons/checked-icon";
 import PenIcon from "@/components/icons/pen-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
+import { Reveal } from "@/components/reveal";
+import {
+  createTaskId,
+  formatDueDate,
+  getDueTone,
+  getFormFromTask,
+  getStageTasks,
+  getTagList,
+  getTaskDoneMessage,
+  getTaskInsertionTarget,
+  getWhatsAppUrl,
+  normalizeStageOrder,
+  sortByOrder,
+  todayInputValue,
+} from "./todo-helpers";
 
 
 type DragTarget = {
@@ -84,115 +99,6 @@ const EMPTY_FORM: TaskForm = {
   priority: "Medium",
   tags: "",
 };
-
-const DUE_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
-
-function createTaskId() {
-  return `todo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function sortByOrder(tasks: TodoTask[]) {
-  return sortTasksByPriorityThenOrder(tasks);
-}
-
-function getStageTasks(tasks: TodoTask[], stage: TodoStageId) {
-  return sortByOrder(tasks.filter((task) => task.stage === stage));
-}
-
-function normalizeStageOrder(tasks: TodoTask[]) {
-  return TODO_STAGES.flatMap((stage) => {
-    const stageTasks = getStageTasks(tasks, stage.id);
-    return stageTasks.map((task, index) => ({ ...task, order: index }));
-  });
-}
-
-function formatDueDate(dueDate?: string) {
-  if (!dueDate) {
-    return "No due date";
-  }
-
-  const parsed = new Date(`${dueDate}T00:00:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return dueDate;
-  }
-
-  return DUE_DATE_FORMATTER.format(parsed);
-}
-
-function getDueTone(dueDate?: string, stage?: TodoStageId) {
-  if (!dueDate || stage === "done") {
-    return "text-muted";
-  }
-
-  const today = new Date(todayInputValue());
-  const due = new Date(`${dueDate}T00:00:00`);
-  const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / 86400000);
-
-  if (daysUntilDue < 0) {
-    return "text-accent";
-  }
-
-  if (daysUntilDue <= 2) {
-    return "text-foreground";
-  }
-
-  return "text-muted";
-}
-
-function getWhatsAppUrl(phone: string, message: string) {
-  const digits = phone.replace(/[^\d]/g, "");
-
-  return digits ? `https://wa.me/${digits}?text=${encodeURIComponent(message)}` : "";
-}
-
-function getTaskDoneMessage(task: TodoTask) {
-  return `Hi ${task.client || "there"}, ${task.invoiceId ? `${task.invoiceId} ` : ""}${task.title} is done.`;
-}
-
-function getTagList(tags: string) {
-  return tags
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean)
-    .slice(0, 4);
-}
-
-function getFormFromTask(task: TodoTask): TaskForm {
-  return {
-    title: task.title,
-    description: task.description || "",
-    client: task.client || "",
-    dueDate: task.dueDate || "",
-    estimate: task.estimate || "",
-    stage: task.stage,
-    priority: task.priority,
-    tags: task.tags.join(", "),
-  };
-}
-
-function getTaskInsertionTarget(
-  event: DragEvent<HTMLDivElement>,
-  orderedTasks: TodoTask[],
-  taskId: string,
-  draggedTaskId?: string | null,
-) {
-  const visibleTasks = draggedTaskId ? orderedTasks.filter((task) => task.id !== draggedTaskId) : orderedTasks;
-  const currentIndex = visibleTasks.findIndex((task) => task.id === taskId);
-
-  if (currentIndex === -1) {
-    return null;
-  }
-
-  const rect = event.currentTarget.getBoundingClientRect();
-  const isAfterCardMidpoint = event.clientY > rect.top + rect.height / 2;
-
-  return isAfterCardMidpoint ? visibleTasks[currentIndex + 1]?.id || null : taskId;
-}
 
 const BacklogStatusIcon = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
@@ -857,77 +763,79 @@ export default function TodoPage() {
     <>
       <main className="app-main-wide flex-1">
         {/* Page Heading */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/todo"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="To-Do"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText
-              as="p"
-              text="Organize project tasks, track stages, subcontract vendor work, and bill clients."
-              effect="micro-scale-fade"
-              className="text-muted mt-2 text-base font-medium"
-              delayMs={140}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {undoSnapshot && !draggingTaskId && (
-              <button
-                onClick={() => void handleUndo()}
-                disabled={isSaving}
-                className="flex items-center gap-1.5 bg-card border border-card-border text-foreground hover:bg-foreground/[0.04] px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97]"
-                aria-label={`Undo delete of ${undoSnapshot.label}`}
-                title={`Undo — restore ${undoSnapshot.label}`}
-              >
-                <Undo2 className="size-3.5" />
-                <span>Undo</span>
-              </button>
-            )}
-            {showTrashZone && (
-              <button
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  event.dataTransfer.dropEffect = "move";
-                  setIsTrashHovered(true);
-                }}
-                onDragLeave={() => setIsTrashHovered(false)}
-                onDrop={handleTrashDrop}
-                onClick={handleTrashClick}
-                disabled={isSaving}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] border ${
-                  isTrashHovered && draggingTaskId
-                    ? "bg-red-500/10 border-red-500 text-red-500"
-                    : selectedTaskIds.size > 0
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/todo"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="To-Do"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText
+                as="p"
+                text="Organize project tasks, track stages, subcontract vendor work, and bill clients."
+                effect="micro-scale-fade"
+                className="text-muted mt-2 text-base font-medium"
+                delayMs={140}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {undoSnapshot && !draggingTaskId && (
+                <button
+                  onClick={() => void handleUndo()}
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 bg-card border border-card-border text-foreground hover:bg-foreground/[0.04] px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97]"
+                  aria-label={`Undo delete of ${undoSnapshot.label}`}
+                  title={`Undo — restore ${undoSnapshot.label}`}
+                >
+                  <Undo2 className="size-3.5" />
+                  <span>Undo</span>
+                </button>
+              )}
+              {showTrashZone && (
+                <button
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    setIsTrashHovered(true);
+                  }}
+                  onDragLeave={() => setIsTrashHovered(false)}
+                  onDrop={handleTrashDrop}
+                  onClick={handleTrashClick}
+                  disabled={isSaving}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] border ${
+                    isTrashHovered && draggingTaskId
                       ? "bg-red-500/10 border-red-500 text-red-500"
-                      : "bg-card border-card-border text-muted-foreground hover:bg-foreground/[0.04]"
-                }`}
-                aria-label={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
-                title={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
+                      : selectedTaskIds.size > 0
+                        ? "bg-red-500/10 border-red-500 text-red-500"
+                        : "bg-card border-card-border text-muted-foreground hover:bg-foreground/[0.04]"
+                  }`}
+                  aria-label={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
+                  title={selectedTaskIds.size > 0 ? `Delete ${selectedTaskIds.size} selected` : "Drop here to delete"}
+                >
+                  <Trash2 className="size-3.5" />
+                  {draggingTaskId ? (
+                    <span>Drop to delete</span>
+                  ) : selectedTaskIds.size > 0 ? (
+                    <span>Delete Selected ({selectedTaskIds.size})</span>
+                  ) : null}
+                </button>
+              )}
+              <button 
+                onClick={() => openCreateModal()} 
+                onMouseEnter={() => plusIconRef.current?.startAnimation()}
+                onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+                className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
               >
-                <Trash2 className="size-3.5" />
-                {draggingTaskId ? (
-                  <span>Drop to delete</span>
-                ) : selectedTaskIds.size > 0 ? (
-                  <span>Delete Selected ({selectedTaskIds.size})</span>
-                ) : null}
+                <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+                Add Task
               </button>
-            )}
-            <button 
-              onClick={() => openCreateModal()} 
-              onMouseEnter={() => plusIconRef.current?.startAnimation()}
-              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-              className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
-            >
-              <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
-              Add Task
-            </button>
-          </div>
-        </header>
+            </div>
+          </header>
+        </Reveal>
 
         {/* Overview Stats — compact row so the board stays primary */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
@@ -1154,7 +1062,7 @@ export default function TodoPage() {
           </div>
         </div>
 
-        <div className="relative group/board">
+        <Reveal phase="section" className="relative group/board">
           {/* Floating Navigation Arrow Left */}
           {showLeftArrow && (
             <button
@@ -1462,7 +1370,7 @@ export default function TodoPage() {
             );
           })}
         </div>
-      </div>
+        </Reveal>
     </main>
 
       {isTaskModalOpen && (

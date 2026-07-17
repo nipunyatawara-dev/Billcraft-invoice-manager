@@ -37,6 +37,7 @@ import ArrowNarrowDownIcon from "@/components/icons/arrow-narrow-down-icon";
 import SlidersHorizontalIcon from "@/components/icons/sliders-horizontal-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatTile, PageStatsRow, type PageStatItem } from "@/components/page-stats-row";
+import { Reveal } from "@/components/reveal";
 import { cn } from "@/lib/utils";
 
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
@@ -1205,65 +1206,69 @@ export default function Analytics() {
 
   return (
     <main className="app-main flex-1">
-      <div className="page-heading">
-        <div>
-          <AnimatedText as="p" text={PAGE_EYEBROWS["/analytics"]} effect="micro-scale-fade" className="section-eyebrow" />
-          <AnimatedText
-            as="h1"
-            text="Analytics"
-            effect="micro-scale-fade"
-            className="text-3xl font-semibold leading-[1.1] text-foreground lg:text-[40px]"
-            delayMs={70}
-          />
-        </div>
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center md:w-auto">
-          <button
-            type="button"
-            onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
-            onMouseEnter={() => slidersIconRef.current?.startAnimation()}
-            onMouseLeave={() => slidersIconRef.current?.stopAnimation()}
-            className={`flex items-center gap-2 px-5 py-2.5 border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.95] select-none ${
-              isCustomizeOpen 
-                ? "bg-accent/10 border-accent/20 text-accent font-bold" 
-                : "text-muted"
-            }`}
-          >
-            <SlidersHorizontalIcon ref={slidersIconRef} size={16} />
-            Customise
-          </button>
-          <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">
-            <span
-              ref={indicatorRef}
-              aria-hidden="true"
-              className="segment-toolbar-indicator"
+      <Reveal phase="header" className="mb-10">
+        <div className="page-heading mb-0">
+          <div>
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/analytics"]} effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text="Analytics"
+              effect="micro-scale-fade"
+              className="text-3xl font-semibold leading-[1.1] text-foreground lg:text-[40px]"
+              delayMs={70}
             />
-            {RANGE_OPTIONS.map((option) => {
-              const isActive = activeRange === option.id;
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center md:w-auto">
+            <button
+              type="button"
+              onClick={() => setIsCustomizeOpen((isOpen) => !isOpen)}
+              onMouseEnter={() => slidersIconRef.current?.startAnimation()}
+              onMouseLeave={() => slidersIconRef.current?.stopAnimation()}
+              className={`flex items-center gap-2 px-5 py-2.5 border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.95] select-none ${
+                isCustomizeOpen 
+                  ? "bg-accent/10 border-accent/20 text-accent font-bold" 
+                  : "text-muted"
+              }`}
+            >
+              <SlidersHorizontalIcon ref={slidersIconRef} size={16} />
+              Customise
+            </button>
+            <div ref={toolbarRef} className="segment-toolbar overflow-x-auto w-full md:w-auto">
+              <span
+                ref={indicatorRef}
+                aria-hidden="true"
+                className="segment-toolbar-indicator"
+              />
+              {RANGE_OPTIONS.map((option) => {
+                const isActive = activeRange === option.id;
 
-              return (
-                <button
-                  key={option.id}
-                  ref={(el) => { if (el) buttonRefs.current.set(option.id, el); }}
-                  onClick={() => setActiveRange(option.id)}
-                  data-active={isActive}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={option.id}
+                    ref={(el) => { if (el) buttonRefs.current.set(option.id, el); }}
+                    onClick={() => setActiveRange(option.id)}
+                    data-active={isActive}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {isCustomizeOpen && (
-        <CustomizePanel
-          draftPreferences={draftPreferences}
-          isSaving={isSavingPreferences}
-          onMove={moveDraftWidget}
-          onReset={resetDraftPreferences}
-          onSave={handleSavePreferences}
-          onToggle={toggleDraftWidget}
-        />
+        <Reveal phase="actions">
+          <CustomizePanel
+            draftPreferences={draftPreferences}
+            isSaving={isSavingPreferences}
+            onMove={moveDraftWidget}
+            onReset={resetDraftPreferences}
+            onSave={handleSavePreferences}
+            onToggle={toggleDraftWidget}
+          />
+        </Reveal>
       )}
 
       <CashflowOverview
@@ -1279,19 +1284,21 @@ export default function Analytics() {
       />
 
       {visibleWidgetIds.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {visibleWidgetIds.map((widgetId) => (
-            <div key={widgetId} className="contents">
-              {renderWidget(widgetId)}
-            </div>
-          ))}
-        </div>
+        <Reveal phase="section">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {visibleWidgetIds.map((widgetId) => (
+              <div key={widgetId} className="contents">
+                {renderWidget(widgetId)}
+              </div>
+            ))}
+          </div>
+        </Reveal>
       ) : (
-        <div className="surface-card p-10 text-center">
+        <Reveal phase="section" className="surface-card p-10 text-center">
           <span className="material-symbols-outlined mb-3 block text-[42px] text-foreground/10">analytics</span>
           <AnimatedText as="p" text="No analytics widgets visible" effect="per-word-crossfade" className="text-[13px] font-semibold text-foreground" />
           <p className="mt-1 text-[11px] font-medium text-muted">Turn one on in Customise to rebuild this page.</p>
-        </div>
+        </Reveal>
       )}
     </main>
   );

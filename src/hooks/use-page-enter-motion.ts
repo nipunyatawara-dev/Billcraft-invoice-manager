@@ -2,97 +2,99 @@
 
 import { useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
-export type PageEnterPhase = "header" | "section" | "actions" | "footer" | "stagger";
+export type PageEnterPhase =
+  | "header"
+  | "stats"
+  | "section"
+  | "actions"
+  | "footer"
+  | "stagger";
+
+/** Soft decelerating ease — reads like the Autumn dashboard reveal. */
+export const REVEAL_EASE = [0.22, 1, 0.36, 1] as const;
 
 const PHASE_DELAYS: Record<Exclude<PageEnterPhase, "stagger">, number> = {
-  header: 0.12,
-  section: 0.2,
-  actions: 0.26,
-  footer: 0.32,
+  header: 0.04,
+  stats: 0.12,
+  section: 0.26,
+  actions: 0.34,
+  footer: 0.4,
 };
 
-const STORAGE_PREFIX = "billcraft.motion.";
+type RevealMotion = {
+  initial: false | { opacity: number; y: number; filter: string };
+  animate?: { opacity: number; y: number; filter: string };
+  transition?: {
+    duration: number;
+    delay: number;
+    ease: typeof REVEAL_EASE;
+  };
+};
 
-function motionKey(pathname: string, phase: PageEnterPhase) {
-  return `${pathname}:${phase}`;
-}
-
-function hasPlayed(key: string) {
-  if (typeof window === "undefined") {
-    return true;
+function buildReveal(
+  skip: boolean,
+  delay: number,
+  y = 14,
+  blur = 8,
+  duration = 0.55,
+): RevealMotion {
+  if (skip) {
+    return { initial: false as const };
   }
 
-  try {
-    return sessionStorage.getItem(`${STORAGE_PREFIX}${key}`) === "1";
-  } catch {
-    return false;
-  }
+  return {
+    initial: { opacity: 0, y, filter: `blur(${blur}px)` },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: {
+      duration,
+      delay,
+      ease: REVEAL_EASE,
+    },
+  };
 }
 
-function markPlayed(key: string) {
-  try {
-    sessionStorage.setItem(`${STORAGE_PREFIX}${key}`, "1");
-  } catch {
-    // ignore storage failures
-  }
-}
-
+/**
+ * Page-section entrance. Replays on every visit to the route (not session-gated)
+ * so navigation always feels intentional. Respects prefers-reduced-motion.
+ */
 export function usePageEnterMotion(phase: Exclude<PageEnterPhase, "stagger">) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
-  const key = motionKey(pathname, phase);
-  const skip = reduced || hasPlayed(key);
+  const skip = Boolean(reduced);
 
-  const onAnimationComplete = useCallback(() => {
-    markPlayed(key);
-  }, [key]);
-
-  return useMemo(() => {
-    if (skip) {
-      return { initial: false as const };
-    }
-
-    return {
-      initial: { opacity: 0, y: phase === "header" ? 8 : 14 },
-      animate: { opacity: 1, y: 0 },
-      transition: {
-        duration: 0.32,
-        delay: PHASE_DELAYS[phase],
-        ease: [0.4, 0, 0.2, 1] as const,
-      },
-      onAnimationComplete,
-    };
-  }, [onAnimationComplete, phase, skip]);
+  return useMemo(
+    () =>
+      buildReveal(
+        skip,
+        PHASE_DELAYS[phase],
+        phase === "header" ? 10 : 16,
+        phase === "header" ? 6 : 8,
+        phase === "header" ? 0.48 : 0.58,
+      ),
+    // pathname keeps motion identity stable per route mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pathname, phase, skip],
+  );
 }
 
-export function useStaggerEnterMotion(index: number, baseDelay = 0.08) {
+/**
+ * Staggered children (stat cards, list rows, quick actions).
+ * `baseDelay` is absolute seconds from page mount.
+ */
+export function useStaggerEnterMotion(index: number, baseDelay = 0.12, step = 0.07) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
-  const key = motionKey(pathname, "stagger");
-  const skip = reduced || hasPlayed(key);
+  const skip = Boolean(reduced);
 
-  const onAnimationComplete = useCallback(() => {
-    if (index === 0) {
-      markPlayed(key);
-    }
-  }, [index, key]);
+  return useMemo(
+    () => buildReveal(skip, baseDelay + index * step, 14, 8, 0.5),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pathname, index, baseDelay, step, skip],
+  );
+}
 
-  return useMemo(() => {
-    if (skip) {
-      return { initial: false as const };
-    }
-
-    return {
-      initial: { opacity: 0, x: -6 },
-      animate: { opacity: 1, x: 0 },
-      transition: {
-        duration: 0.24,
-        delay: baseDelay + index * 0.05,
-        ease: [0.4, 0, 0.2, 1] as const,
-      },
-      onAnimationComplete: index === 0 ? onAnimationComplete : undefined,
-    };
-  }, [baseDelay, index, onAnimationComplete, skip]);
+export function useRevealEnabled() {
+  return !useReducedMotion();
 }

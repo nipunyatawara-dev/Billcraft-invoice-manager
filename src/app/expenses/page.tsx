@@ -20,6 +20,7 @@ import PenIcon from "@/components/icons/pen-icon";
 import TrashIcon from "@/components/icons/trash-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
+import { Reveal } from "@/components/reveal";
 
 
 const EMPTY_FORM: ExpenseForm = {
@@ -238,29 +239,31 @@ export default function Expenses() {
     <>
       <main className="app-main flex-1">
         {/* Page Header Area */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/expenses"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="Expenses"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText as="p" text="Track business expenses, tax-deductible items, and spending averages." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
-          </div>
-          
-          <button 
-            onClick={openAddExpense} 
-            onMouseEnter={() => plusIconRef.current?.startAnimation()}
-            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
-          >
-            <PlusIcon ref={plusIconRef} size={20} />
-            Add Expense
-          </button>
-        </header>
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/expenses"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="Expenses"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText as="p" text="Track business expenses, tax-deductible items, and spending averages." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
+            </div>
+            
+            <button 
+              onClick={openAddExpense} 
+              onMouseEnter={() => plusIconRef.current?.startAnimation()}
+              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
+            >
+              <PlusIcon ref={plusIconRef} size={20} />
+              Add Expense
+            </button>
+          </header>
+        </Reveal>
 
         <PageStatsRow
           stats={[
@@ -296,6 +299,7 @@ export default function Expenses() {
           ]}
         />
 
+        <Reveal phase="section">
         {/* Filters and Search */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
           <AnimatedSearchBar
@@ -402,11 +406,12 @@ export default function Expenses() {
             ))}
           </div>
         ) : (
-          <div className="bg-card border border-card-border rounded-xl p-5 text-center py-16">
+          <div className="surface-card p-5 text-center py-16">
             <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">receipt_long</span>
             <AnimatedText as="p" text="No expenses found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
+        </Reveal>
       </main>
 
       {showModal && (

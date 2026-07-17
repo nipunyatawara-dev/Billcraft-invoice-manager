@@ -11,6 +11,7 @@ import { NotificationsTab } from "./components/NotificationsTab";
 import { DataTab } from "./components/DataTab";
 import { SecurityTab } from "./components/SecurityTab";
 import { TrashTab } from "./components/TrashTab";
+import { Reveal } from "@/components/reveal";
 
 type SettingsTab = "profile" | "appearance" | "notifications" | "data" | "security" | "trash";
 
@@ -82,22 +83,24 @@ function SettingsContent() {
     >
       
       {/* Header */}
-      <div 
-        ref={headerRef}
-        className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-3 sm:pt-4 lg:pt-5 pb-4 -mt-3 sm:-mt-4 lg:-mt-5 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40 mb-8"
-      >
-        <div>
-          <AnimatedText as="p" text={PAGE_EYEBROWS["/settings"]} effect="micro-scale-fade" className="section-eyebrow" />
-          <AnimatedText
-            as="h1"
-            text="Settings"
-            effect="micro-scale-fade"
-            className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground"
-            delayMs={70}
-          />
-          <AnimatedText as="p" text="Manage your profile, adjust aesthetic preferences, and control your data." effect="micro-scale-fade" className="text-muted mt-1.5 text-sm font-medium" delayMs={140} />
+      <Reveal phase="header" className="mb-10">
+        <div 
+          ref={headerRef}
+          className="sticky top-0 bg-background/95 backdrop-blur-sm z-30 pt-3 sm:pt-4 lg:pt-5 pb-4 -mt-3 sm:-mt-4 lg:-mt-5 -mx-6 sm:-mx-8 lg:-mx-12 px-6 sm:px-8 lg:px-12 border-b border-card-border/40"
+        >
+          <div>
+            <AnimatedText as="p" text={PAGE_EYEBROWS["/settings"]} effect="micro-scale-fade" className="section-eyebrow" />
+            <AnimatedText
+              as="h1"
+              text="Settings"
+              effect="micro-scale-fade"
+              className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground"
+              delayMs={70}
+            />
+            <AnimatedText as="p" text="Manage your profile, adjust aesthetic preferences, and control your data." effect="micro-scale-fade" className="text-muted mt-1.5 text-sm font-medium" delayMs={140} />
+          </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* Modern Bento Layout */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
@@ -140,7 +143,7 @@ function SettingsContent() {
         </div>
 
         {/* Dynamic Content Area */}
-        <div className="flex-1 min-w-0">
+        <Reveal phase="section" className="flex-1 min-w-0">
           <div className="relative">
             {/* Render Active Component */}
             {activeTab === "profile" && <ProfileTab />}
@@ -150,7 +153,7 @@ function SettingsContent() {
             {activeTab === "security" && <SecurityTab />}
             {activeTab === "trash" && <TrashTab />}
           </div>
-        </div>
+        </Reveal>
       </div>
     </main>
   );

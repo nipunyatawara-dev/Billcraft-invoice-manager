@@ -2,14 +2,14 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CommandPalette } from "@/components/command-palette";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { PageLoadingSkeleton, getLoadingSkeletonVariant } from "@/components/page-loading-skeleton";
 import { ProfileOnboarding } from "@/components/profile-onboarding";
 import { ProfileManagerModal } from "@/components/profile-manager-modal";
 import { NotificationsPanel } from "@/components/notifications-panel";
 import { useModePalettes } from "@/hooks/use-mode-palettes";
 import { useFontLoader } from "@/hooks/use-font-loader";
-import { useUserData } from "@/hooks/use-user-data";
+import { useUserDataSnapshot, useUserDataStatus } from "@/hooks/use-user-data";
 import { useBillingAlerts } from "@/hooks/use-billing-alerts";
 import { notify } from "@/lib/toast";
 import { useEffect, useState, useCallback, useRef } from "react";
@@ -159,20 +159,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const pathname = usePathname();
+  const reducedMotion = useReducedMotion();
   
+  const { loading, error } = useUserDataStatus();
   const {
     activeProfile,
-    activeProfileId,
     clients,
-    error,
     invoices,
-    loading,
     outsourcingInvoices,
     profiles,
     todoTasks,
     vendors,
-    switchProfile,
-  } = useUserData();
+  } = useUserDataSnapshot();
 
   const { notificationItems, alertCount } = useBillingAlerts({
     activeProfile,
@@ -408,7 +406,37 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           {/* Main Scroll Area */}
           <div className="flex-1 overflow-y-auto bg-background/50">
             <div className="px-6 pb-6 pt-3 sm:px-8 sm:pb-8 sm:pt-4 lg:px-12 lg:pb-10 lg:pt-5 max-w-[1600px] mx-auto w-full">
-              {loading ? <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} /> : children}
+              {reducedMotion ? (
+                loading ? (
+                  <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} />
+                ) : (
+                  children
+                )
+              ) : (
+                <AnimatePresence mode="wait" initial={false}>
+                  {loading ? (
+                    <motion.div
+                      key="skeleton"
+                      initial={{ opacity: 0, filter: "blur(4px)" }}
+                      animate={{ opacity: 1, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, filter: "blur(6px)", y: -6 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <PageLoadingSkeleton variant={getLoadingSkeletonVariant(pathname)} />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="content"
+                      initial={{ opacity: 0, filter: "blur(8px)", y: 8 }}
+                      animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                      exit={{ opacity: 0, filter: "blur(4px)" }}
+                      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {children}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           </div>
         </div>

@@ -16,7 +16,6 @@ import {
 import { useCurrency } from "@/hooks/use-currency";
 import { useUserData } from "@/hooks/use-user-data";
 import { useExpectedCashflow } from "@/hooks/use-expected-cashflow";
-import { usePageEnterMotion } from "@/hooks/use-page-enter-motion";
 import { cn } from "@/lib/utils";
 import { PAGE_EYEBROWS } from "@/lib/page-meta";
 import ChartLineIcon from "@/components/icons/chart-line-icon";
@@ -33,6 +32,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { QuickActionsCard } from "@/components/quick-actions-card";
+import { Reveal } from "@/components/reveal";
 import {
   Area,
   AreaChart,
@@ -233,8 +233,6 @@ export default function Home() {
   const [chartType, setChartType] = useState<"area" | "line" | "bar">("area");
   const [mounted, setMounted] = useState(false);
   const timeframeRef = useRef<HTMLDivElement>(null);
-  const recentInvoicesMotion = usePageEnterMotion("section");
-  const cashflowMotion = usePageEnterMotion("footer");
 
   useEffect(() => {
     setMounted(true);
@@ -358,25 +356,29 @@ export default function Home() {
   return (
     <main className="app-main flex-1">
       {/* Page Header Area */}
-      <header className="mb-8">
-        <AnimatedText as="p" text={PAGE_EYEBROWS["/"]} effect="micro-scale-fade" className="section-eyebrow" />
-        <AnimatedText
-          as="h1"
-          text={hasSyncedGreeting ? greetingText : "Good Morning"}
-          effect="micro-scale-fade"
-          className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-          delayMs={70}
-        />
-        <AnimatedText as="p" text="Here's what's happening with your business today." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
-      </header>
+      <Reveal phase="header" className="mb-10">
+        <header>
+          <AnimatedText as="p" text={PAGE_EYEBROWS["/"]} effect="micro-scale-fade" className="section-eyebrow" />
+          <AnimatedText
+            as="h1"
+            text={hasSyncedGreeting ? greetingText : "Good Morning"}
+            effect="micro-scale-fade"
+            className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground text-balance"
+            delayMs={70}
+          />
+          <AnimatedText as="p" text="Here's what's happening with your business today." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium text-pretty" delayMs={140} />
+        </header>
+      </Reveal>
 
       {/* STATS CARDS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
         {/* Outstanding Revenue Card */}
-        <div 
+        <Reveal
+          index={0}
+          baseDelay={0.1}
           onMouseEnter={() => outstandingBilledRef.current?.startAnimation()}
           onMouseLeave={() => outstandingBilledRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Outstanding Revenue</span>
@@ -398,13 +400,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Total Collected Card */}
-        <div 
+        <Reveal
+          index={1}
+          baseDelay={0.1}
           onMouseEnter={() => totalCollectedRef.current?.startAnimation()}
           onMouseLeave={() => totalCollectedRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Total Collected</span>
@@ -426,13 +430,15 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Revenue Growth Card */}
-        <div 
+        <Reveal
+          index={2}
+          baseDelay={0.1}
           onMouseEnter={() => revenueGrowthRef.current?.startAnimation()}
           onMouseLeave={() => revenueGrowthRef.current?.stopAnimation()}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-4 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-muted">Revenue Growth (MoM)</span>
@@ -457,13 +463,13 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
 
       {/* RECENT INVOICES — above chart so activity stays above the fold */}
-      <motion.div 
-        {...recentInvoicesMotion}
-        className="w-full bg-card rounded-xl border border-card-border shadow-xs flex flex-col overflow-hidden mb-4"
+      <Reveal
+        phase="section"
+        className="surface-card w-full flex flex-col overflow-hidden mb-6"
       >
         <div className="px-5 py-3.5 flex items-center justify-between border-b border-card-border bg-foreground/[0.01]">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -549,15 +555,15 @@ export default function Home() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </Reveal>
 
       {/* CHART & QUICK ACTIONS */}
-      <div className="flex flex-col lg:flex-row gap-4 items-stretch">
+      <div className="flex flex-col lg:flex-row gap-5 items-stretch">
         
         {/* Expected Cashflow Interactive Card */}
-        <motion.div 
-          {...cashflowMotion}
-          className="bg-card text-card-foreground rounded-xl border border-card-border p-5 flex-1 flex flex-col relative overflow-hidden min-h-0"
+        <Reveal
+          phase="footer"
+          className="surface-card p-5 flex-1 flex flex-col relative overflow-hidden min-h-0"
         >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 relative z-20">
             <div>
@@ -712,7 +718,7 @@ export default function Home() {
               </div>
             )}
           </div>
-        </motion.div>
+        </Reveal>
 
         <QuickActionsCard className="lg:self-stretch" />
       </div>

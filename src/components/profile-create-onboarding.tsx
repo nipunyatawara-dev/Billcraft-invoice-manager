@@ -297,8 +297,6 @@ export function ProfileCreateOnboarding({
                 value={profileForm.phone || ""}
                 onChange={(phone) => updateProfileField(setProfileForm, "phone", phone)}
                 hintPhone={profileForm.phone}
-                inputClassName="py-2.5"
-                selectClassName="py-2.5"
               />
             </div>
           </div>

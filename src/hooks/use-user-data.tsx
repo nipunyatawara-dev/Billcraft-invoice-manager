@@ -19,7 +19,6 @@ import {
   type Vendor,
   type Expense,
   type CatalogItem,
-  type TrashItem,
 } from "@/data/invoices";
 import type { TodoTask } from "@/data/todos";
 
@@ -36,6 +35,12 @@ export type { TodoTask } from "@/data/todos";
 
 import { useCurrency } from "@/hooks/use-currency";
 import type { ClientDraft, LocalDataSnapshot, ProfileDraft, VendorDraft } from "@/lib/user-data-store";
+import {
+  getNextInvoiceId,
+  getNextOutsourcingInvoiceId,
+  hydrateSnapshot,
+  normalizeLineItems,
+} from "@/lib/user-data-helpers";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type { ProfileDraft, ClientDraft, VendorDraft } from "@/lib/user-data-store";
@@ -161,85 +166,42 @@ const EMPTY_SNAPSHOT: LocalDataSnapshot = {
   trash: [],
   userDataPath: "",
 };
- 
+
+type UserDataStatus = {
+  loading: boolean;
+  error: string | null;
+  isProfileLocked: boolean;
+};
+
+type UserDataActions = Omit<
+  UserDataContextValue,
+  keyof LocalDataSnapshot | "loading" | "error" | "isProfileLocked"
+>;
+
+const UserDataSnapshotContext = createContext<LocalDataSnapshot | null>(null);
+const UserDataStatusContext = createContext<UserDataStatus | null>(null);
+const UserDataActionsContext = createContext<UserDataActions | null>(null);
+/** @deprecated Prefer domain hooks; kept for a single combined consumer API. */
 const UserDataContext = createContext<UserDataContextValue | null>(null);
- 
+
 function readActiveProfileId() {
   if (typeof window === "undefined") {
     return null;
   }
- 
+
   return window.localStorage.getItem(ACTIVE_PROFILE_KEY);
 }
- 
+
 function writeActiveProfileId(profileId: string | null) {
   if (typeof window === "undefined") {
     return;
   }
- 
+
   if (profileId) {
     window.localStorage.setItem(ACTIVE_PROFILE_KEY, profileId);
   } else {
     window.localStorage.removeItem(ACTIVE_PROFILE_KEY);
   }
-}
- 
-function getNextInvoiceId(invoices: Invoice[]) {
-  const highestNumber = invoices.reduce((highest, invoice) => {
-    const parsed = Number(invoice.id.replace(/\D/g, ""));
-    return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
-  }, 0);
- 
-  return `#INV-${String(highestNumber + 1).padStart(4, "0")}`;
-}
- 
-function getNextOutsourcingInvoiceId(invoices: OutsourcingInvoice[]) {
-  const highestNumber = invoices.reduce((highest, invoice) => {
-    const parsed = Number(invoice.id.replace(/\D/g, ""));
-    return Number.isFinite(parsed) ? Math.max(highest, parsed) : highest;
-  }, 0);
- 
-  return `#OUT-${String(highestNumber + 1).padStart(4, "0")}`;
-}
- 
-function normalizeLineItems(items: InvoiceItem[]) {
-  return items
-    .map((item, index) => ({
-      id: item.id || `item-${Date.now().toString(36)}-${index}`,
-      description: item.description.trim(),
-      quantity: Number(item.quantity) || 0,
-      price: Number(item.price) || 0,
-    }))
-    .filter((item) => item.description || item.quantity > 0 || item.price > 0);
-}
- 
-function hydrateSnapshot(snapshot: LocalDataSnapshot): LocalDataSnapshot {
-  return {
-    ...snapshot,
-    profiles: snapshot.profiles || [],
-    activeProfileId: snapshot.activeProfileId || snapshot.activeProfile?.id || null,
-    activeProfile: snapshot.activeProfile || null,
-    clients: snapshot.clients || [],
-    invoices: (snapshot.invoices || []).map((invoice) => ({
-      ...invoice,
-      statusColor: getStatusColor(invoice.status),
-      clientColor: invoice.clientColor || "bg-foreground/10",
-      avatar: invoice.avatar || createAvatar(invoice.client),
-      items: invoice.items || [],
-    })),
-    vendors: snapshot.vendors || [],
-    outsourcingInvoices: (snapshot.outsourcingInvoices || []).map((invoice) => ({
-      ...invoice,
-      statusColor: getStatusColor(invoice.status),
-      vendorColor: invoice.vendorColor || "bg-foreground/10",
-      avatar: invoice.avatar || createAvatar(invoice.vendor),
-      items: invoice.items || [],
-    })),
-    todoTasks: snapshot.todoTasks || [],
-    expenses: snapshot.expenses || [],
-    catalogItems: snapshot.catalogItems || [],
-    trash: snapshot.trash || [],
-  };
 }
 
 export function UserDataProvider({ children }: { children: React.ReactNode }) {
@@ -944,85 +906,99 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [postAction, snapshot.activeProfileId]);
 
-  const value = useMemo<UserDataContextValue>(() => ({
-    ...snapshot,
-    loading,
-    error,
-    isProfileLocked,
-    createProfile,
-    updateProfile,
-    switchProfile,
-    unlockProfile,
-    logoutProfile,
-    verifyProfilePassword,
-    changeProfilePassword,
-    updateProfilePasswordHint,
-    deleteProfile,
-    deleteAllProfiles,
-    deleteInvoices,
-    updateInvoicesStatus,
-    restoreInvoices,
-    emptyTrash,
-    saveClient,
-    saveInvoice,
-    saveVendor,
-    saveOutsourcingInvoice,
-    saveAnalyticsPreferences,
-    markProfileBackedUp,
-    exportProfileBackup,
-    importProfileBackup,
-    saveTodoTasks,
-    saveExpense,
-    deleteExpense,
-    saveCatalogItem,
-    deleteCatalogItem,
-    exportInvoice,
-    exportOutsourcingInvoice,
-    refresh,
-  }), [
-    changeProfilePassword,
-    createProfile,
-    error,
-    exportInvoice,
-    exportOutsourcingInvoice,
-    isProfileLocked,
-    loading,
-    logoutProfile,
-    markProfileBackedUp,
-    exportProfileBackup,
-    importProfileBackup,
-    refresh,
-    saveClient,
-    saveInvoice,
-    saveOutsourcingInvoice,
-    saveAnalyticsPreferences,
-    saveTodoTasks,
-    saveVendor,
-    saveExpense,
-    deleteExpense,
-    saveCatalogItem,
-    deleteCatalogItem,
-    snapshot,
-    switchProfile,
-    deleteProfile,
-    deleteAllProfiles,
-    deleteInvoices,
-    updateInvoicesStatus,
-    restoreInvoices,
-    emptyTrash,
-    unlockProfile,
-    updateProfile,
-    updateProfilePasswordHint,
-    verifyProfilePassword,
-  ]);
+  const status = useMemo<UserDataStatus>(
+    () => ({ loading, error, isProfileLocked }),
+    [loading, error, isProfileLocked],
+  );
+
+  const actions = useMemo<UserDataActions>(
+    () => ({
+      createProfile,
+      updateProfile,
+      switchProfile,
+      unlockProfile,
+      logoutProfile,
+      verifyProfilePassword,
+      changeProfilePassword,
+      updateProfilePasswordHint,
+      deleteProfile,
+      deleteAllProfiles,
+      deleteInvoices,
+      updateInvoicesStatus,
+      restoreInvoices,
+      emptyTrash,
+      saveClient,
+      saveInvoice,
+      saveVendor,
+      saveOutsourcingInvoice,
+      saveAnalyticsPreferences,
+      markProfileBackedUp,
+      exportProfileBackup,
+      importProfileBackup,
+      saveTodoTasks,
+      saveExpense,
+      deleteExpense,
+      saveCatalogItem,
+      deleteCatalogItem,
+      exportInvoice,
+      exportOutsourcingInvoice,
+      refresh,
+    }),
+    [
+      changeProfilePassword,
+      createProfile,
+      deleteAllProfiles,
+      deleteCatalogItem,
+      deleteExpense,
+      deleteInvoices,
+      deleteProfile,
+      emptyTrash,
+      exportInvoice,
+      exportOutsourcingInvoice,
+      exportProfileBackup,
+      importProfileBackup,
+      logoutProfile,
+      markProfileBackedUp,
+      refresh,
+      restoreInvoices,
+      saveAnalyticsPreferences,
+      saveCatalogItem,
+      saveClient,
+      saveExpense,
+      saveInvoice,
+      saveOutsourcingInvoice,
+      saveTodoTasks,
+      saveVendor,
+      switchProfile,
+      unlockProfile,
+      updateInvoicesStatus,
+      updateProfile,
+      updateProfilePasswordHint,
+      verifyProfilePassword,
+    ],
+  );
+
+  const value = useMemo<UserDataContextValue>(
+    () => ({
+      ...snapshot,
+      ...status,
+      ...actions,
+    }),
+    [actions, snapshot, status],
+  );
 
   return (
-    <UserDataContext.Provider value={value}>
-      {children}
-    </UserDataContext.Provider>
+    <UserDataActionsContext.Provider value={actions}>
+      <UserDataStatusContext.Provider value={status}>
+        <UserDataSnapshotContext.Provider value={snapshot}>
+          <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>
+        </UserDataSnapshotContext.Provider>
+      </UserDataStatusContext.Provider>
+    </UserDataActionsContext.Provider>
   );
 }
 
+/** Full snapshot + status + actions. Prefer narrower hooks when possible. */
 export function useUserData() {
   const context = useContext(UserDataContext);
 
@@ -1030,5 +1006,32 @@ export function useUserData() {
     throw new Error("useUserData must be used within UserDataProvider.");
   }
 
+  return context;
+}
+
+/** loading / error / lock — stable when only domain data changes. */
+export function useUserDataStatus() {
+  const context = useContext(UserDataStatusContext);
+  if (!context) {
+    throw new Error("useUserDataStatus must be used within UserDataProvider.");
+  }
+  return context;
+}
+
+/** Mutators only — does not re-render when snapshot data changes. */
+export function useUserDataActions() {
+  const context = useContext(UserDataActionsContext);
+  if (!context) {
+    throw new Error("useUserDataActions must be used within UserDataProvider.");
+  }
+  return context;
+}
+
+/** Raw snapshot data (profiles, invoices, clients, …). */
+export function useUserDataSnapshot() {
+  const context = useContext(UserDataSnapshotContext);
+  if (!context) {
+    throw new Error("useUserDataSnapshot must be used within UserDataProvider.");
+  }
   return context;
 }

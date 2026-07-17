@@ -21,6 +21,7 @@ import ChartLineIcon from "@/components/icons/chart-line-icon";
 import PenIcon from "@/components/icons/pen-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
+import { Reveal } from "@/components/reveal";
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -270,29 +271,31 @@ export default function Clients() {
     <>
       <main className="app-main flex-1">
         {/* Page Header Area */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/clients"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="Clients"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText as="p" text="Organize customer records, statements, payments, and relationships." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
-          </div>
-          
-          <button 
-            onClick={openAddClient} 
-            onMouseEnter={() => userPlusIconRef.current?.startAnimation()}
-            onMouseLeave={() => userPlusIconRef.current?.stopAnimation()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
-          >
-            <UserPlusIcon ref={userPlusIconRef} size={20} />
-            Add Client
-          </button>
-        </header>
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/clients"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="Clients"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText as="p" text="Organize customer records, statements, payments, and relationships." effect="micro-scale-fade" className="text-muted mt-2 text-base font-medium" delayMs={140} />
+            </div>
+            
+            <button 
+              onClick={openAddClient} 
+              onMouseEnter={() => userPlusIconRef.current?.startAnimation()}
+              onMouseLeave={() => userPlusIconRef.current?.stopAnimation()}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
+            >
+              <UserPlusIcon ref={userPlusIconRef} size={20} />
+              Add Client
+            </button>
+          </header>
+        </Reveal>
 
         <PageStatsRow
           stats={[
@@ -333,6 +336,7 @@ export default function Clients() {
           ]}
         />
 
+        <Reveal phase="section">
         <div className="mb-6">
           <AnimatedSearchBar
             value={searchQuery}
@@ -547,6 +551,7 @@ export default function Clients() {
             <AnimatedText as="p" text="No regular clients found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
+        </Reveal>
       </main>
 
       {showClientModal && (

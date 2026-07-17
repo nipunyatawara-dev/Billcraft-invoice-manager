@@ -4,10 +4,10 @@
 import { AnimatedNumber } from "@/components/animated-number";
 import { AnimatedText } from "@/components/animated-text";
 import { PayableFormModal } from "./components/PayableFormModal";
+import { PayableList } from "./components/PayableList";
 import { ModalOverlay } from "@/components/workspace-form-modal";
 import { PaymentSummary, PaymentTrackingForm } from "@/components/payment-tracking";
 import { PhoneInput } from "@/components/phone-input";
-import { AnimatedSearchBar } from "@/components/ui/animated-search-bar";
 
 import {
   formatCurrency,
@@ -17,10 +17,8 @@ import {
   getOutsourcingInvoiceTotal,
   getOutsourcingTotals,
   type InvoiceItem,
-  type InvoiceStatus,
   type InvoiceWorkflowStatus,
   type OutsourcingInvoice,
-  type PaymentAttachment,
   type PaymentRecord,
   type Vendor,
   CURRENCIES,
@@ -47,167 +45,26 @@ import RosetteDiscountCheckIcon from "@/components/icons/rosette-discount-check-
 import WalletIcon from "@/components/icons/wallet-icon";
 import TriangleAlertIcon from "@/components/icons/triangle-alert-icon";
 import { PageStatsRow } from "@/components/page-stats-row";
+import { Reveal } from "@/components/reveal";
 import PenIcon from "@/components/icons/pen-icon";
-import SendIcon from "@/components/icons/send-icon";
 import DownloadIcon from "@/components/icons/download-icon";
-import TrashIcon from "@/components/icons/trash-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
-
-const STATUS_FILTERS = ["All", "Paid", "Unpaid"] as const;
-const TEMPLATES = [
-  {
-    id: "outsourcing",
-    name: "Outsourcing Invoice",
-    description: "A payable record for work you need to pay to a vendor.",
-  },
-] as const;
-
-type ModalMode = "create" | "edit" | "view" | null;
-type VendorMode = "saved" | "new";
-type SaveVendorMode = "regular" | "onetime";
-
-type OutsourcingForm = {
-  templateId: string;
-  vendorMode: VendorMode;
-  vendorId: string;
-  vendor: string;
-  email: string;
-  phone: string;
-  company: string;
-  address: string;
-  avatar: string;
-  date: string;
-  dueDate: string;
-  status: InvoiceStatus;
-  items: InvoiceItem[];
-  paymentNotes: string;
-  payments: PaymentRecord[];
-  receiptAttachments: PaymentAttachment[];
-  saveVendorMode: SaveVendorMode | null;
-  currency: string;
-  paypal: string;
-  stripe: string;
-};
-
-function createItem(description = "", quantity = 1, price = 0): InvoiceItem {
-  return {
-    id: `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-    description,
-    quantity,
-    price,
-  };
-}
-
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function createEmptyForm(): OutsourcingForm {
-  return {
-    templateId: TEMPLATES[0].id,
-    vendorMode: "saved",
-    vendorId: "",
-    vendor: "",
-    email: "",
-    phone: "",
-    company: "",
-    address: "",
-    avatar: "",
-    date: todayInputValue(),
-    dueDate: "",
-    status: "Unpaid",
-    items: [createItem()],
-    paymentNotes: "",
-    payments: [],
-    receiptAttachments: [],
-    saveVendorMode: null,
-    currency: "",
-    paypal: "",
-    stripe: "",
-  };
-}
-
-function toDateInputValue(date?: string) {
-  if (!date) {
-    return "";
-  }
-
-  const parsed = new Date(date);
-  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
-}
-
-function getFormFromVendor(vendor: Vendor, currentForm: OutsourcingForm): OutsourcingForm {
-  return {
-    ...currentForm,
-    vendorMode: "saved",
-    vendorId: vendor.id,
-    vendor: vendor.name,
-    email: vendor.email,
-    phone: vendor.phone,
-    company: vendor.company || "",
-    address: vendor.address || "",
-    avatar: vendor.avatar,
-    paypal: vendor.paypal || "",
-    stripe: vendor.stripe || "",
-    saveVendorMode: null,
-  };
-}
-
-function getOutsourcingForm(invoice: OutsourcingInvoice, vendors: Vendor[]): OutsourcingForm {
-  const matchingVendor = vendors.find((vendor) => vendor.id === invoice.vendorId || vendor.name === invoice.vendor);
-  const fallbackItems = invoice.items && invoice.items.length > 0
-    ? invoice.items
-    : [createItem("Payable total", 1, getOutsourcingInvoiceTotal(invoice))];
-
-  return {
-    templateId: invoice.templateId || TEMPLATES[0].id,
-    vendorMode: matchingVendor ? "saved" : "new",
-    vendorId: matchingVendor?.id || "",
-    vendor: invoice.vendor,
-    email: invoice.email,
-    phone: invoice.phone,
-    company: invoice.company || matchingVendor?.company || "",
-    address: invoice.address || matchingVendor?.address || "",
-    avatar: invoice.avatar,
-    date: toDateInputValue(invoice.date) || todayInputValue(),
-    dueDate: toDateInputValue(invoice.dueDate),
-    status: invoice.status,
-    items: fallbackItems,
-    paymentNotes: invoice.paymentNotes || "",
-    payments: invoice.payments || [],
-    receiptAttachments: invoice.receiptAttachments || [],
-    saveVendorMode: null,
-    currency: invoice.currency || "",
-    paypal: invoice.paypal || matchingVendor?.paypal || "",
-    stripe: invoice.stripe || matchingVendor?.stripe || "",
-  };
-}
-
-function getOutsourcingPaymentState(invoice: OutsourcingInvoice): "Paid" | "Unpaid" {
-  return getBalanceDue(invoice) <= 0 ? "Paid" : "Unpaid";
-}
-
-function getVendorPaypalUrl(paypal: string, amount: number) {
-  if (!paypal) return "";
-  const cleaned = paypal.trim();
-  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
-    return cleaned;
-  }
-  let path = cleaned;
-  if (path.startsWith("paypal.me/")) {
-    path = path.slice("paypal.me/".length);
-  }
-  return `https://paypal.me/${path}/${amount.toFixed(2)}`;
-}
-
-function getVendorStripeUrl(stripe: string) {
-  if (!stripe) return "";
-  const cleaned = stripe.trim();
-  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
-    return cleaned;
-  }
-  return `https://${cleaned}`;
-}
+import {
+  STATUS_FILTERS,
+  TEMPLATES,
+  createEmptyForm,
+  createItem,
+  getFormFromVendor,
+  getOutsourcingForm,
+  getOutsourcingPaymentState,
+  getVendorPaypalUrl,
+  getVendorStripeUrl,
+  todayInputValue,
+  type ModalMode,
+  type OutsourcingForm,
+  type SaveVendorMode,
+  type VendorMode,
+} from "./outsourcing-helpers";
 
 export default function Outsourcing() {
   const plusIconRef = useRef<AnimatedIconHandle>(null);
@@ -345,7 +202,7 @@ export default function Outsourcing() {
     invoice: OutsourcingInvoice, 
     updates: {
       workflowStatus?: InvoiceWorkflowStatus;
-      status?: InvoiceStatus;
+      status?: OutsourcingInvoice["status"];
       amountPaid?: number;
       paidAt?: string;
       payments?: PaymentRecord[];
@@ -742,34 +599,36 @@ export default function Outsourcing() {
     <>
       <main className="app-main flex-1">
         {/* Page Heading */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/outsourcing"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="Outsourcing"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText
-              as="p"
-              text="Track vendor payables, settle balances, and coordinate outsourced services."
-              effect="micro-scale-fade"
-              className="text-muted mt-2 text-base font-medium"
-              delayMs={140}
-            />
-          </div>
-          <button
-            onClick={openCreateModal}
-            onMouseEnter={() => plusIconRef.current?.startAnimation()}
-            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
-          >
-            <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
-            New Payable
-          </button>
-        </header>
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/outsourcing"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="Outsourcing"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText
+                as="p"
+                text="Track vendor payables, settle balances, and coordinate outsourced services."
+                effect="micro-scale-fade"
+                className="text-muted mt-2 text-base font-medium"
+                delayMs={140}
+              />
+            </div>
+            <button
+              onClick={openCreateModal}
+              onMouseEnter={() => plusIconRef.current?.startAnimation()}
+              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+              className="flex items-center gap-2 bg-card border border-card-border text-foreground hover:bg-accent hover:text-action-text hover:border-accent px-5 py-2.5 rounded-xl font-medium transition-all shadow-xs hover:shadow-md hover:shadow-accent/20 group active:scale-[0.97]"
+            >
+              <PlusIcon ref={plusIconRef} size={20} className="transition-transform duration-300" />
+              New Payable
+            </button>
+          </header>
+        </Reveal>
 
         <PageStatsRow
           stats={[
@@ -807,143 +666,25 @@ export default function Outsourcing() {
         />
 
         {/* Two Column Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+        <Reveal phase="section" className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Main List Column */}
           <div className="space-y-6">
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
-              <AnimatedSearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search outsourcing payables..."
-              />
-              <div className="flex gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 no-scrollbar">
-                {STATUS_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setActiveFilter(filter)}
-                    className={`px-3.5 py-1.5 text-[11px] font-semibold rounded-xl transition-all cursor-pointer select-none active:scale-[0.95] tracking-wide uppercase whitespace-nowrap ${
-                      activeFilter === filter
-                        ? "bg-accent/10 border-accent/20 text-accent border"
-                        : "text-muted hover:bg-foreground/[0.04] border border-card-border"
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Payables Cards List */}
-            <div className="space-y-3.5">
-              {filteredInvoices.map((invoice) => (
-                (() => {
-                  const balanceDue = getBalanceDue(invoice);
-                  const paymentState = getOutsourcingPaymentState(invoice);
-                  const activeInvoiceCurrency = invoice.currency || currency;
-                  const totalAmount = getOutsourcingInvoiceTotal(invoice);
-
-                  return (
-                    <div
-                      key={invoice.id}
-                      onClick={() => openShareModal(invoice)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          openShareModal(invoice);
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      className="bg-card text-card-foreground w-full text-left p-5 rounded-xl border border-card-border hover-row relative group overflow-hidden cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4 relative z-10">
-                        {/* Avatar with Status Ring */}
-                        <div className={`size-10 rounded-xl overflow-hidden shrink-0 ring-1 ${
-                          paymentState === "Paid" ? "ring-positive/30" : "ring-foreground/10"
-                        } border border-background shadow-xs flex items-center justify-center font-bold text-xs bg-accent/10 text-accent`}>
-                          {invoice.avatar ? (
-                            <img className="w-full h-full object-cover rounded-xl" alt={invoice.vendor} src={invoice.avatar} />
-                          ) : (
-                            (invoice.vendor || "V")[0].toUpperCase()
-                          )}
-                        </div>
-
-                        {/* Vendor & ID Details */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-[14px] text-foreground group-hover:text-accent transition-colors truncate">{invoice.vendor}</h3>
-                          <p className="text-[11px] text-muted mt-0.5 flex items-center gap-1.5">
-                            <span className="font-semibold">{invoice.id}</span>
-                            <span className="w-1 h-1 rounded-full bg-foreground/15" />
-                            <span className="font-medium">{invoice.date}</span>
-                          </p>
-                        </div>
-
-                        {/* Due Date (Desktop) */}
-                        <div className="text-right hidden sm:block">
-                          <p className="text-[10px] text-muted font-bold tracking-wider uppercase">Due Date</p>
-                          <p className="text-xs font-bold text-foreground mt-0.5">{invoice.dueDate || "No due date"}</p>
-                        </div>
-
-                        {/* Status Pill */}
-                        <span className={`px-2.5 py-1 text-[9px] font-bold rounded-lg tracking-wide uppercase shrink-0 ${
-                          paymentState === "Paid" ? "bg-positive/10 text-positive border border-positive/20" : "bg-foreground/[0.06] text-foreground/60 border border-foreground/[0.03]"
-                        }`}>
-                          {paymentState}
-                        </span>
-
-                        {/* Hover action toolbar */}
-                        <div className="hidden sm:flex items-center gap-1 shrink-0 bg-background/50 backdrop-blur-xs border border-card-border p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <button
-                            type="button"
-                            onClick={(event) => { event.stopPropagation(); openEditModal(invoice); }}
-                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
-                            title="Edit"
-                          >
-                            <PenIcon size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => { event.stopPropagation(); openShareModal(invoice); }}
-                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
-                            title="Send"
-                          >
-                            <SendIcon size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => { event.stopPropagation(); handleExportOutsourcingInvoice(invoice); }}
-                            className="size-7 flex items-center justify-center border border-card-border hover:border-accent/30 hover:bg-foreground/[0.04] text-muted hover:text-foreground rounded-lg transition-all duration-200 active:scale-95"
-                            title="Download"
-                          >
-                            <DownloadIcon size={12} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Mobile summary details */}
-                      <div className="flex items-center justify-between mt-3 sm:hidden pt-2 border-t border-card-border/20 text-xs">
-                        <p className="font-bold text-foreground">Total: <span className="font-display font-semibold">{formatCurrency(totalAmount, activeInvoiceCurrency)}</span></p>
-                        <p className="font-semibold text-muted">Due: <span className="text-negative">{formatCurrency(balanceDue, activeInvoiceCurrency)}</span></p>
-                      </div>
-                    </div>
-                  );
-                })()
-              ))}
-
-              {filteredInvoices.length === 0 && (
-                <div className="text-center py-20 bg-card/40 border border-card-border border-dashed rounded-xl">
-                  <i className="ph ph-folder-open text-[48px] text-foreground/15 mb-3 block"></i>
-                  <AnimatedText as="p" text="No outsourcing payables found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
-                </div>
-              )}
-            </div>
+            <PayableList
+              filteredInvoices={filteredInvoices}
+              currency={currency}
+              activeFilter={activeFilter}
+              setActiveFilter={setActiveFilter}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openEditModal={openEditModal}
+              openShareModal={openShareModal}
+              handleExportOutsourcingInvoice={handleExportOutsourcingInvoice}
+            />
           </div>
 
           {/* Saved Vendors Column (Deck style) */}
           <div className="space-y-4">
-            <div className="bg-card rounded-xl border border-card-border p-5 space-y-4">
+            <div className="surface-card p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-card-border pb-3 select-none">
                 <div className="flex items-center gap-2">
                   <i className="ph ph-users text-lg text-muted-foreground"></i>
@@ -988,7 +729,7 @@ export default function Outsourcing() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </main>
 
       {isFormMode && (
@@ -1615,8 +1356,8 @@ export default function Outsourcing() {
                           value={vendorForm.phone || ""}
                           onChange={(phone) => setVendorForm({ ...vendorForm, phone })}
                           hintPhone={activeProfile?.phone || vendorForm.phone}
-                          inputClassName="py-2.5 text-[13px] bg-background/50 rounded-xl"
-                          selectClassName="py-2.5 text-[12px] bg-background/50 rounded-xl"
+                          inputClassName="text-[13px] bg-background/50 rounded-xl"
+                          selectClassName="text-[12px] bg-background/50 rounded-xl"
                         />
                       </div>
                     </div>

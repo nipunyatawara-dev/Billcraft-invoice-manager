@@ -137,9 +137,6 @@ html {
   --category-2: var(--chart-soft);
   --category-3: var(--positive);
   --category-4: var(--chart-strong);
-  --theme-wipe-x: 50vw;
-  --theme-wipe-y: 50vh;
-  --theme-wipe-radius: 0px;
 }
 
 html.dark {
@@ -332,19 +329,44 @@ html.dark {
   }
 }
 
-@keyframes theme-wipe-reveal {
+@keyframes theme-curtain-out-dark {
   from {
-    clip-path: circle(0px at var(--theme-wipe-x) var(--theme-wipe-y));
+    clip-path: inset(0 0 0 0);
   }
   to {
-    clip-path: circle(var(--theme-wipe-radius) at var(--theme-wipe-x) var(--theme-wipe-y));
+    clip-path: inset(0 0 100% 0);
   }
 }
 
-::view-transition-group(root),
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 1000ms;
+@keyframes theme-curtain-in-dark {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes theme-curtain-out-light {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+@keyframes theme-curtain-in-light {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+::view-transition-group(root) {
+  animation-duration: 720ms;
 }
 
 ::view-transition-old(root),
@@ -358,9 +380,25 @@ html.dark {
 }
 
 ::view-transition-new(root) {
-  animation: theme-wipe-reveal 1000ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
-  clip-path: circle(0px at var(--theme-wipe-x) var(--theme-wipe-y));
   z-index: 2;
+}
+
+/* Night falls from the top */
+html.theme-to-dark::view-transition-old(root) {
+  animation: theme-curtain-out-dark 720ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html.theme-to-dark::view-transition-new(root) {
+  animation: theme-curtain-in-dark 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Day rises from the bottom */
+html.theme-to-light::view-transition-old(root) {
+  animation: theme-curtain-out-light 720ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html.theme-to-light::view-transition-new(root) {
+  animation: theme-curtain-in-light 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -406,7 +444,7 @@ html.dark {
     width: 100%;
     max-width: 1380px;
     margin-inline: auto;
-    padding-block: calc(var(--spacing) * 3) calc(var(--spacing) * 5);
+    padding-block: calc(var(--spacing) * 4) calc(var(--spacing) * 6);
     padding-inline: calc(var(--spacing) * 8);
   }
 
@@ -414,7 +452,7 @@ html.dark {
     width: 100%;
     max-width: 1650px;
     margin-inline: auto;
-    padding-block: calc(var(--spacing) * 3) calc(var(--spacing) * 5);
+    padding-block: calc(var(--spacing) * 4) calc(var(--spacing) * 6);
     padding-inline: calc(var(--spacing) * 8);
   }
 
@@ -439,7 +477,7 @@ html.dark {
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
 
   .section-eyebrow {
@@ -463,39 +501,53 @@ html.dark {
 
   .hover-row {
     transition:
-      box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .hover-row:hover {
     border-color: color-mix(in srgb, var(--accent) 28%, var(--card-border));
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--foreground) 5%, transparent);
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 12px 28px color-mix(in srgb, var(--foreground) 6%, transparent);
   }
 
   .hover-panel {
     transition:
-      box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 220ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .hover-panel:hover {
     border-color: color-mix(in srgb, var(--accent) 22%, var(--card-border));
-    box-shadow: 0 4px 18px color-mix(in srgb, var(--foreground) 7%, transparent);
+    box-shadow:
+      0 4px 14px color-mix(in srgb, var(--foreground) 5%, transparent),
+      0 18px 40px color-mix(in srgb, var(--foreground) 6%, transparent);
   }
 
   .surface-card,
   .surface-featured {
     background: var(--card);
-    border: 1px solid var(--card-border);
+    border: 1px solid color-mix(in srgb, var(--card-border) 88%, transparent);
     border-radius: var(--radius);
     box-shadow:
       0 1px 2px color-mix(in srgb, var(--foreground) 3%, transparent),
-      0 4px 12px color-mix(in srgb, var(--foreground) 4%, transparent),
-      0 8px 24px color-mix(in srgb, var(--foreground) 3%, transparent);
+      0 6px 18px color-mix(in srgb, var(--foreground) 4%, transparent),
+      0 16px 40px color-mix(in srgb, var(--foreground) 3%, transparent);
   }
 
   .surface-featured {
     background: var(--featured);
+  }
+
+  .surface-card-quiet {
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--card-border) 92%, transparent);
+    border-radius: var(--radius);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--foreground) 2%, transparent),
+      0 4px 12px color-mix(in srgb, var(--foreground) 3%, transparent);
   }
 
   .skeleton-block {

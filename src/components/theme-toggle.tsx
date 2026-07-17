@@ -25,7 +25,6 @@ export function ThemeToggle() {
   const sunIconRef = React.useRef<AnimatedIconHandle>(null);
   const moonIconRef = React.useRef<AnimatedIconHandle>(null);
 
-  // Avoid hydration mismatch by only rendering after mounting
   React.useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,8 +33,7 @@ export function ThemeToggle() {
   const nextTheme = activeTheme === "dark" ? "light" : "dark";
 
   const applyThemeToDocument = React.useCallback((theme: ThemeMode) => {
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }, []);
 
   const handleToggle = React.useCallback((targetTheme: ThemeMode) => {
@@ -49,30 +47,18 @@ export function ThemeToggle() {
       return;
     }
 
-    const button = buttonRef.current;
     const documentWithTransition = document as DocumentWithViewTransition;
     const startViewTransition = documentWithTransition.startViewTransition?.bind(documentWithTransition);
 
-    if (!button || !startViewTransition) {
+    if (!startViewTransition) {
       setTheme(targetTheme);
       applyThemeToDocument(targetTheme);
       return;
     }
 
-    const rect = button.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const endRadius = Math.max(
-      Math.hypot(centerX, centerY),
-      Math.hypot(window.innerWidth - centerX, centerY),
-      Math.hypot(centerX, window.innerHeight - centerY),
-      Math.hypot(window.innerWidth - centerX, window.innerHeight - centerY),
-    );
     const root = document.documentElement;
-
-    root.style.setProperty("--theme-wipe-x", `${centerX}px`);
-    root.style.setProperty("--theme-wipe-y", `${centerY}px`);
-    root.style.setProperty("--theme-wipe-radius", `${endRadius}px`);
+    root.classList.remove("theme-to-dark", "theme-to-light");
+    root.classList.add(targetTheme === "dark" ? "theme-to-dark" : "theme-to-light");
     setIsAnimating(true);
 
     const transition = startViewTransition(() => {
@@ -83,9 +69,7 @@ export function ThemeToggle() {
     });
 
     transition.finished.catch(() => undefined).finally(() => {
-      root.style.removeProperty("--theme-wipe-x");
-      root.style.removeProperty("--theme-wipe-y");
-      root.style.removeProperty("--theme-wipe-radius");
+      root.classList.remove("theme-to-dark", "theme-to-light");
       setIsAnimating(false);
     });
   }, [applyThemeToDocument, isAnimating, activeTheme, setTheme]);

@@ -120,7 +120,7 @@ export function QuickActionsCard({ className }: { className?: string }) {
     <motion.div
       {...cardMotion}
       className={cn(
-        "bg-card text-card-foreground rounded-xl border border-card-border w-full lg:w-[340px] shrink-0 flex flex-col overflow-hidden h-full",
+        "surface-card w-full lg:w-[340px] shrink-0 flex flex-col overflow-hidden h-full",
         className
       )}
     >

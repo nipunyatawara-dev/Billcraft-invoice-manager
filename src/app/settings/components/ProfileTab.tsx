@@ -346,8 +346,8 @@ export function ProfileTab() {
                     value={profileForm.phone || ""}
                     onChange={(phone) => setProfileForm({ ...profileForm, phone })}
                     hintPhone={profileForm.phone}
-                    inputClassName="py-2.5 text-sm font-semibold bg-background rounded-lg"
-                    selectClassName="py-2.5 text-xs bg-background rounded-lg"
+                    inputClassName="text-sm font-semibold bg-background rounded-lg"
+                    selectClassName="text-xs bg-background rounded-lg"
                   />
                 </div>
               </div>

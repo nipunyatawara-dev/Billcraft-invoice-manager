@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, type RefObject } from "react";
+import { Reveal } from "@/components/reveal";
 import { cn } from "@/lib/utils";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 
@@ -63,7 +64,7 @@ export function PageStatTile({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-card-border bg-card p-4 shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_4%,transparent),0_6px_20px_color-mix(in_srgb,var(--foreground)_4%,transparent)] select-none",
+        "surface-card relative overflow-hidden p-4 select-none transition-[box-shadow,border-color,transform] duration-200 hover:border-accent/25",
         stretch && "flex h-full flex-col",
         className
       )}
@@ -105,9 +106,11 @@ export function PageStatTile({
 
 export function PageStatsRow({ stats, className }: { stats: PageStatItem[]; className?: string }) {
   return (
-    <div className={cn("grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5", className)}>
-      {stats.map((stat) => (
-        <PageStatTile key={stat.label} {...stat} />
+    <div className={cn("grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6", className)}>
+      {stats.map((stat, index) => (
+        <Reveal key={stat.label} index={index} baseDelay={0.1} step={0.07}>
+          <PageStatTile {...stat} />
+        </Reveal>
       ))}
     </div>
   );

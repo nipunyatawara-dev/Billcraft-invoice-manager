@@ -25,6 +25,7 @@ import {
   Pencil, 
   Trash2, 
 } from "lucide-react";
+import { Reveal } from "@/components/reveal";
 
 const EMPTY_FORM: CatalogForm = {
   name: "",
@@ -219,34 +220,36 @@ export default function Catalog() {
     <>
       <main className="app-main flex-1">
         {/* Page Header Area */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-          <div>
-            <AnimatedText as="p" text={PAGE_EYEBROWS["/catalog"]} effect="micro-scale-fade" className="section-eyebrow" />
-            <AnimatedText
-              as="h1"
-              text="Service Catalog"
-              effect="micro-scale-fade"
-              className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-              delayMs={70}
-            />
-            <AnimatedText
-              as="p"
-              text="Manage reusable products, standardized services, and default pricing tiers."
-              effect="micro-scale-fade"
-              className="text-muted mt-2 text-base font-medium"
-              delayMs={140}
-            />
-          </div>
-          <button 
-            onClick={openAddItem} 
-            onMouseEnter={() => plusIconRef.current?.startAnimation()}
-            onMouseLeave={() => plusIconRef.current?.stopAnimation()}
-            className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
-          >
-            <PlusIcon ref={plusIconRef} size={20} />
-            Add Item
-          </button>
-        </header>
+        <Reveal phase="header" className="mb-10">
+          <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <AnimatedText as="p" text={PAGE_EYEBROWS["/catalog"]} effect="micro-scale-fade" className="section-eyebrow" />
+              <AnimatedText
+                as="h1"
+                text="Service Catalog"
+                effect="micro-scale-fade"
+                className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+                delayMs={70}
+              />
+              <AnimatedText
+                as="p"
+                text="Manage reusable products, standardized services, and default pricing tiers."
+                effect="micro-scale-fade"
+                className="text-muted mt-2 text-base font-medium"
+                delayMs={140}
+              />
+            </div>
+            <button 
+              onClick={openAddItem} 
+              onMouseEnter={() => plusIconRef.current?.startAnimation()}
+              onMouseLeave={() => plusIconRef.current?.stopAnimation()}
+              className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-[0.97]"
+            >
+              <PlusIcon ref={plusIconRef} size={20} />
+              Add Item
+            </button>
+          </header>
+        </Reveal>
 
         {/* Overview Stats Bento Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -343,6 +346,7 @@ export default function Catalog() {
           </div>
         </div>
 
+        <Reveal phase="section">
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
           <AnimatedSearchBar
@@ -413,11 +417,12 @@ export default function Catalog() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-card border border-card-border rounded-xl">
+          <div className="text-center py-16 surface-card">
             <Package className="size-10 text-foreground/10 mb-3 mx-auto block" />
             <AnimatedText as="p" text="No catalog items found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}
+        </Reveal>
       </main>
 
       {showModal && (
