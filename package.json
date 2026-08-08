@@ -6,9 +6,19 @@
     "dev": "cross-env WATCHPACK_POLLING=true next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "astryx": "node node_modules/@astryxdesign/cli/bin/astryx.mjs"
   },
   "dependencies": {
+    "@astryxdesign/cli": "^0.1.7",
+    "@astryxdesign/core": "^0.1.7",
+    "@astryxdesign/theme-butter": "^0.1.7",
+    "@astryxdesign/theme-chocolate": "^0.1.7",
+    "@astryxdesign/theme-gothic": "^0.1.7",
+    "@astryxdesign/theme-matcha": "^0.1.7",
+    "@astryxdesign/theme-neutral": "^0.1.7",
+    "@astryxdesign/theme-stone": "^0.1.7",
+    "@astryxdesign/theme-y2k": "^0.1.7",
     "@pdf-lib/fontkit": "^1.1.1",
     "@radix-ui/react-avatar": "^1.2.0",
     "@radix-ui/react-dialog": "^1.1.17",
@@ -52,5 +62,8 @@
     "sharp@0.34.5": true,
     "unrs-resolver@1.11.1": true,
     "fsevents@2.3.2": true
+  },
+  "astryx": {
+    "theme": "@astryxdesign/theme-neutral"
   }
 }

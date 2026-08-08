@@ -1,0 +1,46 @@
+/* Bridge BillCraft legacy CSS vars → Astryx semantic tokens.
+   Lets existing pages/components pick up official Astryx themes during visual migration. */
+html {
+  --background: var(--color-background-body);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-background-card);
+  --card-border: var(--color-border);
+  --muted: var(--color-text-secondary);
+  --accent: var(--color-accent);
+  --accent-hover: var(--color-text-accent);
+  --action: var(--color-accent);
+  --action-hover: var(--color-text-accent);
+  --action-text: var(--color-on-accent);
+  --positive: var(--color-success);
+  --negative: var(--color-error);
+  --featured: var(--color-background-surface);
+  --featured-text: var(--color-text-primary);
+  --featured-muted: var(--color-text-secondary);
+  --chrome: var(--color-background-surface);
+  --chrome-border: var(--color-border);
+  --sidebar-bg: var(--color-background-surface);
+  --field: var(--color-background-surface);
+  --chart-soft: var(--color-accent-muted);
+  --chart-strong: var(--color-accent);
+  --category-1: var(--color-accent);
+  --category-2: var(--color-background-blue);
+  --category-3: var(--color-success);
+  --category-4: var(--color-text-accent);
+
+  /* shadcn mirrors used by leftover ui/* */
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-on-accent);
+  --secondary: var(--color-background-muted);
+  --secondary-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: var(--color-on-error);
+  --popover: var(--color-background-popover);
+  --popover-foreground: var(--color-text-primary);
+  --input: var(--color-border);
+  --ring: var(--color-accent);
+  --border: var(--color-border);
+}
+
+html.dark {
+  color-scheme: dark;
+}

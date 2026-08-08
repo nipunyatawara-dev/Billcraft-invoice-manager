@@ -2,12 +2,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Inter } from "next/font/google";
+import { AstryxProviders } from "@/components/astryx-providers";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { ThemeProvider } from "@/components/theme-provider";
 import { ToastViewport } from "@/components/toast-viewport";
 import { UserDataProvider } from "@/hooks/use-user-data";
+import "./layers.css";
 import "./globals.css";
-import "./palette.css";
+import "./astryx-bridge.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,60 +34,35 @@ export const metadata: Metadata = {
   },
 };
 
-const paletteBootstrapScript = `
+const astryxBootstrapScript = `
 (() => {
-  const paletteIds = new Set(["palette-1", "palette-2", "palette-3", "palette-4", "palette-5", "palette-6", "palette-7"]);
-  const lightKey = "billcraft.light-palette.v1";
-  const darkKey = "billcraft.dark-palette.v1";
-  const fontKey = "billcraft.font.v1";
-  const fontIds = new Set(["inter", "open-sans", "google-sans-flex", "outfit", "plus-jakarta-sans"]);
-  const radiusKey = "billcraft.radius.v1";
-  const radiusIds = new Set(["squircle", "rounded"]);
-  const densityKey = "billcraft.density.v1";
-  const densityIds = new Set(["compact", "standard", "spacious"]);
+  const themeIds = new Set(["neutral", "butter", "chocolate", "matcha", "stone", "gothic", "y2k"]);
+  const modeIds = new Set(["light", "dark", "system"]);
+  const themeKey = "billcraft.astryx-theme.v1";
+  const modeKey = "billcraft.astryx-mode.v1";
+  const darkOnly = new Set(["gothic"]);
 
-  const readPalette = (key, fallback) => {
-    try {
-      const storedPalette = window.localStorage.getItem(key);
-      return paletteIds.has(storedPalette) ? storedPalette : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const readFont = (key, fallback) => {
-    try {
-      const storedFont = window.localStorage.getItem(key);
-      return fontIds.has(storedFont) ? storedFont : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const readRadius = (key, fallback) => {
-    try {
-      const storedRadius = window.localStorage.getItem(key);
-      return radiusIds.has(storedRadius) ? storedRadius : fallback;
-    } catch {
-      return fallback;
-    }
-  };
-
-  const readDensity = (key, fallback) => {
+  const read = (key, allowed, fallback) => {
     try {
       const stored = window.localStorage.getItem(key);
-      return densityIds.has(stored) ? stored : fallback;
+      return allowed.has(stored) ? stored : fallback;
     } catch {
       return fallback;
     }
   };
 
-  document.documentElement.dataset.lightPalette = readPalette(lightKey, "palette-6");
-  document.documentElement.dataset.darkPalette = readPalette(darkKey, "palette-7");
-  document.documentElement.dataset.font = readFont(fontKey, "inter");
-  document.documentElement.dataset.radius = readRadius(radiusKey, "rounded");
-  document.documentElement.dataset.density = readDensity(densityKey, "standard");
+  const themeId = read(themeKey, themeIds, "neutral");
+  let mode = read(modeKey, modeIds, "system");
+  if (darkOnly.has(themeId)) mode = "dark";
 
+  const isDark =
+    mode === "dark" ||
+    (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  document.documentElement.classList.toggle("dark", isDark);
+  document.documentElement.classList.toggle("light", !isDark);
+  document.documentElement.dataset.astryxTheme = themeId;
+  document.documentElement.dataset.astryxMode = mode;
 })();
 `;
 
@@ -107,22 +83,16 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
         />
-        <script dangerouslySetInnerHTML={{ __html: paletteBootstrapScript }} />
+        <script dangerouslySetInnerHTML={{ __html: astryxBootstrapScript }} />
       </head>
-      <body
-        className="font-sans antialiased"
-      >
+      <body className="font-sans antialiased">
         <Script src="https://unpkg.com/@phosphor-icons/web" strategy="afterInteractive" />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-        >
+        <AstryxProviders>
           <UserDataProvider>
             <DashboardLayout>{children}</DashboardLayout>
             <ToastViewport />
           </UserDataProvider>
-        </ThemeProvider>
+        </AstryxProviders>
       </body>
     </html>
   );

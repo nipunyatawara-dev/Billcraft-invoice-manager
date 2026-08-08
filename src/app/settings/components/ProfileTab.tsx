@@ -4,7 +4,7 @@ import { useUserData, type ProfileDraft } from "@/hooks/use-user-data";
 import { getToastErrorMessage, notify, notifyPromise } from "@/lib/toast";
 import { AnimatedText } from "@/components/animated-text";
 import { PhoneInput } from "@/components/phone-input";
-import { useTheme } from "next-themes";
+import { useAstryxAppearance } from "@/hooks/use-astryx-appearance";
 import { 
   User, 
   Camera, 
@@ -29,8 +29,14 @@ import {
 } from "lucide-react";
 
 export function ProfileTab() {
-  const { theme } = useTheme();
-  const activeTheme = theme === "dark" ? "dark" : "light";
+  const { mode } = useAstryxAppearance();
+  const activeTheme =
+    mode === "dark" ||
+    (mode === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ? "dark"
+      : "light";
   const { currency, setCurrency, currencyMode, setCurrencyMode } = useCurrency();
   const { activeProfile, updateProfile, profiles, activeProfileId, switchProfile } = useUserData();
   
