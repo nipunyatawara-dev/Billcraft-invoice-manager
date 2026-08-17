@@ -610,6 +610,15 @@ html.theme-to-light::view-transition-new(root) {
 
   .currency-value {
     font-variant-numeric: tabular-nums;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .slot-text {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    vertical-align: bottom;
   }
 
   .nav-item-active {

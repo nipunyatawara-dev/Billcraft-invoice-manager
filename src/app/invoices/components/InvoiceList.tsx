@@ -155,15 +155,17 @@ export function InvoiceList({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-base font-semibold text-foreground font-display currency-value"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                    <p className="text-[10px] text-foreground/25 tracking-wide uppercase mt-0.5">
+                <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 min-w-0">
+                  <div className="text-right hidden sm:block min-w-0 max-w-[160px]">
+                    <p className="text-base font-semibold text-foreground font-display currency-value truncate" title={formatCurrency(getInvoiceTotal(invoice), currency)}>
+                      <AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} />
+                    </p>
+                    <p className="text-[10px] text-foreground/25 tracking-wide uppercase mt-0.5 truncate" title={`${formatCurrency(getAmountPaid(invoice), currency)} collected`}>
                       <AnimatedNumber value={formatCurrency(getAmountPaid(invoice), currency)} /> collected
                     </p>
                   </div>
                   
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border shrink-0 whitespace-nowrap ${
                     invoice.status === "Paid" 
                       ? "bg-positive/10 border-positive/20 text-positive" 
                       : invoice.status === "Overdue" 
@@ -173,7 +175,7 @@ export function InvoiceList({
                     {paymentState}
                   </span>
                   
-                  <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-bold rounded-md tracking-wider uppercase shrink-0 bg-foreground/[0.03] border border-card-border text-muted">
+                  <span className="hidden md:inline-flex px-2 py-1 text-[10px] font-bold rounded-md tracking-wider uppercase shrink-0 bg-foreground/[0.03] border border-card-border text-muted whitespace-nowrap">
                     {invoice.workflowStatus || "Draft"}
                   </span>
                   
@@ -205,9 +207,13 @@ export function InvoiceList({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-3 sm:hidden">
-                <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} /></p>
-                <p className="text-[11px] font-medium text-muted"><AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due</p>
+              <div className="flex items-center justify-between gap-3 mt-3 sm:hidden min-w-0">
+                <p className="text-base font-semibold text-foreground font-display truncate min-w-0 flex-1" title={formatCurrency(getInvoiceTotal(invoice), currency)}>
+                  <AnimatedNumber value={formatCurrency(getInvoiceTotal(invoice), currency)} />
+                </p>
+                <p className="text-[11px] font-medium text-muted truncate shrink-0" title={`${formatCurrency(balanceDue, currency)} due`}>
+                  <AnimatedNumber value={formatCurrency(balanceDue, currency)} /> due
+                </p>
               </div>
             </div>
           );

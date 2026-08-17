@@ -838,15 +838,15 @@ export default function TodoPage() {
         </Reveal>
 
         {/* Overview Stats — compact row so the board stays primary */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4 min-w-0">
           <div
             onMouseEnter={() => activeTasksIconRef.current?.startAnimation()}
             onMouseLeave={() => activeTasksIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none min-w-0 overflow-hidden"
           >
             <LayersIcon ref={activeTasksIconRef} size={16} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
-            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Active Tasks</span>
-            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0" title="Active Tasks">Active Tasks</span>
+            <span className="text-sm sm:text-base font-bold tabular-nums text-foreground shrink-0 truncate" title={String(stats.active)}>
               <AnimatedNumber value={stats.active} />
             </span>
           </div>
@@ -854,11 +854,11 @@ export default function TodoPage() {
           <div
             onMouseEnter={() => inProgressIconRef.current?.startAnimation()}
             onMouseLeave={() => inProgressIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none min-w-0 overflow-hidden"
           >
             <ClockIcon ref={inProgressIconRef} size={16} className="text-chart-strong shrink-0" />
-            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">In Progress</span>
-            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0" title="In Progress">In Progress</span>
+            <span className="text-sm sm:text-base font-bold tabular-nums text-foreground shrink-0 truncate" title={String(stats.inProgress)}>
               <AnimatedNumber value={stats.inProgress} />
             </span>
           </div>
@@ -866,11 +866,11 @@ export default function TodoPage() {
           <div
             onMouseEnter={() => dueSoonIconRef.current?.startAnimation()}
             onMouseLeave={() => dueSoonIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none min-w-0 overflow-hidden"
           >
             <TriangleAlertIcon ref={dueSoonIconRef} size={16} className="text-accent shrink-0" />
-            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Due Soon</span>
-            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0" title="Due Soon">Due Soon</span>
+            <span className="text-sm sm:text-base font-bold tabular-nums text-foreground shrink-0 truncate" title={String(stats.dueSoon)}>
               <AnimatedNumber value={stats.dueSoon} />
             </span>
           </div>
@@ -878,11 +878,11 @@ export default function TodoPage() {
           <div
             onMouseEnter={() => completedIconRef.current?.startAnimation()}
             onMouseLeave={() => completedIconRef.current?.stopAnimation()}
-            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none"
+            className="flex items-center gap-2.5 bg-card rounded-lg border border-card-border px-3 py-2 group/card transition-colors hover:border-accent/25 select-none min-w-0 overflow-hidden"
           >
             <CheckedIcon ref={completedIconRef} size={16} className="text-positive shrink-0" />
-            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0">Completed</span>
-            <span className="text-base font-bold tabular-nums text-foreground shrink-0">
+            <span className="text-[11px] font-medium text-muted truncate flex-1 min-w-0" title="Completed">Completed</span>
+            <span className="text-sm sm:text-base font-bold tabular-nums text-foreground shrink-0 truncate" title={String(stats.completed)}>
               <AnimatedNumber value={stats.completed} />
             </span>
           </div>

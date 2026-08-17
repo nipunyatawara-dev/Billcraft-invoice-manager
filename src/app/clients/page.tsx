@@ -345,7 +345,7 @@ export default function Clients() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 min-w-0">
           {filteredClients.map((client) => {
             const breakdown = getStatusBreakdown(client.invoices);
             const isSelected = selectedClientId === client.id;
@@ -353,7 +353,7 @@ export default function Clients() {
             const averagePaymentDays = getAveragePaymentDays(client.invoices);
 
             return (
-              <div key={client.id} className="flex flex-col">
+              <div key={client.id} className="flex flex-col min-w-0">
                 <div
                   role="button"
                   tabIndex={0}
@@ -361,13 +361,13 @@ export default function Clients() {
                   aria-controls={`client-details-${client.id}`}
                   onClick={() => toggleClient(client.id)}
                   onKeyDown={(event) => handleClientCardKeyDown(event, client.id)}
-                  className={`bg-card text-card-foreground border p-5 cursor-pointer transition-all duration-300 group ${
+                  className={`bg-card text-card-foreground border p-5 cursor-pointer transition-all duration-300 group min-w-0 overflow-hidden ${
                     isSelected
                       ? "border-accent/30 rounded-t-xl rounded-b-none shadow-xl"
                       : "border-card-border hover:border-foreground/12 hover-row rounded-xl"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
                     <div className="size-12 rounded-xl border border-card-border overflow-hidden shrink-0 flex items-center justify-center font-bold text-sm bg-accent/10 text-accent">
                       {client.avatar ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -377,62 +377,66 @@ export default function Clients() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-[14px] text-foreground truncate">{client.name}</h3>
+                      <div className="flex items-start justify-between gap-3 min-w-0">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-[14px] text-foreground truncate" title={client.name}>{client.name}</h3>
                           <p className="text-[11px] text-muted mt-0.5 truncate">{client.email || client.whatsapp || client.company || "No contact details"}</p>
                         </div>
                         <button
                           onClick={(event) => { event.stopPropagation(); openEdit(client); }}
-                          className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                          className="size-7 inline-flex items-center justify-center rounded-lg bg-background border border-card-border text-muted hover:border-foreground/20 hover:text-foreground hover:shadow-xs transition-all cursor-pointer opacity-0 group-hover:opacity-100 shrink-0"
                           aria-label={`Edit ${client.name}`}
                         >
                           <PenIcon size={14} />
                         </button>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
-                        <div>
-                          <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={formatCurrency(client.totalBilled, currency)} /></p>
-                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase">Total Billed</p>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 min-w-0">
+                        <div className="min-w-0 max-w-[140px]">
+                          <p className="text-base font-semibold text-foreground font-display truncate" title={formatCurrency(client.totalBilled, currency)}>
+                            <AnimatedNumber value={formatCurrency(client.totalBilled, currency)} />
+                          </p>
+                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase truncate">Total Billed</p>
                         </div>
-                        <div className="w-px h-7 bg-card-border" />
-                        <div>
-                          <p className="text-base font-semibold text-foreground font-display"><AnimatedNumber value={client.invoices.length} /></p>
-                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase">Invoices</p>
+                        <div className="w-px h-7 bg-card-border shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-base font-semibold text-foreground font-display truncate">
+                            <AnimatedNumber value={client.invoices.length} />
+                          </p>
+                          <p className="text-[10px] text-foreground/25 tracking-wide uppercase truncate">Invoices</p>
                         </div>
-                        <div className="w-px h-7 bg-card-border" />
-                        <div className="flex flex-wrap gap-1.5">
-                          {breakdown.paid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-positive/10 border border-positive/10 text-positive"><AnimatedNumber value={breakdown.paid} /> paid</span>}
-                          {breakdown.unpaid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-foreground/[0.03] border border-card-border text-muted"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
-                          {breakdown.overdue > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-accent/10 border border-accent/10 text-accent"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
+                        <div className="w-px h-7 bg-card-border shrink-0" />
+                        <div className="flex flex-wrap gap-1.5 min-w-0">
+                          {breakdown.paid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-positive/10 border border-positive/10 text-positive whitespace-nowrap"><AnimatedNumber value={breakdown.paid} /> paid</span>}
+                          {breakdown.unpaid > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-foreground/[0.03] border border-card-border text-muted whitespace-nowrap"><AnimatedNumber value={breakdown.unpaid} /> unpaid</span>}
+                          {breakdown.overdue > 0 && <span className="px-2 py-0.5 text-[9px] font-bold rounded-md tracking-wider uppercase bg-accent/10 border border-accent/10 text-accent whitespace-nowrap"><AnimatedNumber value={breakdown.overdue} /> overdue</span>}
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted min-w-0">
                       {client.phone && (
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[13px]">phone</span>
-                          {client.phone}
+                        <span className="flex items-center gap-1 truncate">
+                          <span className="material-symbols-outlined text-[13px] shrink-0">phone</span>
+                          <span className="truncate">{client.phone}</span>
                         </span>
                       )}
                       {client.whatsapp && (
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[13px]">chat</span>
-                          {client.whatsapp}
+                        <span className="flex items-center gap-1 truncate">
+                          <span className="material-symbols-outlined text-[13px] shrink-0">chat</span>
+                          <span className="truncate">{client.whatsapp}</span>
                         </span>
                       )}
                       {client.company && (
-                        <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[13px]">business</span>
-                          {client.company}
+                        <span className="flex items-center gap-1 truncate">
+                          <span className="material-symbols-outlined text-[13px] shrink-0">business</span>
+                          <span className="truncate">{client.company}</span>
                         </span>
                       )}
                     </div>
-                    <span className={`material-symbols-outlined text-[16px] text-foreground/20 transition-transform duration-200 ${isSelected ? "rotate-180" : ""}`}>
+                    <span className={`material-symbols-outlined text-[16px] text-foreground/20 transition-transform duration-200 shrink-0 ${isSelected ? "rotate-180" : ""}`}>
                       expand_more
                     </span>
                   </div>
@@ -447,20 +451,24 @@ export default function Clients() {
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       exit={shouldReduceMotion ? { opacity: 0, height: 0 } : { opacity: 0, height: 0, y: -6 }}
                       transition={{ duration: shouldReduceMotion ? 0.01 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
+                      className="overflow-hidden min-w-0"
                     >
-                      <div className="rounded-b-xl border border-t-0 border-accent/30 bg-foreground/[0.02] overflow-hidden">
-                        <div className="grid grid-cols-1 gap-3 border-b border-card-border p-5 lg:grid-cols-4">
-                          <div className="rounded-xl border border-card-border p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Outstanding</p>
-                            <p className="mt-1 font-display text-lg font-semibold text-foreground"><AnimatedNumber value={formatCurrency(outstandingBalance, currency)} /></p>
+                      <div className="rounded-b-xl border border-t-0 border-accent/30 bg-foreground/[0.02] overflow-hidden min-w-0">
+                        <div className="grid grid-cols-1 gap-3 border-b border-card-border p-5 lg:grid-cols-4 min-w-0">
+                          <div className="rounded-xl border border-card-border p-3 min-w-0 overflow-hidden">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted truncate">Outstanding</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-foreground truncate block" title={formatCurrency(outstandingBalance, currency)}>
+                              <AnimatedNumber value={formatCurrency(outstandingBalance, currency)} />
+                            </p>
                           </div>
-                          <div className="rounded-xl border border-card-border p-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Avg Pay Time</p>
-                            <p className="mt-1 font-display text-lg font-semibold text-foreground">{averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}</p>
+                          <div className="rounded-xl border border-card-border p-3 min-w-0 overflow-hidden">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted truncate">Avg Pay Time</p>
+                            <p className="mt-1 font-display text-lg font-semibold text-foreground truncate block">
+                              {averagePaymentDays === null ? "No data" : <><AnimatedNumber value={averagePaymentDays} /> days</>}
+                            </p>
                           </div>
-                          <div className="rounded-xl border border-card-border p-3 lg:col-span-2">
-                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">Delivery Location</p>
+                          <div className="rounded-xl border border-card-border p-3 lg:col-span-2 min-w-0 overflow-hidden">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted truncate">Delivery Location</p>
                             {client.deliveryLink ? (
                               <a
                                 href={client.deliveryLink}
@@ -468,6 +476,7 @@ export default function Clients() {
                                 rel="noreferrer"
                                 className="mt-1 block truncate text-[12px] font-semibold text-accent"
                                 onClick={(event) => event.stopPropagation()}
+                                title={client.deliveryLink}
                               >
                                 {client.deliveryLink}
                               </a>

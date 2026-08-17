@@ -327,31 +327,31 @@ export default function Expenses() {
 
         {/* Expenses List */}
         {filteredExpenses.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 min-w-0">
             {filteredExpenses.map((expense) => (
               <div
                 key={expense.id}
-                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover-row"
+                className="bg-card text-card-foreground border border-card-border rounded-xl p-4 sm:p-5 flex flex-col justify-between group relative hover-row min-w-0 overflow-hidden"
               >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-2.5">
-                    <div className="flex items-center gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="size-9 rounded-xl bg-foreground/[0.04] flex items-center justify-center border border-card-border shrink-0">
                         <span className="material-symbols-outlined text-[16px] text-muted">
                           {CATEGORY_ICONS[expense.category] || "payments"}
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-[13px] text-foreground truncate group-hover:text-accent transition-smooth">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-[13px] text-foreground truncate group-hover:text-accent transition-smooth" title={expense.merchant}>
                           {expense.merchant}
                         </h3>
-                        <p className="text-[10px] text-muted mt-0.5 font-medium">
+                        <p className="text-[10px] text-muted mt-0.5 font-medium truncate">
                           {formatDisplayDate(expense.date)}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-display font-semibold text-[14px] text-foreground">
+                    <div className="text-right shrink-0 min-w-0 max-w-[45%]">
+                      <p className="font-display font-semibold text-[14px] text-foreground truncate block" title={formatCurrency(expense.amount, currency)}>
                         {formatCurrency(expense.amount, currency)}
                       </p>
                     </div>

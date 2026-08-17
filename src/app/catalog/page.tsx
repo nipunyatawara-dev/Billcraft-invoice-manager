@@ -252,25 +252,30 @@ export default function Catalog() {
         </Reveal>
 
         {/* Overview Stats Bento Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 min-w-0">
           {/* Total Services */}
           <div 
             onMouseEnter={() => totalItemsRef.current?.startAnimation()}
             onMouseLeave={() => totalItemsRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-4 sm:p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs min-w-0 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Total Services</span>
-              <StackIcon ref={totalItemsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
+            <div className="flex items-center justify-between mb-3 select-none min-w-0 gap-2">
+              <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Total Services">
+                Total Services
+              </span>
+              <StackIcon ref={totalItemsRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
             </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-display">
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-3.5 sm:p-4 min-w-0 overflow-hidden">
+              <div className="flex items-center justify-between gap-2.5 min-w-0">
+                <span 
+                  className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-display min-w-0 flex-1 truncate block"
+                  title={String(stats.totalCount)}
+                >
                   <AnimatedNumber value={stats.totalCount} />
                 </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="h-7 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none whitespace-nowrap">
                     <div>items</div>
                   </div>
                 </div>
@@ -282,14 +287,19 @@ export default function Catalog() {
           <div 
             onMouseEnter={() => avgRateRef.current?.startAnimation()}
             onMouseLeave={() => avgRateRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-4 sm:p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs min-w-0 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Average Rate</span>
-              <WalletIcon ref={avgRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
+            <div className="flex items-center justify-between mb-3 select-none min-w-0 gap-2">
+              <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Average Rate">
+                Average Rate
+              </span>
+              <WalletIcon ref={avgRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
             </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-display">
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-3.5 sm:p-4 min-w-0 overflow-hidden">
+              <span 
+                className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-display min-w-0 truncate block"
+                title={formatCurrency(stats.avgPrice, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(stats.avgPrice, currency)} />
               </span>
             </div>
@@ -299,20 +309,25 @@ export default function Catalog() {
           <div 
             onMouseEnter={() => topServiceRef.current?.startAnimation()}
             onMouseLeave={() => topServiceRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-4 sm:p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs min-w-0 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Premium Rate</span>
-              <StarIcon ref={topServiceRef} size={20} className="text-accent transition-colors" />
+            <div className="flex items-center justify-between mb-3 select-none min-w-0 gap-2">
+              <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Premium Rate">
+                Premium Rate
+              </span>
+              <StarIcon ref={topServiceRef} size={20} className="text-accent transition-colors shrink-0" />
             </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-display">
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-3.5 sm:p-4 min-w-0 overflow-hidden">
+              <div className="flex items-center justify-between gap-2.5 min-w-0">
+                <span 
+                  className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-display min-w-0 flex-1 truncate block"
+                  title={formatCurrency(stats.maxPrice, currency)}
+                >
                   <AnimatedNumber value={formatCurrency(stats.maxPrice, currency)} />
                 </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-positive leading-tight select-none">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="h-7 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-positive leading-tight select-none whitespace-nowrap">
                     <div>max</div>
                   </div>
                 </div>
@@ -324,20 +339,25 @@ export default function Catalog() {
           <div 
             onMouseEnter={() => hourlyRateRef.current?.startAnimation()}
             onMouseLeave={() => hourlyRateRef.current?.stopAnimation()}
-            className="bg-card text-card-foreground rounded-xl border border-card-border p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs"
+            className="bg-card text-card-foreground rounded-xl border border-card-border p-4 sm:p-5 group/card transition-all hover:border-accent/30 hover:shadow-xs min-w-0 overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-3.5 select-none">
-              <span className="text-sm font-semibold text-muted">Hourly Services</span>
-              <ClockIcon ref={hourlyRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
+            <div className="flex items-center justify-between mb-3 select-none min-w-0 gap-2">
+              <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Hourly Services">
+                Hourly Services
+              </span>
+              <ClockIcon ref={hourlyRateRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
             </div>
-            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-display">
+            <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-3.5 sm:p-4 min-w-0 overflow-hidden">
+              <div className="flex items-center justify-between gap-2.5 min-w-0">
+                <span 
+                  className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-display min-w-0 flex-1 truncate block"
+                  title={String(stats.hourlyCount)}
+                >
                   <AnimatedNumber value={stats.hourlyCount} />
                 </span>
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-card-border" />
-                  <div className="text-xs font-semibold text-muted leading-tight select-none">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="h-7 w-px bg-card-border" />
+                  <div className="text-xs font-semibold text-muted leading-tight select-none whitespace-nowrap">
                     <div>billed / hr</div>
                   </div>
                 </div>

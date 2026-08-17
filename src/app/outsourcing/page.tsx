@@ -1123,22 +1123,31 @@ export default function Outsourcing() {
 
             <div className="space-y-6">
               {/* Statistics Grid */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Outstanding</p>
-                  <p className={`mt-1 font-display text-lg font-bold currency-value ${vendorOutstanding > 0 ? "text-chart-strong" : "text-foreground"}`}>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 min-w-0">
+                <div className="rounded-xl border border-card-border p-3.5 sm:p-4 bg-foreground/[0.01] min-w-0 overflow-hidden">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none truncate" title="Outstanding">Outstanding</p>
+                  <p 
+                    className={`mt-1 font-display text-base sm:text-lg font-bold currency-value truncate block ${vendorOutstanding > 0 ? "text-chart-strong" : "text-foreground"}`}
+                    title={formatCurrency(vendorOutstanding, currency)}
+                  >
                     <AnimatedNumber value={formatCurrency(vendorOutstanding, currency)} />
                   </p>
                 </div>
-                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Total Paid</p>
-                  <p className="mt-1 font-display text-lg font-bold text-positive">
+                <div className="rounded-xl border border-card-border p-3.5 sm:p-4 bg-foreground/[0.01] min-w-0 overflow-hidden">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none truncate" title="Total Paid">Total Paid</p>
+                  <p 
+                    className="mt-1 font-display text-base sm:text-lg font-bold text-positive truncate block"
+                    title={formatCurrency(vendorTotalPaid, currency)}
+                  >
                     <AnimatedNumber value={formatCurrency(vendorTotalPaid, currency)} />
                   </p>
                 </div>
-                <div className="rounded-xl border border-card-border p-4 bg-foreground/[0.01]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none">Payables Count</p>
-                  <p className="mt-1 font-display text-lg font-bold text-foreground">
+                <div className="rounded-xl border border-card-border p-3.5 sm:p-4 bg-foreground/[0.01] min-w-0 overflow-hidden">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted select-none truncate" title="Payables Count">Payables Count</p>
+                  <p 
+                    className="mt-1 font-display text-base sm:text-lg font-bold text-foreground truncate block"
+                    title={String(vendorInvoices.length)}
+                  >
                     <AnimatedNumber value={vendorInvoices.length} />
                   </p>
                 </div>

@@ -371,31 +371,36 @@ export default function Home() {
       </Reveal>
 
       {/* STATS CARDS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 min-w-0">
         {/* Outstanding Revenue Card */}
         <Reveal
           index={0}
           baseDelay={0.1}
           onMouseEnter={() => outstandingBilledRef.current?.startAnimation()}
           onMouseLeave={() => outstandingBilledRef.current?.stopAnimation()}
-          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30 min-w-0"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-muted">Outstanding Revenue</span>
-            <FileDescriptionIcon ref={outstandingBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
+          <div className="flex items-center justify-between mb-3 min-w-0 gap-2">
+            <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Outstanding Revenue">
+              Outstanding Revenue
+            </span>
+            <FileDescriptionIcon ref={outstandingBilledRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
           </div>
 
-          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
+          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 min-w-0 overflow-hidden">
+            <div className="flex items-center justify-between gap-3 min-w-0">
+              <span 
+                className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground currency-value min-w-0 flex-1 truncate block"
+                title={formatCurrency(outstandingAmount, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(outstandingAmount, currency)} />
               </span>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <div className="h-9 w-px bg-card-border" />
                 <div className="text-xs font-semibold text-accent leading-tight select-none">
-                  <div>{outstandingCount} open</div>
-                  <div className="text-[10px] text-muted font-normal mt-0.5">invoices</div>
+                  <div className="whitespace-nowrap">{outstandingCount} open</div>
+                  <div className="text-[10px] text-muted font-normal mt-0.5 whitespace-nowrap">invoices</div>
                 </div>
               </div>
             </div>
@@ -408,24 +413,29 @@ export default function Home() {
           baseDelay={0.1}
           onMouseEnter={() => totalCollectedRef.current?.startAnimation()}
           onMouseLeave={() => totalCollectedRef.current?.stopAnimation()}
-          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30 min-w-0"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-muted">Total Collected</span>
-            <WalletIcon ref={totalCollectedRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors" />
+          <div className="flex items-center justify-between mb-3 min-w-0 gap-2">
+            <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Total Collected">
+              Total Collected
+            </span>
+            <WalletIcon ref={totalCollectedRef} size={20} className="text-muted-foreground group-hover/card:text-accent transition-colors shrink-0" />
           </div>
 
-          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
+          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 min-w-0 overflow-hidden">
+            <div className="flex items-center justify-between gap-3 min-w-0">
+              <span 
+                className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground currency-value min-w-0 flex-1 truncate block"
+                title={formatCurrency(totals.paidAmount, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(totals.paidAmount, currency)} />
               </span>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <div className="h-9 w-px bg-card-border" />
                 <div className="text-xs font-semibold text-accent leading-tight select-none">
-                  <div>{totals.paidCount} paid</div>
-                  <div className="text-[10px] text-muted font-normal mt-0.5">settled</div>
+                  <div className="whitespace-nowrap">{totals.paidCount} paid</div>
+                  <div className="text-[10px] text-muted font-normal mt-0.5 whitespace-nowrap">settled</div>
                 </div>
               </div>
             </div>
@@ -438,26 +448,31 @@ export default function Home() {
           baseDelay={0.1}
           onMouseEnter={() => revenueGrowthRef.current?.startAnimation()}
           onMouseLeave={() => revenueGrowthRef.current?.stopAnimation()}
-          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30"
+          className="surface-card p-4 group/card transition-[box-shadow,border-color] duration-200 hover:border-accent/30 min-w-0"
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-muted">Revenue Growth (MoM)</span>
-            <ChartLineIcon ref={revenueGrowthRef} size={20} className={cn("transition-colors", isNegative ? "text-negative" : "text-positive")} />
+          <div className="flex items-center justify-between mb-3 min-w-0 gap-2">
+            <span className="text-sm font-semibold text-muted truncate min-w-0 flex-1" title="Revenue Growth (MoM)">
+              Revenue Growth (MoM)
+            </span>
+            <ChartLineIcon ref={revenueGrowthRef} size={20} className={cn("transition-colors shrink-0", isNegative ? "text-negative" : "text-positive")} />
           </div>
 
-          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground currency-value">
+          <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 min-w-0 overflow-hidden">
+            <div className="flex items-center justify-between gap-3 min-w-0">
+              <span 
+                className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground currency-value min-w-0 flex-1 truncate block"
+                title={formatCurrency(currentMonthRevenue, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(currentMonthRevenue, currency)} />
               </span>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <div className="h-9 w-px bg-card-border" />
                 <div className={cn(
-                  "text-xs font-bold flex items-center gap-1 leading-none select-none",
+                  "text-xs font-bold flex items-center gap-1 leading-none select-none shrink-0 whitespace-nowrap",
                   isPositive ? "text-positive" : isNegative ? "text-negative" : "text-muted"
                 )}>
-                  {isNegative ? <TrendingDown className="size-3.5" /> : <TrendingUp className="size-3.5" />}
+                  {isNegative ? <TrendingDown className="size-3.5 shrink-0" /> : <TrendingUp className="size-3.5 shrink-0" />}
                   <span>{revenueGrowthPercent.toFixed(1)}%</span>
                 </div>
               </div>
@@ -639,31 +654,37 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10 mb-4">
-            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50">
-              <div className="text-[10px] font-bold tracking-widest text-accent uppercase mb-0.5">Receivable</div>
-              <div className="text-lg font-bold text-foreground">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10 mb-4 min-w-0">
+            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50 min-w-0 overflow-hidden">
+              <div className="text-[10px] font-bold tracking-widest text-accent uppercase mb-0.5 truncate" title="Receivable">Receivable</div>
+              <div 
+                className="text-base sm:text-lg font-bold text-foreground truncate min-w-0 block"
+                title={formatCurrency(expectedOutstandingAmount, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(expectedOutstandingAmount, currency)} />
               </div>
             </div>
-            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50">
-              <div className="text-[10px] font-bold tracking-widest text-muted uppercase mb-0.5">Payable</div>
-              <div className="text-lg font-bold text-muted">
+            <div className="bg-foreground/[0.01] rounded-lg p-2.5 border border-card-border/50 min-w-0 overflow-hidden">
+              <div className="text-[10px] font-bold tracking-widest text-muted uppercase mb-0.5 truncate" title="Payable">Payable</div>
+              <div 
+                className="text-base sm:text-lg font-bold text-muted truncate min-w-0 block"
+                title={formatCurrency(expectedOpenPayablesAmount, currency)}
+              >
                 <AnimatedNumber value={formatCurrency(expectedOpenPayablesAmount, currency)} />
               </div>
             </div>
             <div className={cn(
-              "rounded-lg p-2.5 border",
+              "rounded-lg p-2.5 border min-w-0 overflow-hidden",
               expectedCashNet < 0 ? 'bg-negative/5 border-negative/20' : 'bg-accent/5 border-accent/20'
             )}>
               <div className={cn(
-                "text-[10px] font-bold tracking-widest uppercase mb-0.5",
+                "text-[10px] font-bold tracking-widest uppercase mb-0.5 truncate",
                 expectedCashNet < 0 ? 'text-negative' : 'text-accent'
-              )}>Net Open</div>
+              )} title="Net Open">Net Open</div>
               <div className={cn(
-                "text-lg font-bold",
+                "text-base sm:text-lg font-bold truncate min-w-0 block",
                 expectedCashNet < 0 ? 'text-negative' : 'text-foreground'
-              )}>
+              )} title={formatCurrency(expectedCashNet, currency)}>
                 <AnimatedNumber value={formatCurrency(expectedCashNet, currency)} />
               </div>
             </div>

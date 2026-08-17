@@ -395,11 +395,11 @@ function RevenueFlowWidget({
   const revenueChartTotal = revenueChartData.reduce((sum, day) => sum + day.total, 0);
 
   return (
-    <div className="bg-card text-card-foreground border border-card-border rounded-xl group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7 hover-panel">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h3 className="mb-0.5 text-lg font-semibold text-foreground">Client Billing Flow</h3>
-          <p className="text-[12px] font-medium text-muted">
+    <div className="bg-card text-card-foreground border border-card-border rounded-xl group relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-7 hover-panel min-w-0">
+      <div className="mb-5 flex items-center justify-between min-w-0 gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="mb-0.5 text-lg font-semibold text-foreground truncate">Client Billing Flow</h3>
+          <p className="text-[12px] font-medium text-muted truncate">
             {filteredInvoices.length > 0 ? (
               <>
                 <AnimatedNumber value={formatCurrency(revenueChartTotal, currency)} />{" "}
@@ -410,7 +410,7 @@ function RevenueFlowWidget({
             )}
           </p>
         </div>
-        <div className="flex size-9 items-center justify-center rounded-xl bg-accent/10">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent/10">
           <span className="material-symbols-outlined text-[18px] text-accent">monitoring</span>
         </div>
       </div>
@@ -467,14 +467,14 @@ function PaidRatioWidget({
   paidRatio: number;
 }) {
   return (
-    <div className="surface-featured relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7">
-      <div className="relative z-10 mb-3 flex items-center justify-between">
-        <p className="text-[13px] font-medium tracking-wide text-featured-text/50">Paid Ratio</p>
-        <div className="flex size-9 items-center justify-center rounded-xl bg-featured-text/10">
+    <div className="surface-featured relative flex min-h-[320px] flex-col justify-between overflow-hidden p-6 md:col-span-1 lg:col-span-1 lg:p-7 min-w-0">
+      <div className="relative z-10 mb-3 flex items-center justify-between min-w-0 gap-2">
+        <p className="text-[13px] font-medium tracking-wide text-featured-text/50 truncate min-w-0 flex-1">Paid Ratio</p>
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-featured-text/10">
           <span className="material-symbols-outlined text-[18px] text-featured-text/60">pie_chart</span>
         </div>
       </div>
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center min-w-0">
         <div className="relative mb-3 size-32">
           <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
             <path
@@ -494,13 +494,13 @@ function PaidRatioWidget({
               strokeWidth="3"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-2xl font-semibold text-featured-text">
+          <div className="absolute inset-0 flex items-center justify-center px-2">
+            <span className="font-display text-2xl font-semibold text-featured-text truncate block" title={`${paidRatio}%`}>
               <AnimatedNumber value={`${paidRatio}%`} />
             </span>
           </div>
         </div>
-        <p className="text-center text-[12px] font-medium text-featured-text/50">
+        <p className="text-center text-[12px] font-medium text-featured-text/50 truncate max-w-full">
           {filteredInvoices.length > 0 ? (
             <>
               <AnimatedNumber value={`${paidRatio}%`} />{" "}
@@ -619,20 +619,25 @@ function TopClientWidget({
   topClient?: ReturnType<typeof getClientsFromInvoices>[number];
 }) {
   return (
-    <div className={cn("bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px] md:col-span-2", className)}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none">Top Client</span>
-        <div className="flex size-8 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
+    <div className={cn("bg-card text-card-foreground border border-card-border rounded-xl p-5 hover-panel group flex flex-col justify-between min-h-[150px] md:col-span-2 min-w-0 overflow-hidden", className)}>
+      <div className="flex items-center justify-between mb-3 min-w-0 gap-2">
+        <span className="text-[11px] font-bold text-muted tracking-wider uppercase select-none truncate min-w-0 flex-1" title="Top Client">Top Client</span>
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.04] group-hover:bg-accent/10 group-hover:text-accent transition-colors duration-200">
           <span className="material-symbols-outlined text-[16px] text-muted group-hover:text-accent transition-colors">star</span>
         </div>
       </div>
-      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 flex items-center justify-between gap-4 flex-1">
-        <div className="min-w-0">
-          <h3 className="font-display text-lg font-bold text-foreground tracking-tight truncate">{topClient?.name || "No client yet"}</h3>
-          <p className="text-[10px] font-medium text-muted mt-1 leading-relaxed select-none">Highest billed client by invoice total</p>
+      <div className="bg-foreground/[0.015] border border-card-border/50 rounded-lg p-4 flex items-center justify-between gap-4 flex-1 min-w-0 overflow-hidden">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-base sm:text-lg font-bold text-foreground tracking-tight truncate" title={topClient?.name || "No client yet"}>
+            {topClient?.name || "No client yet"}
+          </h3>
+          <p className="text-[10px] font-medium text-muted mt-1 leading-relaxed select-none truncate">Highest billed client by invoice total</p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-xl font-bold text-accent font-display">
+        <div className="shrink-0 text-right min-w-0 max-w-[50%]">
+          <p 
+            className="text-lg sm:text-xl font-bold text-accent font-display truncate block"
+            title={formatCurrency(topClient?.totalBilled || 0, currency)}
+          >
             <AnimatedNumber value={formatCurrency(topClient?.totalBilled || 0, currency)} />
           </p>
           <p className="text-[9px] font-bold text-muted uppercase tracking-wider select-none">Total</p>
@@ -736,8 +741,8 @@ function StatusMixWidget({
 function StatusMiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="truncate text-[12px] font-semibold text-foreground">{value}</p>
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-muted">{label}</p>
+      <p className="truncate text-[12px] font-semibold text-foreground" title={value}>{value}</p>
+      <p className="text-[9px] font-semibold uppercase tracking-wide text-muted truncate" title={label}>{label}</p>
     </div>
   );
 }
@@ -859,11 +864,11 @@ function CollectionGaugeWidget({
             tooltipVariant="frosted-glass"
             legendVariant="rounded-square"
           />
-          <div className="mt-2 text-center">
-            <p className="font-display text-3xl font-semibold text-foreground">
+          <div className="mt-2 text-center min-w-0">
+            <p className="font-display text-2xl sm:text-3xl font-semibold text-foreground truncate" title={`${collectionRate}%`}>
               <AnimatedNumber value={`${collectionRate}%`} />
             </p>
-            <p className="mt-1 text-[11px] font-medium text-muted">Collected by value</p>
+            <p className="mt-1 text-[11px] font-medium text-muted truncate">Collected by value</p>
           </div>
         </>
       ) : (
