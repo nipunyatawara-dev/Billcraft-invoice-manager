@@ -48,3 +48,5 @@ next-env.d.ts
 *.iws
 *.ipr
 
+AGENTS.md
+CLAUDE.md

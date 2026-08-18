@@ -48,6 +48,7 @@ import { PageStatsRow } from "@/components/page-stats-row";
 import { Reveal } from "@/components/reveal";
 import PenIcon from "@/components/icons/pen-icon";
 import DownloadIcon from "@/components/icons/download-icon";
+import { Users, Plus } from "lucide-react";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import {
   STATUS_FILTERS,
@@ -687,7 +688,7 @@ export default function Outsourcing() {
             <div className="surface-card p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-card-border pb-3 select-none">
                 <div className="flex items-center gap-2">
-                  <i className="ph ph-users text-lg text-muted-foreground"></i>
+                  <Users className="size-4 text-muted-foreground" />
                   <h2 className="text-[11.5px] font-bold text-muted tracking-wider uppercase">Saved Vendors ({vendors.length})</h2>
                 </div>
                 <button 
@@ -697,9 +698,9 @@ export default function Outsourcing() {
                     setForm({ ...createEmptyForm(), vendorMode: "new" });
                     setModalMode("create");
                   }} 
-                  className="text-[11px] text-accent font-bold hover:text-accent-hover flex items-center gap-1 tracking-wider uppercase hover:underline"
+                  className="text-[11px] text-accent font-bold hover:text-accent-hover flex items-center gap-1 tracking-wider uppercase hover:underline cursor-pointer"
                 >
-                  <i className="ph ph-plus text-xs"></i> Add
+                  <Plus className="size-3" /> Add
                 </button>
               </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from 'react';
+import { Search, X } from 'lucide-react';
 
 interface AnimatedSearchBarProps {
   value: string;
@@ -20,7 +21,7 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
   return (
     <div className={`relative w-full sm:w-[320px] search-field group ${className}`}>
       {/* Search Icon on the left */}
-      <i className="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60 text-[17px] pointer-events-none transition-colors duration-200 group-focus-within:text-accent" />
+      <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted/60 pointer-events-none transition-colors duration-200 group-focus-within:text-accent" />
       
       <input
         ref={inputRef}
@@ -33,13 +34,14 @@ export function AnimatedSearchBar({ value, onChange, placeholder = "Search...", 
       
       {/* Clear Button on the right */}
       <button
+        type="button"
         onClick={handleClear}
-        className={`absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-200 ${
+        className={`absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all duration-200 cursor-pointer active:scale-95 ${
           value ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'
         }`}
         aria-label="Clear search"
       >
-        <i className="ph ph-x text-[15px]"></i>
+        <X className="size-3.5" />
       </button>
     </div>
   );

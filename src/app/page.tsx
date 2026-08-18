@@ -226,8 +226,8 @@ export default function Home() {
 
   const { currency } = useCurrency();
   const { invoices, activeProfile, outsourcingInvoices } = useUserData();
-  const [greeting, setGreeting] = useState("Good Morning");
-  const [hasSyncedGreeting, setHasSyncedGreeting] = useState(false);
+  const [greeting, setGreeting] = useState(getTimeBasedGreeting);
+  const [hasSyncedGreeting, setHasSyncedGreeting] = useState(true);
   const [expectedTimeframe, setExpectedTimeframe] = useState("30days");
   const [isTimeframeOpen, setIsTimeframeOpen] = useState(false);
   const [chartType, setChartType] = useState<"area" | "line" | "bar">("area");
@@ -306,12 +306,8 @@ export default function Home() {
       setGreeting(getTimeBasedGreeting());
       setHasSyncedGreeting(true);
     };
-    const frame = window.requestAnimationFrame(syncGreeting);
     const interval = window.setInterval(syncGreeting, 60_000);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearInterval(interval);
-    };
+    return () => window.clearInterval(interval);
   }, []);
 
   const isPositive = revenueGrowthPercent > 0;
@@ -397,7 +393,7 @@ export default function Home() {
               </span>
 
               <div className="flex items-center gap-3 shrink-0">
-                <div className="h-9 w-px bg-card-border" />
+                <div className="h-7 w-px bg-card-border/80" />
                 <div className="text-xs font-semibold text-accent leading-tight select-none">
                   <div className="whitespace-nowrap">{outstandingCount} open</div>
                   <div className="text-[10px] text-muted font-normal mt-0.5 whitespace-nowrap">invoices</div>
@@ -432,7 +428,7 @@ export default function Home() {
               </span>
 
               <div className="flex items-center gap-3 shrink-0">
-                <div className="h-9 w-px bg-card-border" />
+                <div className="h-7 w-px bg-card-border/80" />
                 <div className="text-xs font-semibold text-accent leading-tight select-none">
                   <div className="whitespace-nowrap">{totals.paidCount} paid</div>
                   <div className="text-[10px] text-muted font-normal mt-0.5 whitespace-nowrap">settled</div>
@@ -467,12 +463,12 @@ export default function Home() {
               </span>
 
               <div className="flex items-center gap-3 shrink-0">
-                <div className="h-9 w-px bg-card-border" />
+                <div className="h-7 w-px bg-card-border/80" />
                 <div className={cn(
                   "text-xs font-bold flex items-center gap-1 leading-none select-none shrink-0 whitespace-nowrap",
                   isPositive ? "text-positive" : isNegative ? "text-negative" : "text-muted"
                 )}>
-                  {isNegative ? <TrendingDown className="size-3.5 shrink-0" /> : <TrendingUp className="size-3.5 shrink-0" />}
+                  {isNegative ? <TrendingDown className="size-3.5 shrink-0 -translate-y-[0.5px]" /> : <TrendingUp className="size-3.5 shrink-0 -translate-y-[0.5px]" />}
                   <span>{revenueGrowthPercent.toFixed(1)}%</span>
                 </div>
               </div>
@@ -490,7 +486,7 @@ export default function Home() {
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
             <History className="size-4 text-muted" /> Recent Invoices
           </h2>
-          <Link href="/invoices" className="text-accent font-semibold text-sm hover:text-accent/80 transition-colors flex items-center gap-1 group">
+          <Link href="/invoices" className="text-accent font-semibold text-sm hover:text-accent/80 transition-colors flex items-center gap-1.5 px-2 py-1 -mr-2 rounded-lg hover:bg-accent/5 group">
             View All <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -526,7 +522,7 @@ export default function Home() {
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={cn(
-                      "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border",
+                      "inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border",
                       inv.status === "Paid" 
                         ? "bg-positive/10 border-positive/20 text-positive" 
                         : inv.status === "Overdue" 
@@ -590,14 +586,14 @@ export default function Home() {
             
             <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
               {/* Chart Type Selector */}
-              <div className="flex items-center bg-foreground/[0.03] border border-card-border rounded-lg p-0.5 select-none shrink-0">
+              <div className="h-8 flex items-center bg-foreground/[0.03] border border-card-border rounded-lg p-0.5 select-none shrink-0">
                 {(["area", "line", "bar"] as const).map((type) => (
                   <button
                     key={type}
                     type="button"
                     onClick={() => setChartType(type)}
                     className={cn(
-                      "px-2.5 py-1 text-[11px] font-semibold rounded-md capitalize transition-all cursor-pointer",
+                      "h-full px-2.5 text-[11px] font-semibold rounded-md capitalize transition-all cursor-pointer flex items-center justify-center",
                       chartType === type
                         ? "bg-card text-foreground shadow-xs"
                         : "text-muted hover:text-foreground"
@@ -613,7 +609,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setIsTimeframeOpen(!isTimeframeOpen)}
-                  className="flex items-center gap-1.5 bg-card hover:bg-foreground/5 border border-card-border rounded-lg px-2.5 py-1 text-xs font-semibold text-foreground transition-all outline-none cursor-pointer h-7"
+                  className="h-8 flex items-center gap-1.5 bg-card hover:bg-foreground/5 border border-card-border rounded-lg px-2.5 text-xs font-semibold text-foreground transition-all outline-none cursor-pointer"
                 >
                   <span>{timeframeOptions.find(o => o.value === expectedTimeframe)?.label}</span>
                   <ChevronDown className={cn("size-3.5 text-muted transition-transform duration-300", isTimeframeOpen && "rotate-180")} />

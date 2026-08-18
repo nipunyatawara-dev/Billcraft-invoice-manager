@@ -51,10 +51,15 @@ export function ClientFormModal({
           Profile & Company
         </h3>
         <div className="flex items-center gap-3">
-          <label className="relative size-12 rounded-xl bg-foreground/[0.04] hover:bg-foreground/[0.08] flex items-center justify-center shrink-0 border border-card-border border-dashed cursor-pointer transition-[background-color,border-color] duration-200 ease-out">
+          <label className="relative size-12 rounded-xl bg-foreground/[0.04] hover:bg-foreground/[0.08] flex items-center justify-center shrink-0 border border-card-border border-dashed cursor-pointer transition-[background-color,border-color] duration-200 ease-out group/avatar overflow-hidden">
             <input type="file" accept="image/*" onChange={onImageChange} className="sr-only" />
             {form.avatar ? (
-              <img className="size-full rounded-xl object-cover outline outline-1 -outline-offset-1 outline-foreground/10" alt="Client preview" src={form.avatar} />
+              <>
+                <img className="size-full rounded-xl object-cover" alt="Client preview" src={form.avatar} />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
+                  <ImagePlus className="size-4 text-white" />
+                </div>
+              </>
             ) : (
               <ImagePlus className="size-5 text-muted/70" />
             )}

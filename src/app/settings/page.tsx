@@ -76,6 +76,14 @@ function SettingsContent() {
     return () => observer.disconnect();
   }, []);
 
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [activeTab]);
+
   return (
     <main 
       style={{ "--settings-header-height": `${headerHeight}px` } as React.CSSProperties}
@@ -117,8 +125,9 @@ function SettingsContent() {
               return (
                 <button
                   key={tab.id}
+                  ref={isActive ? activeTabRef : undefined}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 ${
+                  className={`group relative flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-300 snap-center min-w-[200px] lg:min-w-0 cursor-pointer active:scale-[0.98] ${
                     isActive
                       ? "nav-item-active shadow-sm"
                       : "text-muted hover:bg-foreground/[0.03] hover:text-foreground"

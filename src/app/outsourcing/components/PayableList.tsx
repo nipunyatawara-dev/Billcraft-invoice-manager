@@ -10,6 +10,7 @@ import {
 import PenIcon from "@/components/icons/pen-icon";
 import SendIcon from "@/components/icons/send-icon";
 import DownloadIcon from "@/components/icons/download-icon";
+import { FolderOpen } from "lucide-react";
 import { STATUS_FILTERS, getOutsourcingPaymentState } from "../outsourcing-helpers";
 
 type PayableListProps = {
@@ -151,7 +152,7 @@ export function PayableList({
 
         {filteredInvoices.length === 0 && (
           <div className="text-center py-20 bg-card/40 border border-card-border border-dashed rounded-xl">
-            <i className="ph ph-folder-open text-[48px] text-foreground/15 mb-3 block"></i>
+            <FolderOpen className="mx-auto size-10 text-foreground/15 mb-3" />
             <AnimatedText as="p" text="No outsourcing payables found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}

@@ -21,7 +21,7 @@ import TrashIcon from "@/components/icons/trash-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
 import { Reveal } from "@/components/reveal";
-
+import { Plane, Terminal, FileText, Utensils, Megaphone, Scale, Folder, Receipt } from "lucide-react";
 
 const EMPTY_FORM: ExpenseForm = {
   merchant: "",
@@ -43,15 +43,25 @@ const CATEGORIES: Expense["category"][] = [
   "Other",
 ];
 
-const CATEGORY_ICONS: Record<Expense["category"], string> = {
-  Travel: "flight",
-  Software: "terminal",
-  "Office Supplies": "content_paste",
-  Meals: "restaurant",
-  Marketing: "campaign",
-  "Tax/Legal": "gavel",
-  Other: "category",
-};
+function CategoryIcon({ category, className }: { category: Expense["category"]; className?: string }) {
+  switch (category) {
+    case "Travel":
+      return <Plane className={className} />;
+    case "Software":
+      return <Terminal className={className} />;
+    case "Office Supplies":
+      return <FileText className={className} />;
+    case "Meals":
+      return <Utensils className={className} />;
+    case "Marketing":
+      return <Megaphone className={className} />;
+    case "Tax/Legal":
+      return <Scale className={className} />;
+    case "Other":
+    default:
+      return <Folder className={className} />;
+  }
+}
 
 export default function Expenses() {
   const plusIconRef = useRef<AnimatedIconHandle>(null);
@@ -337,9 +347,7 @@ export default function Expenses() {
                   <div className="flex items-start justify-between gap-3 mb-2.5 min-w-0">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="size-9 rounded-xl bg-foreground/[0.04] flex items-center justify-center border border-card-border shrink-0">
-                        <span className="material-symbols-outlined text-[16px] text-muted">
-                          {CATEGORY_ICONS[expense.category] || "payments"}
-                        </span>
+                        <CategoryIcon category={expense.category} className="size-4 text-muted" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="font-semibold text-[13px] text-foreground truncate group-hover:text-accent transition-smooth" title={expense.merchant}>
@@ -407,7 +415,7 @@ export default function Expenses() {
           </div>
         ) : (
           <div className="surface-card p-5 text-center py-16">
-            <span className="material-symbols-outlined text-[42px] text-foreground/10 mb-3 block">receipt_long</span>
+            <Receipt className="mx-auto size-10 text-foreground/10 mb-3" />
             <AnimatedText as="p" text="No expenses found" effect="per-word-crossfade" className="text-[13px] text-muted font-medium" />
           </div>
         )}

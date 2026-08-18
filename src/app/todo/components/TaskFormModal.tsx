@@ -201,9 +201,9 @@ export function TaskFormModal({
                   setClientMode("select");
                   setForm({ ...form, client: "" });
                 }}
-                className="text-[10px] font-bold text-accent hover:underline shrink-0"
+                className="btn-secondary min-h-8 px-2.5 text-[11px] font-semibold rounded-lg cursor-pointer shrink-0"
               >
-                Saved
+                Saved Clients
               </button>
             </div>
           )}

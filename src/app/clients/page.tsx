@@ -22,6 +22,16 @@ import PenIcon from "@/components/icons/pen-icon";
 import type { AnimatedIconHandle } from "@/components/icons/types";
 import { PageStatsRow } from "@/components/page-stats-row";
 import { Reveal } from "@/components/reveal";
+import { Phone, MessageSquare, Building2, ChevronDown } from "lucide-react";
+
+function getClientInitials(name: string): string {
+  if (!name) return "C";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
 
 type ClientWithInvoices = Client & { invoices: Invoice[]; totalBilled: number };
 
@@ -373,7 +383,7 @@ export default function Clients() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img className="w-full h-full object-cover" alt={client.name} src={client.avatar} />
                       ) : (
-                        (client.name || "C")[0].toUpperCase()
+                        getClientInitials(client.name)
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -418,27 +428,25 @@ export default function Clients() {
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
                     <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted min-w-0">
                       {client.phone && (
-                        <span className="flex items-center gap-1 truncate">
-                          <span className="material-symbols-outlined text-[13px] shrink-0">phone</span>
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Phone className="size-3 text-muted/70 shrink-0" />
                           <span className="truncate">{client.phone}</span>
                         </span>
                       )}
                       {client.whatsapp && (
-                        <span className="flex items-center gap-1 truncate">
-                          <span className="material-symbols-outlined text-[13px] shrink-0">chat</span>
+                        <span className="flex items-center gap-1.5 truncate">
+                          <MessageSquare className="size-3 text-muted/70 shrink-0" />
                           <span className="truncate">{client.whatsapp}</span>
                         </span>
                       )}
                       {client.company && (
-                        <span className="flex items-center gap-1 truncate">
-                          <span className="material-symbols-outlined text-[13px] shrink-0">business</span>
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Building2 className="size-3 text-muted/70 shrink-0" />
                           <span className="truncate">{client.company}</span>
                         </span>
                       )}
                     </div>
-                    <span className={`material-symbols-outlined text-[16px] text-foreground/20 transition-transform duration-200 shrink-0 ${isSelected ? "rotate-180" : ""}`}>
-                      expand_more
-                    </span>
+                    <ChevronDown className={`size-4 text-muted/60 transition-transform duration-200 shrink-0 ${isSelected ? "rotate-180" : ""}`} />
                   </div>
                 </div>
 

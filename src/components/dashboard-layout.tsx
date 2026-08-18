@@ -104,10 +104,7 @@ function SidebarLink({ item, isActive, tooltip }: SidebarLinkProps) {
         onMouseLeave={() => iconRef.current?.stopAnimation()}
         className="flex items-center w-full"
       >
-        <div className={cn(
-          "flex items-center justify-center size-8 shrink-0",
-          item.iconKey === "outsourcing" && "translate-x-[2px]"
-        )}>
+        <div className="flex items-center justify-center size-8 shrink-0">
           <IconComponent
             ref={iconRef}
             size={size}
@@ -329,20 +326,23 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-3 sm:gap-4">
               {/* Global Command Palette search trigger */}
               <button 
+                type="button"
                 onClick={() => setIsCommandPaletteOpen(true)}
-                className="relative group hidden sm:flex items-center text-left pl-10 pr-12 h-10 bg-card border border-card-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-64 shadow-xs transition-all text-muted hover:border-foreground/20 hover:bg-foreground/[0.01]" 
+                className="relative group hidden sm:flex items-center text-left pl-10 pr-14 h-10 bg-card border border-card-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-64 shadow-xs transition-all text-muted hover:border-foreground/20 hover:bg-foreground/[0.01] cursor-pointer" 
               >
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted group-hover:text-accent size-4 transition-colors" />
                 <span className="text-sm select-none text-muted/80">Search...</span>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 text-[9px] font-sans font-medium text-muted border border-card-border rounded-md bg-foreground/[0.02] pointer-events-none select-none">{osKey} F/K</kbd>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 text-[10px] font-sans font-medium text-muted border border-card-border rounded-md bg-foreground/[0.02] pointer-events-none select-none leading-none">{osKey} F/K</kbd>
                 </div>
               </button>
 
               {/* Search Shortcut Trigger (Icon only for small Header) */}
               <button 
+                type="button"
                 onClick={() => setIsCommandPaletteOpen(true)}
-                className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs sm:hidden"
+                aria-label="Search"
+                className="size-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs sm:hidden cursor-pointer" 
               >
                 <Search className="size-5" />
               </button>
@@ -363,11 +363,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     onClick={handleBellClick}
                     aria-label="Notifications"
                     aria-expanded={isNotificationsOpen}
-                    className="h-10 w-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative"
+                    className="size-10 shrink-0 flex items-center justify-center border border-card-border bg-card rounded-xl text-muted hover:text-foreground hover:border-foreground/20 transition-all shadow-xs relative cursor-pointer"
                   >
                     <Bell className="size-5" />
                     {alertCount > 0 && (
-                      <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full ring-2 ring-card animate-pulse" />
+                      <span className="absolute top-2 right-2 size-2 bg-accent rounded-full ring-2 ring-card animate-pulse" />
                     )}
                   </button>
                 }
@@ -379,9 +379,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 onClick={() => setIsProfileModalOpen(true)}
                 aria-label="Switch profile"
                 aria-expanded={isProfileModalOpen}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-3 sm:pl-4 border-l border-card-border h-10"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity pl-3 sm:pl-4 border-l border-card-border h-10 cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden select-none border border-card-border/50 shadow-sm shrink-0">
+                <div className="size-8 rounded-xl bg-accent/10 text-accent flex items-center justify-center font-semibold overflow-hidden select-none border border-card-border/50 shadow-sm shrink-0">
                   {activeProfile?.profilePic ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img className="h-full w-full object-cover" alt={activeProfile.name} src={activeProfile.profilePic} />
@@ -390,8 +390,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </div>
                 <div className="text-left hidden md:block">
-                  <div className="text-sm font-semibold text-foreground leading-tight max-w-[120px] truncate">{activeProfile?.name || "Guest"}</div>
-                  <div className="text-[10px] text-muted font-medium truncate max-w-[120px]">{activeProfile?.profession || "Setup required"}</div>
+                  <div className="text-sm font-semibold text-foreground leading-tight max-w-[160px] truncate">{activeProfile?.name || "Guest"}</div>
+                  <div className="text-[10px] text-muted font-medium truncate max-w-[160px]">{activeProfile?.profession || "Setup required"}</div>
                 </div>
                 <ChevronDown
                   className={cn(
