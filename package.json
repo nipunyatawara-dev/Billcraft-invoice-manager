@@ -45,7 +45,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "8.5.10"
+    "postcss": "^8.5.26"
   },
   "allowScripts": {
     "msw@2.14.2": true,
